@@ -756,18 +756,21 @@ $(document).ready(function() {
     $('#batch_id').on('change', function() { loadAdmissionBatches($(this).val(), ''); });
 
     function createInput(currentVal) {
-        var v = (currentVal === '-' || !currentVal) ? '' : currentVal;
-        return '<div class="edit-form"><input type="text" class="form-control form-control-sm" value="' + (v.replace(/"/g, '&quot;')) + '"><div class="btn-group mt-1"><button type="button" class="btn btn-success btn-sm save-edit">Save</button><button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button></div></div>';
+        // jQuery .data() parses numeric data-current as a number; .replace() requires a string.
+        var s = (currentVal === undefined || currentVal === null) ? '' : String(currentVal);
+        var v = (s === '-' || s === '') ? '' : s;
+        return '<div class="edit-form"><input type="text" class="form-control form-control-sm" value="' + v.replace(/"/g, '&quot;') + '"><div class="btn-group mt-1"><button type="button" class="btn btn-success btn-sm save-edit">Save</button><button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button></div></div>';
     }
     function createDateInput(currentVal) {
-        var v = (currentVal && currentVal !== '-') ? currentVal : '';
+        var s = (currentVal === undefined || currentVal === null) ? '' : String(currentVal);
+        var v = (s && s !== '-') ? s : '';
         return '<div class="edit-form"><input type="date" class="form-control form-control-sm" value="' + v + '"><div class="btn-group mt-1"><button type="button" class="btn btn-success btn-sm save-edit">Save</button><button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button></div></div>';
     }
     function createSelect(options, currentVal) {
         var opts = '<option value="">--</option>';
         if (typeof options === 'string') options = JSON.parse(options);
         for (var k in options) {
-            opts += '<option value="' + k + '"' + (currentVal === k ? ' selected' : '') + '>' + options[k] + '</option>';
+            opts += '<option value="' + k + '"' + (String(currentVal) === String(k) ? ' selected' : '') + '>' + options[k] + '</option>';
         }
         return '<div class="edit-form"><select class="form-select form-select-sm">' + opts + '</select><div class="btn-group mt-1"><button type="button" class="btn btn-success btn-sm save-edit">Save</button><button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button></div></div>';
     }
@@ -788,7 +791,8 @@ $(document).ready(function() {
         e.stopPropagation();
         var $c = $(this).closest('.inline-edit');
         var field = $c.data('field');
-        var current = $c.data('current') || '';
+        var rawCurrent = $c.data('current');
+        var current = (rawCurrent === undefined || rawCurrent === null) ? '' : rawCurrent;
         $('.inline-edit').removeClass('editing').find('.edit-form').remove();
         var html = '';
         if (field === 'batch_id') {
