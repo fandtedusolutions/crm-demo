@@ -4,6 +4,7 @@
     td .mentor-flag-field {
         position: relative;
         min-width: 100px;
+        overflow: visible;
     }
 
     td .mentor-flag-field.editing > .edit-btn {
@@ -13,34 +14,33 @@
     .mentor-flag-field.inline-edit .flag-edit-form {
         display: none !important;
         position: absolute;
-        top: 0;
+        top: 100%;
         left: 0 !important;
+        margin-top: 6px;
         z-index: 1060;
         background: #fff;
         border: 1px solid #dee2e6;
         border-radius: 6px;
         padding: 10px;
-        min-width: 300px;
-        max-width: 360px;
+        min-width: 320px;
+        max-width: 420px;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        overflow: visible;
     }
 
     .mentor-flag-field.inline-edit.editing .flag-edit-form {
-        display: flex !important;
-        flex-direction: column;
+        display: block !important;
+    }
+
+    .mentor-flag-field .flag-edit-form .flag-edit-row {
+        display: flex;
+        align-items: flex-start;
         gap: 8px;
     }
 
-    .mentor-flag-field.editing .display-value {
-        visibility: hidden;
-        height: 0;
-        overflow: hidden;
-        margin: 0;
-        padding: 0;
-    }
-
     .mentor-flag-field .flag-edit-form .flag-select-wrap {
-        width: 100%;
+        flex: 1;
+        min-width: 0;
     }
 
     .mentor-flag-field .flag-edit-form .select2-container {
@@ -66,14 +66,21 @@
 
     .mentor-flag-field .flag-edit-form .flag-edit-actions {
         display: flex;
+        flex-direction: row;
+        flex-shrink: 0;
+        align-items: center;
         gap: 6px;
-        width: 100%;
+        padding-top: 2px;
     }
 
     .mentor-flag-field .flag-edit-form .flag-edit-actions .btn {
-        flex: 1;
-        padding: 5px 10px;
+        padding: 5px 12px;
         font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .mentor-flag-field .flag-edit-form .select2-dropdown {
+        border-radius: 4px;
     }
 
     /* Dropdown list: full description readable */
@@ -102,8 +109,16 @@
         padding: 8px 10px;
     }
 
-    .select2-container--open .select2-dropdown--below {
-        min-width: 300px;
+    .mentor-flag-field .flag-edit-form .select2-container--open .select2-dropdown {
+        width: 100% !important;
+        left: 0 !important;
+        min-width: 0;
+    }
+
+    .mentor-flag-field .flag-edit-form .select2-container--open .select2-dropdown--below {
+        margin-top: 4px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
     }
 </style>
 @endpush
@@ -176,8 +191,11 @@
             return;
         }
 
+        const $form = $select.closest('.flag-edit-form');
+        const dropdownParent = $form.length ? $form : getFlagDropdownParent();
+
         $select.select2({
-            dropdownParent: getFlagDropdownParent(),
+            dropdownParent: dropdownParent,
             width: '100%',
             placeholder: 'Select Flag',
             allowClear: true,
@@ -192,14 +210,16 @@
     function createFlagEditForm() {
         return `
             <div class="edit-form flag-edit-form">
-                <div class="flag-select-wrap">
-                    <select class="form-select form-select-sm flag-select-edit">
-                        <option value="">Loading flags...</option>
-                    </select>
-                </div>
-                <div class="flag-edit-actions">
-                    <button type="button" class="btn btn-success btn-sm mentor-flag-save-edit">Save</button>
-                    <button type="button" class="btn btn-secondary btn-sm mentor-flag-cancel-edit">Cancel</button>
+                <div class="flag-edit-row">
+                    <div class="flag-select-wrap">
+                        <select class="form-select form-select-sm flag-select-edit">
+                            <option value="">Loading flags...</option>
+                        </select>
+                    </div>
+                    <div class="flag-edit-actions">
+                        <button type="button" class="btn btn-success btn-sm mentor-flag-save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm mentor-flag-cancel-edit">Cancel</button>
+                    </div>
                 </div>
             </div>
         `;

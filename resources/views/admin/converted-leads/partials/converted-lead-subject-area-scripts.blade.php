@@ -14,13 +14,21 @@
 @push('scripts')
 <script>
 (function() {
-    function parseCurrentIds(raw) {
+    function getCurrentIds(container) {
+        const raw = container.attr('data-current-ids');
         if (!raw || String(raw).trim() === '') {
             return [];
         }
         return String(raw).split(',').map(function(id) {
             return String(id).trim();
         }).filter(Boolean);
+    }
+
+    function normalizeSelectedIds(value) {
+        if (value == null || value === '') {
+            return [];
+        }
+        return Array.isArray(value) ? value.map(String) : [String(value)];
     }
 
     function destroySubjectAreaSelect2($select) {
@@ -73,6 +81,17 @@
         container.find('.edit-form').remove();
     }
 
+    function buildSavePayload(field, ids, token) {
+        const payload = {
+            field: field,
+            _token: token
+        };
+        ids.forEach(function(id, index) {
+            payload['value[' + index + ']'] = id;
+        });
+        return payload;
+    }
+
     $(document).on('click', '.converted-lead-subject-area-field .edit-btn', function(e) {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -86,7 +105,7 @@
             closeSubjectAreaEdit($(this));
         });
 
-        const currentIds = parseCurrentIds(container.data('current-ids'));
+        const currentIds = getCurrentIds(container);
         container.addClass('editing');
         container.append(createSubjectAreaEditForm());
         const $form = container.find('.subject-area-edit-form');
@@ -105,7 +124,7 @@
 
         const container = $(this).closest('.converted-lead-subject-area-field');
         const id = container.data('id');
-        const value = container.find('.subject-area-select-edit').val() || [];
+        const value = normalizeSelectedIds(container.find('.subject-area-select-edit').val());
         const btn = $(this);
 
         if (btn.data('busy')) return;
@@ -114,12 +133,7 @@
         $.ajax({
             url: `/admin/converted-leads/${id}/inline-update`,
             method: 'POST',
-            traditional: true,
-            data: {
-                field: 'subject_area_ids',
-                value: value,
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
+            data: buildSavePayload('subject_area_ids', value, $('meta[name="csrf-token"]').attr('content')),
             success: function(response) {
                 if (response.success) {
                     const displayValue = response.value || 'N/A';
@@ -129,7 +143,7 @@
                             : `<span class="converted-lead-subject-areas-display">${$('<div>').text(displayValue).html()}</span>`
                     );
                     const ids = response.subject_area_ids || value || [];
-                    container.data('current-ids', ids.join(','));
+                    container.attr('data-current-ids', ids.join(','));
                     if (typeof toast_success === 'function') {
                         toast_success(response.message || 'Updated successfully');
                     }

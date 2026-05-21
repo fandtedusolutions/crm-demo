@@ -1690,6 +1690,8 @@ class ConvertedLeadController extends Controller
             $query->where('status', $request->status);
         }
 
+        \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -1717,8 +1719,9 @@ class ConvertedLeadController extends Controller
         $admission_batches = \App\Models\AdmissionBatch::orderBy('is_active', 'desc')->orderBy('title')->get();
         $country_codes = get_country_code();
         $registration_links = \App\Models\RegistrationLink::all();
+        $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
 
-        return view('admin.converted-leads.gmvss-mentor-index', compact('convertedLeads', 'courses', 'batches', 'admission_batches', 'country_codes', 'registration_links'));
+        return view('admin.converted-leads.gmvss-mentor-index', compact('convertedLeads', 'courses', 'batches', 'admission_batches', 'country_codes', 'registration_links', 'flags'));
     }
 
     /**

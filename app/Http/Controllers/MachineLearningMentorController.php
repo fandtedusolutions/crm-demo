@@ -129,6 +129,8 @@ class MachineLearningMentorController extends Controller
             $query->where('admission_batch_id', $request->admission_batch_id);
         }
 
+        \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -148,6 +150,7 @@ class MachineLearningMentorController extends Controller
             $classTimes = ClassTime::where('course_id', 20)->where('is_active', true)->get();
         }
         $offlinePlaces = OfflinePlace::active()->get();
+        $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
 
         return view('admin.converted-leads.machine-learning-mentor-index', compact(
             'convertedLeads', 
@@ -155,7 +158,8 @@ class MachineLearningMentorController extends Controller
             'country_codes',
             'course',
             'classTimes',
-            'offlinePlaces'
+            'offlinePlaces',
+            'flags'
         ));
     }
 

@@ -95,6 +95,8 @@ class JuniorVloggerMentorController extends Controller
         if ($request->filled('admission_batch_id')) {
             $query->where('admission_batch_id', $request->admission_batch_id);
         }
+        \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -119,13 +121,15 @@ class JuniorVloggerMentorController extends Controller
             ? ClassTime::where('course_id', self::COURSE_ID)->where('is_active', true)->get()
             : collect();
         $country_codes = \App\Helpers\CountriesHelper::get_country_code();
+        $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
 
         return view('admin.converted-leads.junior-vlogger-mentor-index', compact(
             'convertedLeads',
             'batches',
             'course',
             'classTimes',
-            'country_codes'
+            'country_codes',
+            'flags'
         ));
     }
 

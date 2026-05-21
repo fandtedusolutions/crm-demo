@@ -161,6 +161,8 @@ class ESchoolEduthanzeelMentorController extends Controller
             $query->where('sub_course_id', $request->sub_course_id);
         }
 
+        \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -183,6 +185,8 @@ class ESchoolEduthanzeelMentorController extends Controller
         $viewName = $courseId == 5 ? 'admin.converted-leads.eschool-mentor-index' : 'admin.converted-leads.eduthanzeel-mentor-index';
         $routeName = $courseId == 5 ? 'admin.mentor-eschool-converted-leads.index' : 'admin.mentor-eduthanzeel-converted-leads.index';
 
+        $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
+
         return view($viewName, compact(
             'convertedLeads', 
             'batches',
@@ -191,7 +195,8 @@ class ESchoolEduthanzeelMentorController extends Controller
             'teachers', 
             'country_codes',
             'courseName',
-            'routeName'
+            'routeName',
+            'flags'
         ));
     }
 

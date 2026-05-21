@@ -751,6 +751,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
 @endpush
 
 @push('scripts')
+@include('admin.converted-leads.partials.converted-lead-subject-area-scripts')
 <script>
     $(document).ready(function() {
         const configEl = document.getElementById('niosConvertedLeadsConfig');
@@ -995,6 +996,10 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
             e.stopPropagation();
 
             const container = $(this).closest('.inline-edit');
+            if (container.hasClass('converted-lead-subject-area-field')) {
+                return;
+            }
+
             const field = container.data('field');
             const id = container.data('id');
             const currentValue = container.data('current') !== undefined ? String(container.data('current')).trim() : container.find('.display-value').text().trim();
@@ -1061,6 +1066,10 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
             e.stopPropagation();
 
             const container = $(this).closest('.inline-edit');
+            if (container.hasClass('converted-lead-subject-area-field')) {
+                return;
+            }
+
             const field = container.data('field');
             const id = container.data('id');
             let value;
@@ -1597,5 +1606,4 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
         });
     });
 </script>
-@include('admin.converted-leads.partials.converted-lead-subject-area-scripts')
 @endpush

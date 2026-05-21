@@ -148,6 +148,8 @@ class UGPGMentorConvertedLeadController extends Controller
             });
         }
 
+        \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -161,11 +163,13 @@ class UGPGMentorConvertedLeadController extends Controller
         // Get filter data
         $universities = \App\Models\University::where('is_active', 1)->orderBy('title')->get();
         $country_codes = \App\Helpers\CountriesHelper::get_country_code();
+        $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
 
         return view('admin.converted-leads.mentor-ugpg-index', compact(
             'convertedLeads', 
             'universities', 
-            'country_codes'
+            'country_codes',
+            'flags'
         ));
     }
 

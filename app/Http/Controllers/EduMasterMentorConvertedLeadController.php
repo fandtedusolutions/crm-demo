@@ -134,6 +134,8 @@ class EduMasterMentorConvertedLeadController extends Controller
             $query->where('admission_batch_id', $request->admission_batch_id);
         }
 
+        \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
+
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -151,13 +153,15 @@ class EduMasterMentorConvertedLeadController extends Controller
         })->orderBy('is_active', 'desc')->orderBy('title')->get();
         $registrationLinks = RegistrationLink::orderBy('title')->get();
         $country_codes = \App\Helpers\CountriesHelper::get_country_code();
+        $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
 
         return view('admin.converted-leads.mentor-edumaster-index', compact(
             'convertedLeads', 
             'batches',
             'admissionBatches',
             'registrationLinks',
-            'country_codes'
+            'country_codes',
+            'flags'
         ));
     }
 

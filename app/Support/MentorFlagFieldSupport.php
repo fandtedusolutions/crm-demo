@@ -4,9 +4,24 @@ namespace App\Support;
 
 use App\Models\ConvertedLead;
 use App\Models\Flag;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class MentorFlagFieldSupport
 {
+    public static function forFilterSelect(): Collection
+    {
+        return Flag::orderBy('title')->get(['id', 'title']);
+    }
+
+    public static function applyListingFilter(Builder $query, Request $request): void
+    {
+        if ($request->filled('flag_id')) {
+            $query->where('flag_id', $request->flag_id);
+        }
+    }
+
     public static function displayHtml(?Flag $flag): string
     {
         if (!$flag) {

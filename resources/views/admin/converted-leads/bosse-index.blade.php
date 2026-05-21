@@ -1157,6 +1157,7 @@
 @endpush
 
 @push('scripts')
+@include('admin.converted-leads.partials.converted-lead-subject-area-scripts')
 <script>
     $(document).ready(function() {
         const configEl = document.getElementById('bosseConvertedLeadsConfig');
@@ -1352,6 +1353,10 @@
             e.stopPropagation();
 
             const container = $(this).closest('.inline-edit');
+            if (container.hasClass('converted-lead-subject-area-field')) {
+                return;
+            }
+
             const field = container.data('field');
             const id = container.data('id');
             const currentValue = container.data('current') !== undefined ? String(container.data('current')).trim() : container.find('.display-value').text().trim();
@@ -1418,6 +1423,10 @@
             e.stopPropagation();
 
             const container = $(this).closest('.inline-edit');
+            if (container.hasClass('converted-lead-subject-area-field')) {
+                return;
+            }
+
             const field = container.data('field');
             const id = container.data('id');
             let value;
@@ -1752,6 +1761,10 @@
         // Load options for select fields
         $(document).on('click', '.edit-btn', function() {
             const container = $(this).closest('.inline-edit');
+            if (container.hasClass('converted-lead-subject-area-field')) {
+                return;
+            }
+
             const field = container.data('field');
             const select = container.find('select');
             const currentValue = container.data('current') !== undefined ? String(container.data('current')).trim() : container.find('.display-value').text().trim();
@@ -2030,7 +2043,6 @@
         });
     });
 </script>
-@include('admin.converted-leads.partials.converted-lead-subject-area-scripts')
 @endpush
 
 <!-- Support Verify Modal -->

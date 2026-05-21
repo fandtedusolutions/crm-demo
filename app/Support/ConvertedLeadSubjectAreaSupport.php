@@ -38,6 +38,7 @@ class ConvertedLeadSubjectAreaSupport
         return collect($value)
             ->filter(fn ($id) => $id !== null && $id !== '')
             ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
             ->unique()
             ->values()
             ->all();
