@@ -12,9 +12,25 @@ use Illuminate\Validation\ValidationException;
 
 class CourseMailController extends Controller
 {
+    public const ALL_ADMISSION_BATCHES = 'all';
+
     private function canManage(): bool
     {
         return RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor();
+    }
+
+    private function isAllAdmissionBatches($value): bool
+    {
+        return $value === self::ALL_ADMISSION_BATCHES
+            || $value === null
+            || $value === '';
+    }
+
+    private function resolveAdmissionBatchId(Request $request): ?int
+    {
+        return $this->isAllAdmissionBatches($request->admission_batch_id)
+            ? null
+            : (int) $request->admission_batch_id;
     }
 
     private function validateHierarchy(Request $request): void
@@ -24,6 +40,10 @@ class CourseMailController extends Controller
             throw ValidationException::withMessages([
                 'batch_id' => ['The selected batch does not belong to the selected course.'],
             ]);
+        }
+
+        if ($this->isAllAdmissionBatches($request->admission_batch_id)) {
+            return;
         }
 
         $admissionBatch = AdmissionBatch::find($request->admission_batch_id);
@@ -39,7 +59,18 @@ class CourseMailController extends Controller
         return [
             'course_id' => 'required|exists:courses,id',
             'batch_id' => 'required|exists:batches,id',
-            'admission_batch_id' => 'required|exists:admission_batches,id',
+            'admission_batch_id' => [
+                'required',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($this->isAllAdmissionBatches($value)) {
+                        return;
+                    }
+
+                    if (! AdmissionBatch::where('id', $value)->exists()) {
+                        $fail('The selected admission batch is invalid.');
+                    }
+                },
+            ],
             'content' => 'required|string',
         ];
     }
@@ -73,7 +104,7 @@ class CourseMailController extends Controller
         $mail->update([
             'course_id' => $request->course_id,
             'batch_id' => $request->batch_id,
-            'admission_batch_id' => $request->admission_batch_id,
+            'admission_batch_id' => $this->resolveAdmissionBatchId($request),
             'content' => $request->content,
         ]);
 
@@ -113,7 +144,7 @@ class CourseMailController extends Controller
         $mail = CourseMail::create([
             'course_id' => $request->course_id,
             'batch_id' => $request->batch_id,
-            'admission_batch_id' => $request->admission_batch_id,
+            'admission_batch_id' => $this->resolveAdmissionBatchId($request),
             'content' => $request->content,
         ]);
 

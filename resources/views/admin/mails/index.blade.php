@@ -54,7 +54,7 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ $mail->course?->title ?? '-' }}</td>
                                 <td>{{ $mail->batch?->title ?? '-' }}</td>
-                                <td>{{ $mail->admissionBatch?->title ?? '-' }}</td>
+                                <td>{{ $mail->admission_batch_id ? ($mail->admissionBatch?->title ?? '-') : 'All Admission Batches' }}</td>
                                 <td>
                                     <span class="text-muted">{{ Str::limit(strip_tags($mail->content), 80) }}</span>
                                 </td>

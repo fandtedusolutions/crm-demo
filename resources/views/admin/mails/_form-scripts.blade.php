@@ -41,6 +41,8 @@ function initMailCascadeForm(options) {
 
         $.get(`/api/admission-batches/by-batch/${batchId}`).done(function(list) {
             let opts = '<option value="">Select Admission Batch</option>';
+            const allSelected = String(selectedId) === 'all';
+            opts += `<option value="all" ${allSelected ? 'selected' : ''}>All Admission Batches</option>`;
             list.forEach(function(i) {
                 const sel = String(selectedId) === String(i.id) ? 'selected' : '';
                 opts += `<option value="${i.id}" ${sel}>${i.title}</option>`;

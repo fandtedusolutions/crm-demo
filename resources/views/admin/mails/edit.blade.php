@@ -54,7 +54,7 @@ $(document).ready(function() {
     initMailCascadeForm({
         courseId: '{{ $edit_data->course_id }}',
         batchId: '{{ $edit_data->batch_id }}',
-        admissionBatchId: '{{ $edit_data->admission_batch_id }}'
+        admissionBatchId: '{{ $edit_data->admission_batch_id ?? 'all' }}'
     });
 
     $('#mailEditForm').on('submit', function(e) {
