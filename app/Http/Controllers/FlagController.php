@@ -1,0 +1,122 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Flag;
+use Illuminate\Http\Request;
+use App\Helpers\RoleHelper;
+
+class FlagController extends Controller
+{
+    private function canManage(): bool
+    {
+        return RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor();
+    }
+
+    private function baseRules(): array
+    {
+        return [
+            'color' => ['required', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+        ];
+    }
+
+    public function index()
+    {
+        if (!$this->canManage()) {
+            return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
+        }
+
+        $flags = Flag::orderBy('title')->get();
+        return view('admin.flags.index', compact('flags'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        if (!$this->canManage()) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Access denied.'], 403);
+            }
+            return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
+        }
+
+        $request->validate($this->baseRules());
+
+        $flag = Flag::findOrFail($id);
+        $flag->update([
+            'color' => $request->color,
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Flag updated successfully.',
+                'data' => $flag,
+            ]);
+        }
+
+        return redirect()->route('admin.flags.index')->with('message_success', 'Flag updated successfully!');
+    }
+
+    public function ajax_add()
+    {
+        if (!$this->canManage()) {
+            return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
+        }
+
+        return view('admin.flags.add');
+    }
+
+    public function submit(Request $request)
+    {
+        if (!$this->canManage()) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Access denied.'], 403);
+            }
+            return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
+        }
+
+        $request->validate($this->baseRules());
+
+        $flag = Flag::create([
+            'color' => $request->color,
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Flag created successfully!',
+                'data' => $flag,
+            ]);
+        }
+
+        return redirect()->route('admin.flags.index')->with('message_success', 'Flag created successfully!');
+    }
+
+    public function ajax_edit($id)
+    {
+        if (!$this->canManage()) {
+            return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
+        }
+
+        $edit_data = Flag::findOrFail($id);
+        return view('admin.flags.edit', compact('edit_data'));
+    }
+
+    public function delete($id)
+    {
+        if (!$this->canManage()) {
+            return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
+        }
+
+        $flag = Flag::findOrFail($id);
+        $flag->delete();
+
+        return redirect()->route('admin.flags.index')->with('message_success', 'Flag deleted successfully!');
+    }
+}

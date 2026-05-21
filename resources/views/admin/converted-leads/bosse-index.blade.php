@@ -369,6 +369,7 @@
                                     <th>Admission Batch</th>
                                     <th>Registered Person</th>
                                     <th>Subject</th>
+                                    <th>Subject Area</th>
                                     <th>Registration Fee</th>
                                     <th>Registration Status</th>
                                     <th>Course</th>
@@ -523,6 +524,16 @@
                                     <td>
                                         <div class="inline-edit" data-field="subject_id" data-id="{{ $convertedLead->id }}" data-course-id="{{ $convertedLead->course_id }}" data-current-id="{{ $convertedLead->subject_id }}">
                                             <span class="display-value">{{ $convertedLead->subject?->title ?? '-' }}</span>
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit">
+                                                <i class="ti ti-edit"></i>
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="inline-edit" data-field="subject_area_id" data-id="{{ $convertedLead->id }}" data-current-id="{{ $convertedLead->subject_area_id }}">
+                                            <span class="display-value">{{ $convertedLead->subjectArea?->title ?? 'N/A' }}</span>
                                             @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
                                             <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit">
                                                 <i class="ti ti-edit"></i>
@@ -810,6 +821,10 @@
                                     <span class="fw-medium">{{ $convertedLead->subject?->title ?? 'N/A' }}</span>
                                 </div>
                                 <div class="col-6">
+                                    <small class="text-muted d-block">Subject Area</small>
+                                    <span class="fw-medium">{{ $convertedLead->subjectArea?->title ?? 'N/A' }}</span>
+                                </div>
+                                <div class="col-6">
                                     <small class="text-muted d-block">Academic</small>
                                     @include('admin.converted-leads.partials.status-badge', [
                                     'convertedLead' => $convertedLead,
@@ -905,6 +920,7 @@
         ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false],
         ['data' => 'registered_person', 'name' => 'registered_person', 'orderable' => false, 'searchable' => false],
         ['data' => 'subject', 'name' => 'subject', 'orderable' => false, 'searchable' => false],
+        ['data' => 'subject_area', 'name' => 'subject_area', 'orderable' => false, 'searchable' => false],
         ['data' => 'reg_fee', 'name' => 'reg_fee', 'orderable' => false, 'searchable' => false],
         ['data' => 'status', 'name' => 'status', 'orderable' => false, 'searchable' => false],
         ['data' => 'course', 'name' => 'course', 'orderable' => false, 'searchable' => false],
@@ -1364,6 +1380,8 @@
             if (field === 'subject_id') {
                 const courseId = container.data('course-id');
                 editForm = createSubjectSelect(courseId, currentId);
+            } else if (field === 'subject_area_id') {
+                editForm = createSubjectAreaSelect(currentId);
             } else if (field === 'batch_id') {
                 const courseId = container.data('course-id');
                 editForm = createBatchSelect(courseId, currentId);
@@ -1389,6 +1407,8 @@
                 const courseId = container.data('course-id');
                 const select = container.find('select');
                 loadSubjects(courseId, select, currentId);
+            } else if (field === 'subject_area_id') {
+                loadSubjectAreas(container.find('select'), currentId);
             } else if (field === 'batch_id') {
                 const courseId = container.data('course-id');
                 const select = container.find('select');
@@ -1448,7 +1468,7 @@
                         // Update the data-current attribute with the new display value
                         container.data('current', displayValue);
                         // Update data-current-id for fields that use it (store the ID, not the display value)
-                        if (field === 'batch_id' || field === 'subject_id' || field === 'admission_batch_id' || field === 'academic_assistant_id') {
+                        if (field === 'batch_id' || field === 'subject_id' || field === 'subject_area_id' || field === 'admission_batch_id' || field === 'academic_assistant_id') {
                             container.data('current-id', value || '');
                         }
 
@@ -1700,6 +1720,20 @@
             `;
         }
 
+        function createSubjectAreaSelect(currentId) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
         function createBatchSelect(courseId, currentId) {
             return `
                 <div class="edit-form">
@@ -1753,6 +1787,8 @@
             if (field === 'subject_id') {
                 const courseId = container.data('course-id');
                 loadSubjects(courseId, select, currentId);
+            } else if (field === 'subject_area_id') {
+                loadSubjectAreas(select, currentId);
             } else if (field === 'batch_id') {
                 const courseId = container.data('course-id');
                 loadBatches(courseId, select, currentId);
@@ -1763,6 +1799,22 @@
                 loadAcademicAssistants(select, currentId);
             }
         });
+
+        function loadSubjectAreas(select, currentId) {
+            $.get('/api/subject-areas')
+                .done(function(subjectAreas) {
+                    let options = '<option value="">Select Subject Area</option>';
+                    subjectAreas.forEach(function(subjectArea) {
+                        const isSelected = (currentId && String(currentId) === String(subjectArea.id)) ? 'selected' : '';
+                        options += `<option value="${subjectArea.id}" ${isSelected}>${subjectArea.title}</option>`;
+                    });
+                    select.html(options);
+                    select.focus();
+                })
+                .fail(function() {
+                    select.html('<option value="">Error loading subject areas</option>');
+                });
+        }
 
         function loadSubjects(courseId, select, currentId) {
             $.get(`/api/subjects/by-course/${courseId}`)

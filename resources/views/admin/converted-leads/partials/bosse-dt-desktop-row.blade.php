@@ -166,6 +166,17 @@
     </td>
 
     <td>
+        <div class="inline-edit" data-field="subject_area_id" data-id="{{ $convertedLead->id }}" data-current-id="{{ $convertedLead->subject_area_id }}">
+            <span class="display-value">{{ $convertedLead->subjectArea?->title ?? 'N/A' }}</span>
+            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit">
+                    <i class="ti ti-edit"></i>
+                </button>
+            @endif
+        </div>
+    </td>
+
+    <td>
         <div class="inline-edit" data-field="reg_fee" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->studentDetails?->reg_fee }}">
             <span class="display-value">{{ $convertedLead->studentDetails?->reg_fee ?? 'N/A' }}</span>
             @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())

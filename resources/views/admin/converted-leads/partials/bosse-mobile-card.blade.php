@@ -131,6 +131,11 @@
             </div>
 
             <div class="col-6">
+                <small class="text-muted d-block">Subject Area</small>
+                <span class="fw-medium">{{ $convertedLead->subjectArea?->title ?? 'N/A' }}</span>
+            </div>
+
+            <div class="col-6">
                 <small class="text-muted d-block">Academic</small>
                 @include('admin.converted-leads.partials.status-badge', [
                     'convertedLead' => $convertedLead,

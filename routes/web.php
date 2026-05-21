@@ -8,6 +8,9 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\LeadStatusController;
 use App\Http\Controllers\LeadSourceController;
+use App\Http\Controllers\SubjectAreaController;
+use App\Http\Controllers\CourseMailController;
+use App\Http\Controllers\FlagController;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\UniversityCourseController;
 use App\Http\Controllers\CountryController;
@@ -90,6 +93,7 @@ Route::prefix('api/meta-leads')->group(function () {
 
 // Public API routes for subjects and courses (no authentication required)
 Route::get('/api/subjects/by-course/{courseId}', [App\Http\Controllers\SubjectController::class, 'getByCourse'])->name('api.subjects.by-course');
+Route::get('/api/subject-areas', [App\Http\Controllers\SubjectAreaController::class, 'listActive'])->name('api.subject-areas');
 Route::get('/api/batches/by-course/{courseId}', [App\Http\Controllers\BatchController::class, 'getByCourse'])->name('api.batches.by-course');
 Route::get('/api/sub-courses/by-course/{courseId}', [App\Http\Controllers\SubCourseController::class, 'getByCourse'])->name('api.sub-courses.by-course');
 Route::get('/api/admission-batches/by-batch/{batchId}', [App\Http\Controllers\AdmissionBatchController::class, 'getByBatch'])->name('api.admission-batches.by-batch');
@@ -344,6 +348,27 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/lead-sources-submit', [LeadSourceController::class, 'submit'])->name('lead-sources.submit');
         Route::put('/lead-sources-update/{leadSource}', [LeadSourceController::class, 'update'])->name('lead-sources.update');
         Route::delete('/lead-sources-delete/{id}', [LeadSourceController::class, 'delete'])->name('lead-sources.delete');
+
+        Route::resource('subject-areas', SubjectAreaController::class)->except(['create', 'edit']);
+        Route::get('/subject-areas-add', [SubjectAreaController::class, 'ajax_add'])->name('subject-areas.add');
+        Route::get('/subject-areas-edit/{id}', [SubjectAreaController::class, 'ajax_edit'])->name('subject-areas.edit');
+        Route::post('/subject-areas-submit', [SubjectAreaController::class, 'submit'])->name('subject-areas.submit');
+        Route::put('/subject-areas-update/{subjectArea}', [SubjectAreaController::class, 'update'])->name('subject-areas.update');
+        Route::delete('/subject-areas-delete/{id}', [SubjectAreaController::class, 'delete'])->name('subject-areas.delete');
+
+        Route::get('/mails', [CourseMailController::class, 'index'])->name('mails.index');
+        Route::get('/mails-add', [CourseMailController::class, 'ajax_add'])->name('mails.add');
+        Route::get('/mails-edit/{id}', [CourseMailController::class, 'ajax_edit'])->name('mails.edit');
+        Route::post('/mails-submit', [CourseMailController::class, 'submit'])->name('mails.submit');
+        Route::put('/mails-update/{id}', [CourseMailController::class, 'update'])->name('mails.update');
+        Route::delete('/mails-delete/{id}', [CourseMailController::class, 'delete'])->name('mails.delete');
+
+        Route::get('/flags', [FlagController::class, 'index'])->name('flags.index');
+        Route::get('/flags-add', [FlagController::class, 'ajax_add'])->name('flags.add');
+        Route::get('/flags-edit/{id}', [FlagController::class, 'ajax_edit'])->name('flags.edit');
+        Route::post('/flags-submit', [FlagController::class, 'submit'])->name('flags.submit');
+        Route::put('/flags-update/{id}', [FlagController::class, 'update'])->name('flags.update');
+        Route::delete('/flags-delete/{id}', [FlagController::class, 'delete'])->name('flags.delete');
 
         Route::resource('universities', UniversityController::class)->except(['create', 'edit']);
         Route::get('/universities-add', [UniversityController::class, 'ajax_add'])->name('universities.add');

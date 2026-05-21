@@ -403,6 +403,7 @@
                                     <th>Type</th>
                                     <th>Name</th>
                                     <th>Subject</th>
+                                    <th>Subject Area</th>
                                     <th>Mobile</th>
                                     <th>WhatsApp</th>
                                     @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor())
@@ -507,6 +508,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
     ['data' => 'type', 'name' => 'type', 'orderable' => false, 'searchable' => false],
     ['data' => 'name_col', 'name' => 'name_col', 'orderable' => false, 'searchable' => false],
     ['data' => 'subject', 'name' => 'subject', 'orderable' => false, 'searchable' => false],
+    ['data' => 'subject_area', 'name' => 'subject_area', 'orderable' => false, 'searchable' => false],
     ['data' => 'mobile', 'name' => 'mobile', 'orderable' => false, 'searchable' => false],
     ['data' => 'whatsapp', 'name' => 'whatsapp', 'orderable' => false, 'searchable' => false],
 ]);
@@ -1012,6 +1014,8 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
             if (field === 'subject_id') {
                 const courseId = container.data('course-id');
                 editForm = createSubjectSelect(courseId, currentId);
+            } else if (field === 'subject_area_id') {
+                editForm = createSubjectAreaSelect(currentId);
             } else if (field === 'batch_id') {
                 const courseId = container.data('course-id');
                 editForm = createBatchSelect(courseId, currentId);
@@ -1037,6 +1041,8 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                 const courseId = container.data('course-id');
                 const select = container.find('select');
                 loadSubjects(courseId, select, currentId);
+            } else if (field === 'subject_area_id') {
+                loadSubjectAreas(container.find('select'), currentId);
             } else if (field === 'batch_id') {
                 const courseId = container.data('course-id');
                 const select = container.find('select');
@@ -1096,7 +1102,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                         // Update the data-current attribute with the new display value
                         container.data('current', displayValue);
                         // Update data-current-id for fields that use it (store the ID, not the display value)
-                        if (field === 'batch_id' || field === 'subject_id' || field === 'admission_batch_id' || field === 'academic_assistant_id') {
+                        if (field === 'batch_id' || field === 'subject_id' || field === 'subject_area_id' || field === 'admission_batch_id' || field === 'academic_assistant_id') {
                             container.data('current-id', value || '');
                         }
                         if (field === 'phone') {
@@ -1277,6 +1283,20 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
             `;
         }
 
+        function createSubjectAreaSelect(currentId) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
         function createBatchSelect(courseId, currentId) {
             return `
                 <div class="edit-form">
@@ -1319,6 +1339,22 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
             `;
         }
 
+
+        function loadSubjectAreas(select, currentId) {
+            $.get('/api/subject-areas')
+                .done(function(subjectAreas) {
+                    let options = '<option value="">Select Subject Area</option>';
+                    subjectAreas.forEach(function(subjectArea) {
+                        const isSelected = (currentId && String(currentId) === String(subjectArea.id)) ? 'selected' : '';
+                        options += `<option value="${subjectArea.id}" ${isSelected}>${subjectArea.title}</option>`;
+                    });
+                    select.html(options);
+                    select.focus();
+                })
+                .fail(function() {
+                    select.html('<option value="">Error loading subject areas</option>');
+                });
+        }
 
         function loadSubjects(courseId, select, currentId) {
             if (!courseId) {

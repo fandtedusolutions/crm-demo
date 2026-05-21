@@ -618,6 +618,7 @@ class ConvertedLeadController extends Controller
                 'batch',
                 'admissionBatch',
                 'subject',
+                'subjectArea',
                 'academicAssistant',
                 'cancelledBy',
                 'studentDetails',
@@ -819,6 +820,7 @@ class ConvertedLeadController extends Controller
                 'batch',
                 'admissionBatch',
                 'subject',
+                'subjectArea',
                 'studentDetails',
             ])->orderBy('created_at', 'desc')
                 ->skip($start)
@@ -3832,6 +3834,7 @@ class ConvertedLeadController extends Controller
             'register_number' => 'nullable|string|max:50',
             'sub_course_id' => 'nullable|exists:sub_courses,id',
             'subject_id' => 'nullable|exists:subjects,id',
+            'subject_area_id' => 'nullable|exists:subject_areas,id',
             'batch_id' => 'nullable|exists:batches,id',
             'admission_batch_id' => 'nullable|exists:admission_batches,id',
             'academic_assistant_id' => 'nullable|exists:users,id',
@@ -4096,6 +4099,13 @@ class ConvertedLeadController extends Controller
         } elseif ($field === 'subject_id' && $updatedValue) {
             $subject = \App\Models\Subject::find($updatedValue);
             $updatedValue = $subject ? $subject->title : $updatedValue;
+        } elseif ($field === 'subject_area_id') {
+            if ($updatedValue) {
+                $subjectArea = \App\Models\SubjectArea::find($updatedValue);
+                $updatedValue = $subjectArea ? $subjectArea->title : $updatedValue;
+            } else {
+                $updatedValue = 'N/A';
+            }
         } elseif ($field === 'admission_batch_id' && $updatedValue) {
             $admissionBatch = \App\Models\AdmissionBatch::find($updatedValue);
             $updatedValue = $admissionBatch ? $admissionBatch->title : $updatedValue;

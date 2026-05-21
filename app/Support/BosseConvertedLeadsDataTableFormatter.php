@@ -34,6 +34,7 @@ class BosseConvertedLeadsDataTableFormatter
             'admission_batch',
             'registered_person',
             'subject',
+            'subject_area',
             'reg_fee',
             'status',
             'course',

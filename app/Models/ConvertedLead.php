@@ -45,6 +45,7 @@ class ConvertedLead extends Model
         'batch_id',
         'board_id',
         'subject_id',
+        'subject_area_id',
         'admission_batch_id',
         'is_postpond_batch',
         'remarks',
@@ -121,6 +122,11 @@ class ConvertedLead extends Model
     public function subject()
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    public function subjectArea()
+    {
+        return $this->belongsTo(SubjectArea::class);
     }
 
     public function academicAssistant()

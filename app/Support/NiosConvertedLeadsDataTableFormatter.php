@@ -18,7 +18,7 @@ class NiosConvertedLeadsDataTableFormatter
         }
         $keys = array_merge($keys, [
             'index', 'academic', 'support', 'register_number', 'converted_date', 'dob', 'type', 'name_col',
-            'subject', 'mobile', 'whatsapp',
+            'subject', 'subject_area', 'mobile', 'whatsapp',
         ]);
         if ($showParentPhone) {
             $keys[] = 'parent_phone';
