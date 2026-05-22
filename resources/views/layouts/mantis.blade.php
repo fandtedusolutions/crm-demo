@@ -73,7 +73,7 @@
     <script src="{{ asset('assets/mantis/js/plugins/popper.min.js') }}"></script>
     <script src="{{ asset('assets/mantis/js/plugins/simplebar.min.js') }}"></script>
     <script src="{{ asset('assets/mantis/js/plugins/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('assets/mantis/js/fonts/custom-font.js') }}"></script>
+    <script src="{{ asset('assets/mantis/js/fonts/custom-font.js') }}?v=2"></script>
     <script src="{{ asset('assets/mantis/js/pcoded.js') }}"></script>
     <script src="{{ asset('assets/mantis/js/plugins/feather.min.js') }}"></script>
     

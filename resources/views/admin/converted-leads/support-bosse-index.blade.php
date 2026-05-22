@@ -630,17 +630,18 @@
                                                 && $convertedLead->batch_id;
                                         @endphp
                                         <li>
-                                            <button type="button"
-                                                class="dropdown-item js-send-support-course-mail {{ $canSendCourseMail ? '' : 'disabled' }}"
-                                                @if($canSendCourseMail)
-                                                data-lead-id="{{ $convertedLead->id }}"
-                                                data-name="{{ $convertedLead->name }}"
-                                                @else
-                                                disabled
-                                                title="{{ filled($convertedLead->email) ? 'Course and batch are required' : 'No email on file' }}"
-                                                @endif>
+                                            @if($canSendCourseMail)
+                                            <a href="javascript:void(0);"
+                                                class="dropdown-item"
+                                                onclick="show_large_modal('{{ route('admin.support-bosse-converted-leads.send-course-mail', $convertedLead->id) }}', {{ json_encode('Send Mail — ' . $convertedLead->name) }})">
                                                 <i class="ti ti-mail me-2"></i>Mail
-                                            </button>
+                                            </a>
+                                            @else
+                                            <span class="dropdown-item disabled text-muted"
+                                                title="{{ filled($convertedLead->email) ? 'Course and batch are required' : 'No email on file' }}">
+                                                <i class="ti ti-mail me-2"></i>Mail
+                                            </span>
+                                            @endif
                                         </li>
                                         @php
                                         $canManageCancelFlag = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor();
@@ -767,6 +768,8 @@
     </div>
 </div>
 <!-- [ Main Content ] end -->
+
+@include('admin.converted-leads.partials.support-wati-whatsapp-modal')
 
 @endsection
 
@@ -1216,11 +1219,7 @@
     });
 </script>
 @include('admin.converted-leads.partials.support-wati-whatsapp-scripts')
-@include('admin.converted-leads.partials.support-course-mail-scripts')
 @endpush
-
-@include('admin.converted-leads.partials.support-wati-whatsapp-modal')
-@include('admin.converted-leads.partials.support-course-mail-modal')
 
 <!-- Support Verify Modal -->
 <div class="modal fade" id="supportVerifyModal" tabindex="-1" aria-labelledby="supportVerifyModalLabel" aria-hidden="true">

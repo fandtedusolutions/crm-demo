@@ -47,13 +47,11 @@
 @include('admin.mails._form-scripts')
 
 <script>
-$(document).ready(function() {
+(function() {
     initMailCascadeForm();
-    initMailContentEditor();
 
     $('#mailAddForm').on('submit', function(e) {
         e.preventDefault();
-        saveMailContentEditor();
 
         const form = $(this);
         const formData = new FormData(this);
@@ -94,5 +92,5 @@ $(document).ready(function() {
             }
         });
     });
-});
+})();
 </script>

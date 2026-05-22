@@ -1,6 +1,7 @@
 @once
 @push('scripts')
 <script>
+window.CRM_TINYMCE_BASE = @json(asset('assets/mantis/js/plugins/tinymce'));
 (function() {
     function loadTinyMceScript(callback) {
         if (typeof tinymce !== 'undefined') {
@@ -10,62 +11,92 @@
 
         const existing = document.querySelector('script[data-crm-tinymce]');
         if (existing) {
-            existing.addEventListener('load', callback);
+            if (existing.getAttribute('data-loaded') === '1') {
+                callback();
+            } else {
+                existing.addEventListener('load', callback, { once: true });
+            }
             return;
         }
 
         const script = document.createElement('script');
-        script.src = '{{ asset("assets/mantis/js/plugins/tinymce/tinymce.min.js") }}';
+        script.src = CRM_TINYMCE_BASE + '/tinymce.min.js';
         script.setAttribute('data-crm-tinymce', '1');
-        script.onload = callback;
+        script.onload = function() {
+            script.setAttribute('data-loaded', '1');
+            callback();
+        };
+        script.onerror = function() {
+            console.error('Failed to load TinyMCE from', script.src);
+        };
         document.head.appendChild(script);
     }
 
     window.initCrmTinyMCE = function(selector, options) {
         options = options || {};
-        const height = options.height || 350;
 
         loadTinyMceScript(function() {
-            const run = function() {
+            function run(attempt) {
+                attempt = attempt || 0;
                 const field = document.querySelector(selector);
                 if (!field) {
                     return;
                 }
 
-                const editorId = field.id || selector.replace('#', '');
-                if (tinymce.get(editorId)) {
-                    tinymce.remove(selector);
+                const isVisible = field.offsetParent !== null
+                    || field.getClientRects().length > 0
+                    || field.closest('.modal.show');
+
+                if (! isVisible && attempt < 40) {
+                    window.setTimeout(function() {
+                        run(attempt + 1);
+                    }, 50);
+                    return;
                 }
 
-                tinymce.init({
+                const editorId = field.id || selector.replace('#', '');
+                if (tinymce.get(editorId)) {
+                    tinymce.remove('#' + editorId);
+                }
+
+                const config = Object.assign({
                     selector: selector,
-                    height: height,
+                    base_url: CRM_TINYMCE_BASE,
+                    suffix: '.min',
+                    height: options.height || 320,
                     menubar: false,
-                    plugins: [
-                        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                        'insertdatetime', 'media', 'table', 'help', 'wordcount'
-                    ],
-                    toolbar: 'undo redo | formatselect | ' +
-                        'bold italic backcolor | alignleft aligncenter ' +
-                        'alignright alignjustify | bullist numlist outdent indent | ' +
-                        'removeformat | help',
+                    branding: false,
+                    promotion: false,
+                    license_key: 'gpl',
+                    plugins: 'lists link autolink table code fullscreen',
+                    toolbar: 'undo redo | bold italic underline | bullist numlist | link table | removeformat | code',
                     content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                     setup: function(editor) {
-                        editor.on('change', function() {
+                        editor.on('change keyup', function() {
                             editor.save();
                         });
                     }
-                });
-            };
+                }, options.config || {});
 
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', function() {
-                    setTimeout(run, 150);
-                });
-            } else {
-                setTimeout(run, 150);
+                const done = typeof options.onReady === 'function' ? options.onReady : null;
+                const initPromise = tinymce.init(config);
+
+                if (initPromise && typeof initPromise.then === 'function') {
+                    initPromise.then(function() {
+                        if (done) {
+                            done(tinymce.get(editorId));
+                        }
+                    }).catch(function(err) {
+                        console.error('TinyMCE init failed for', selector, err);
+                    });
+                } else if (done) {
+                    window.setTimeout(function() {
+                        done(tinymce.get(editorId));
+                    }, 200);
+                }
             }
+
+            run(0);
         });
     };
 
@@ -81,7 +112,7 @@
 
         const editorId = field.id || selector.replace('#', '');
         if (tinymce.get(editorId)) {
-            tinymce.remove(selector);
+            tinymce.remove('#' + editorId);
         }
     };
 

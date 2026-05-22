@@ -4,9 +4,54 @@ namespace App\Support;
 
 use App\Models\ConvertedLead;
 use App\Models\CourseMail;
+use Illuminate\Support\Collection;
 
 class CourseMailResolver
 {
+    /**
+     * All mail templates for a course (for template picker).
+     */
+    public static function listForCourse(int $courseId): Collection
+    {
+        if (! $courseId) {
+            return collect();
+        }
+
+        return CourseMail::query()
+            ->with(['course', 'batch', 'admissionBatch'])
+            ->where('course_id', $courseId)
+            ->orderBy('batch_id')
+            ->orderByRaw('admission_batch_id IS NULL')
+            ->orderBy('admission_batch_id')
+            ->orderByDesc('updated_at')
+            ->get();
+    }
+
+    public static function formatTemplateLabel(CourseMail $courseMail): string
+    {
+        $parts = array_filter([
+            $courseMail->course?->title,
+            $courseMail->batch?->title,
+            $courseMail->admission_batch_id
+                ? ($courseMail->admissionBatch?->title ?? 'Admission Batch #'.$courseMail->admission_batch_id)
+                : 'All Admission Batches',
+        ]);
+
+        return $parts ? implode(' · ', $parts) : 'Mail template #'.$courseMail->id;
+    }
+
+    public static function templateToArray(CourseMail $courseMail, bool $isDefault = false): array
+    {
+        return [
+            'id' => $courseMail->id,
+            'label' => self::formatTemplateLabel($courseMail),
+            'course_id' => $courseMail->course_id,
+            'batch_id' => $courseMail->batch_id,
+            'admission_batch_id' => $courseMail->admission_batch_id,
+            'content' => $courseMail->content,
+            'is_default' => $isDefault,
+        ];
+    }
     /**
      * Resolve course mail template for a converted lead (course + batch + admission batch).
      * Prefers an exact admission-batch match, then falls back to "all admission batches" (null).

@@ -240,6 +240,25 @@
             type: 'GET',
             success: function(response) {
                 $(target).html(response);
+                $(target).find('script').each(function() {
+                    if (this.src) {
+                        const src = this.getAttribute('src');
+                        if (!src || document.querySelector('script[src="' + src + '"]')) {
+                            return;
+                        }
+                        const tag = document.createElement('script');
+                        tag.src = src;
+                        tag.async = false;
+                        document.head.appendChild(tag);
+                        return;
+                    }
+
+                    const code = this.text || this.textContent || '';
+                    if (!code.trim()) {
+                        return;
+                    }
+                    $.globalEval(code);
+                });
             },
             error: function(xhr, status, error) {
                 $(target).html('<div class="alert alert-danger">Error loading content: ' + error + '</div>');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ConvertedLead;
+use App\Models\CourseMail;
 use App\Models\ConvertedStudentMentorDetail;
 use App\Models\ConvertedStudentSupportDetail;
 use App\Models\SupportFeedbackHistory;
@@ -148,34 +149,45 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
-     * Load course mail template for a BOSSE support converted lead.
+     * Send course mail form (loaded in ajax modal).
      */
-    public function getBosseCourseMail($id)
+    public function showBosseSendCourseMailForm(Request $request, $id)
     {
         if (! $this->canSendSupportCourseMail()) {
-            return $this->courseMailJsonResponse(['success' => false, 'error' => 'Access denied.']);
+            abort(403, 'Access denied.');
         }
 
         $convertedLead = ConvertedLead::with(['course', 'batch', 'admissionBatch'])->findOrFail($id);
 
         if ((int) $convertedLead->course_id !== 2) {
-            return $this->courseMailJsonResponse(['success' => false, 'error' => 'Invalid lead for BOSSE support.']);
+            return $this->renderBosseSendCourseMailForm($request, [
+                'convertedLead' => $convertedLead,
+                'error' => 'Invalid lead for BOSSE support.',
+            ]);
         }
 
         if (! filled($convertedLead->email)) {
-            return $this->courseMailJsonResponse([
-                'success' => false,
+            return $this->renderBosseSendCourseMailForm($request, [
+                'convertedLead' => $convertedLead,
                 'error' => 'This converted lead does not have an email address.',
             ]);
         }
 
-        $courseMail = CourseMailResolver::resolveForConvertedLead($convertedLead);
-        if (! $courseMail) {
-            return $this->courseMailJsonResponse([
-                'success' => false,
-                'error' => 'No mail template found for this course, batch, and admission batch. Add one under Admin → Mail.',
+        $templates = CourseMailResolver::listForCourse((int) $convertedLead->course_id);
+        if ($templates->isEmpty()) {
+            return $this->renderBosseSendCourseMailForm($request, [
+                'convertedLead' => $convertedLead,
+                'error' => 'No mail templates found for this course. Add templates under Admin → Mail.',
             ]);
         }
+
+        $defaultMail = CourseMailResolver::resolveForConvertedLead($convertedLead);
+        $defaultId = $defaultMail?->id;
+        $selected = $defaultMail ?? $templates->first();
+
+        $templateOptions = $templates->map(function (CourseMail $mail) use ($defaultId) {
+            return CourseMailResolver::templateToArray($mail, (int) $mail->id === (int) $defaultId);
+        })->values();
 
         $contextParts = array_filter([
             $convertedLead->course?->title,
@@ -183,13 +195,23 @@ class SupportConvertedLeadController extends Controller
             $convertedLead->admissionBatch?->title,
         ]);
 
-        return $this->courseMailJsonResponse([
-            'success' => true,
-            'recipient_email' => $convertedLead->email,
+        return $this->renderBosseSendCourseMailForm($request, [
+            'convertedLead' => $convertedLead,
+            'templateOptions' => $templateOptions,
+            'selectedTemplateId' => $selected->id,
             'subject' => CourseMailResolver::defaultSubject($convertedLead),
-            'content' => $courseMail->content,
+            'content' => $selected->content,
             'context' => $contextParts ? implode(' · ', $contextParts) : null,
         ]);
+    }
+
+    private function renderBosseSendCourseMailForm(Request $request, array $data)
+    {
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('admin.converted-leads.send-course-mail-form', $data);
+        }
+
+        return view('admin.converted-leads.send-course-mail-page', $data);
     }
 
     /**

@@ -2,15 +2,15 @@
     $canSendCourseMail = filled($convertedLead->email)
         && $convertedLead->course_id
         && $convertedLead->batch_id;
+    $mailModalTitle = 'Send Mail — ' . $convertedLead->name;
 @endphp
 @if($canSendCourseMail)
-<button type="button"
-    class="btn btn-sm btn-primary js-send-support-course-mail"
+<a href="javascript:void(0);"
+    class="btn btn-sm btn-primary"
     title="Send course mail to {{ $convertedLead->email }}"
-    data-lead-id="{{ $convertedLead->id }}"
-    data-name="{{ $convertedLead->name }}">
+    onclick="show_large_modal('{{ route('admin.support-bosse-converted-leads.send-course-mail', $convertedLead->id) }}', {{ json_encode($mailModalTitle) }})">
     <i class="ti ti-mail"></i>
-</button>
+</a>
 @else
 <button type="button"
     class="btn btn-sm btn-primary"

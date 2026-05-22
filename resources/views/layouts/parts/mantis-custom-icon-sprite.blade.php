@@ -1,18 +1,4 @@
-'use strict';
-
-// =======================================================
-// Custom icon js start
-// =======================================================
-// Use DOM insertion instead of document.write — document.write after parse
-// replaces the page without DOCTYPE and breaks TinyMCE (quirks mode).
-(function () {
-  if (document.getElementById('pc-custom-icon-sprite')) {
-    return;
-  }
-  const wrap = document.createElement('div');
-  wrap.id = 'pc-custom-icon-sprite';
-  wrap.className = 'd-none';
-  wrap.innerHTML = `
+﻿<div id="pc-custom-icon-sprite" class="d-none" aria-hidden="true">
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
   <symbol id="custom-home" viewBox="0 0 24 24">
     <path opacity="0.4"
@@ -448,8 +434,4 @@
 </symbol>
 
 </svg>
-`;
-  document.body.appendChild(wrap);
-})();
-// Custom icon js end
-// =======================================================
+</div>

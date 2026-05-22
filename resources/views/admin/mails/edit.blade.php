@@ -50,17 +50,14 @@
 @include('admin.mails._form-scripts')
 
 <script>
-$(document).ready(function() {
+(function() {
     initMailCascadeForm({
         courseId: '{{ $edit_data->course_id }}',
         batchId: '{{ $edit_data->batch_id }}',
         admissionBatchId: '{{ $edit_data->admission_batch_id ?? 'all' }}'
     });
-    initMailContentEditor();
-
     $('#mailEditForm').on('submit', function(e) {
         e.preventDefault();
-        saveMailContentEditor();
 
         const form = $(this);
         const formData = new FormData(this);
@@ -102,5 +99,5 @@ $(document).ready(function() {
             }
         });
     });
-});
+})();
 </script>
