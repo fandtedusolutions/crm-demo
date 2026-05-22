@@ -929,6 +929,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
 
         // BOSSE Support Converted Leads Routes
         Route::get('/support-bosse-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'index'])->name('support-bosse-converted-leads.index');
+        Route::post('/support-bosse-converted-leads/{id}/send-whatsapp', [App\Http\Controllers\SupportConvertedLeadController::class, 'sendBosseWhatsApp'])->name('support-bosse-converted-leads.send-whatsapp');
         Route::post('/support-bosse-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-bosse-converted-leads.update-support-details');
 
         // NIOS Support Converted Leads Routes

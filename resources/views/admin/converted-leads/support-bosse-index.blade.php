@@ -503,6 +503,7 @@
                                             <a href="{{ route('admin.invoices.index', $convertedLead->id) }}" class="btn btn-sm btn-success" title="View Invoice">
                                                 <i class="ti ti-receipt"></i>
                                             </a>
+                                            @include('admin.converted-leads.partials.support-wati-whatsapp-button', ['convertedLead' => $convertedLead])
                                             @php
                                             $canManageCancelFlag = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor();
                                             @endphp
@@ -598,6 +599,29 @@
                                             <a class="dropdown-item" href="{{ route('admin.invoices.index', $convertedLead->id) }}">
                                                 <i class="ti ti-receipt me-2"></i>View Invoice
                                             </a>
+                                        </li>
+                                        @php
+                                            $watiRecipient = \App\Support\ConvertedLeadWhatsAppSupport::resolveRecipient($convertedLead);
+                                            $watiTemplate = config('wati.template_name', 'support_desk');
+                                            $watiCanSend = $watiRecipient
+                                                && config('wati.enabled')
+                                                && filled(config('wati.api_endpoint'))
+                                                && filled(config('wati.api_token'))
+                                                && filled(config('wati.channel_phone_number'));
+                                        @endphp
+                                        <li>
+                                            <button type="button"
+                                                class="dropdown-item js-send-wati-whatsapp {{ $watiCanSend ? '' : 'disabled' }}"
+                                                @if($watiCanSend)
+                                                data-url="{{ route('admin.support-bosse-converted-leads.send-whatsapp', $convertedLead->id) }}"
+                                                data-name="{{ $convertedLead->name }}"
+                                                data-recipient="{{ $watiRecipient['display'] }} ({{ $watiRecipient['source'] }})"
+                                                data-template="{{ $watiTemplate }}"
+                                                @else
+                                                disabled
+                                                @endif>
+                                                <i class="ti ti-brand-whatsapp me-2"></i>WhatsApp ({{ $watiTemplate }})
+                                            </button>
                                         </li>
                                         @php
                                         $canManageCancelFlag = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor();
@@ -1172,7 +1196,10 @@
             });
     });
 </script>
+@include('admin.converted-leads.partials.support-wati-whatsapp-scripts')
 @endpush
+
+@include('admin.converted-leads.partials.support-wati-whatsapp-modal')
 
 <!-- Support Verify Modal -->
 <div class="modal fade" id="supportVerifyModal" tabindex="-1" aria-labelledby="supportVerifyModalLabel" aria-hidden="true">

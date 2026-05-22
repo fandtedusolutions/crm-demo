@@ -34,6 +34,28 @@ class PhoneNumberHelper
         return $formattedCode . $phone;
     }
 
+    /**
+     * E.164-style digits for WhatsApp providers (country code + national number, no +).
+     */
+    public static function toWhatsAppDigits(?string $code, ?string $phone): string
+    {
+        if (empty($phone)) {
+            return '';
+        }
+
+        $phoneDigits = preg_replace('/\D+/', '', (string) $phone) ?? '';
+        if ($phoneDigits === '') {
+            return '';
+        }
+
+        $codeDigits = preg_replace('/\D+/', '', (string) $code) ?? '';
+        if ($codeDigits !== '' && ! str_starts_with($phoneDigits, $codeDigits)) {
+            return $codeDigits.$phoneDigits;
+        }
+
+        return $phoneDigits;
+    }
+
     public static function get_phone_code($phone_number)
     {
         // Clean the phone number - remove spaces, dashes, parentheses

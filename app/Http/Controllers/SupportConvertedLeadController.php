@@ -14,6 +14,8 @@ use App\Models\LeadDetail;
 use App\Models\ClassTime;
 use App\Helpers\AuthHelper;
 use App\Helpers\RoleHelper;
+use App\Services\WatiService;
+use App\Support\ConvertedLeadWhatsAppSupport;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
@@ -121,6 +123,65 @@ class SupportConvertedLeadController extends Controller
             'subjects', 
             'country_codes'
         ));
+    }
+
+    /**
+     * Send WhatsApp message to a BOSSE support converted lead via Wati.
+     */
+    public function sendBosseWhatsApp(Request $request, $id)
+    {
+        if (! RoleHelper::is_admin_or_super_admin()
+            && ! RoleHelper::is_academic_assistant()
+            && ! RoleHelper::is_admission_counsellor()
+            && ! RoleHelper::is_support_team()) {
+            return response()->json(['success' => false, 'error' => 'Access denied.'], 403);
+        }
+
+        $convertedLead = ConvertedLead::with(['leadDetail'])->findOrFail($id);
+
+        if ((int) $convertedLead->course_id !== 2) {
+            return response()->json(['success' => false, 'error' => 'Invalid lead for BOSSE support.'], 404);
+        }
+
+        $recipient = ConvertedLeadWhatsAppSupport::resolveRecipient($convertedLead);
+        if (! $recipient) {
+            return response()->json([
+                'success' => false,
+                'error' => 'No WhatsApp or phone number with country code is available for this student.',
+            ], 422);
+        }
+
+        $wati = app(WatiService::class);
+        if (! $wati->canSendTemplate()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'WhatsApp (Wati) is not configured. Add WATI_ENABLED, WATI_API_ENDPOINT, WATI_API_TOKEN, and WATI_CHANNEL_PHONE_NUMBER to .env.',
+            ], 503);
+        }
+
+        $parameters = ConvertedLeadWhatsAppSupport::resolveTemplateParameters($convertedLead);
+        $templateName = (string) config('wati.template_name', 'support_desk');
+
+        try {
+            $result = $wati->sendTemplateMessage($recipient['number'], $parameters);
+        } catch (\Throwable $e) {
+            Log::error('Wati WhatsApp template send failed: '.$e->getMessage(), [
+                'converted_lead_id' => $id,
+                'recipient' => $recipient['number'],
+                'template_name' => $templateName,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'WhatsApp template "'.$templateName.'" sent to '.$recipient['display'].' ('.$recipient['source'].').',
+            'data' => $result,
+        ]);
     }
 
     /**
