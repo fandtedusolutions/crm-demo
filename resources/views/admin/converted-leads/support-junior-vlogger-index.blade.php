@@ -525,6 +525,7 @@
                                 <td>
                                     <a href="{{ route('admin.support-converted-leads.details', $lead->id) }}" class="btn btn-sm btn-primary" title="Details"><i class="ti ti-eye"></i></a>
                                     <a href="{{ route('admin.invoices.index', $lead->id) }}" class="btn btn-sm btn-success" title="Invoice"><i class="ti ti-receipt"></i></a>
+                                    @include('admin.converted-leads.partials.support-whatsapp-mail-buttons', ['convertedLead' => $lead])
                                 </td>
                             </tr>
                             @empty
@@ -559,6 +560,7 @@
                             <div class="d-flex gap-2">
                                 <a href="{{ route('admin.support-converted-leads.details', $lead->id) }}" class="btn btn-sm btn-primary"><i class="ti ti-eye"></i> Details</a>
                                 <a href="{{ route('admin.invoices.index', $lead->id) }}" class="btn btn-sm btn-success"><i class="ti ti-receipt"></i> Invoice</a>
+                                @include('admin.converted-leads.partials.support-whatsapp-mail-buttons', ['convertedLead' => $lead])
                             </div>
                         </div>
                     </div>
@@ -571,6 +573,9 @@
     </div>
 </div>
 <!-- [ Main Content ] end -->
+
+@include('admin.converted-leads.partials.support-whatsapp-mail-layout-includes')
+
 @endsection
 
 @push('scripts')

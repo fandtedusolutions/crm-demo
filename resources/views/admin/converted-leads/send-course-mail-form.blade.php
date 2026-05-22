@@ -12,27 +12,27 @@
             @endif
         </p>
 
-        <form id="supportCourseMailForm" action="{{ route('admin.support-bosse-converted-leads.send-course-mail.submit', $convertedLead->id) }}" method="post">
+        <form id="supportCourseMailForm" action="{{ route('admin.support-converted-leads.send-course-mail.submit', $convertedLead->id) }}" method="post">
             @csrf
             <div class="mb-3">
-                <label class="form-label" for="support_course_mail_template">Mail template <span class="text-danger">*</span></label>
-                <select class="form-control" id="support_course_mail_template" name="course_mail_template_id" required>
-                    <option value="">Select course, batch &amp; admission batch</option>
-                    @foreach($templateOptions as $tpl)
-                        <option value="{{ $tpl['id'] }}" {{ (int) $tpl['id'] === (int) $selectedTemplateId ? 'selected' : '' }}>
+                <label class="form-label" for="support_course_mail_template">Mail template</label>
+                <select class="form-control" id="support_course_mail_template" name="course_mail_template_id">
+                    <option value="">— Select template —</option>
+                    @foreach($templateOptions ?? [] as $tpl)
+                        <option value="{{ $tpl['id'] }}" {{ isset($selectedTemplateId) && (int) $tpl['id'] === (int) $selectedTemplateId ? 'selected' : '' }}>
                             {{ $tpl['label'] }}
                         </option>
                     @endforeach
                 </select>
-                <small class="text-muted">Choose a template to load its content. You can edit before sending; the template in Admin → Mail is not changed.</small>
+                <small class="text-muted">Optional: choose a template to load its content. You can edit before sending; the template in Admin → Mail is not changed.</small>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="support_course_mail_subject">Subject <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="support_course_mail_subject" name="subject" value="{{ $subject }}" required maxlength="255">
+                <input type="text" class="form-control" id="support_course_mail_subject" name="subject" value="{{ $subject ?? '' }}" required maxlength="255">
             </div>
             <div class="mb-3">
                 <label class="form-label" for="support_course_mail_content">Content <span class="text-danger">*</span></label>
-                <textarea class="form-control" id="support_course_mail_content" name="content" rows="10">{{ $content }}</textarea>
+                <textarea class="form-control" id="support_course_mail_content" name="content" rows="10">{{ $content ?? '' }}</textarea>
             </div>
             <div class="d-flex justify-content-end gap-2">
                 @if(request()->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest')

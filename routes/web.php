@@ -921,7 +921,9 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // Support Converted Lead Details Route (Unified)
         Route::get('/support-converted-leads/{id}/details', [App\Http\Controllers\SupportConvertedLeadController::class, 'show'])->name('support-converted-leads.details');
         Route::post('/support-converted-leads/{id}/feedback', [App\Http\Controllers\SupportConvertedLeadController::class, 'submitFeedback'])->name('support-converted-leads.feedback');
-
+        Route::post('/support-converted-leads/{id}/send-whatsapp', [App\Http\Controllers\SupportConvertedLeadController::class, 'sendSupportWhatsApp'])->name('support-converted-leads.send-whatsapp');
+        Route::get('/support-converted-leads/{id}/send-course-mail', [App\Http\Controllers\SupportConvertedLeadController::class, 'showSendCourseMailForm'])->name('support-converted-leads.send-course-mail');
+        Route::post('/support-converted-leads/{id}/send-course-mail', [App\Http\Controllers\SupportConvertedLeadController::class, 'sendSupportCourseMail'])->name('support-converted-leads.send-course-mail.submit');
 
         // Back-compat routes (optional): keep if already linked somewhere
         Route::get('/support-bosse-converted-leads/{id}/details', [App\Http\Controllers\SupportConvertedLeadController::class, 'show'])->name('support-bosse-converted-leads.details');
@@ -929,9 +931,9 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
 
         // BOSSE Support Converted Leads Routes
         Route::get('/support-bosse-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'index'])->name('support-bosse-converted-leads.index');
-        Route::post('/support-bosse-converted-leads/{id}/send-whatsapp', [App\Http\Controllers\SupportConvertedLeadController::class, 'sendBosseWhatsApp'])->name('support-bosse-converted-leads.send-whatsapp');
-        Route::get('/support-bosse-converted-leads/{id}/send-course-mail', [App\Http\Controllers\SupportConvertedLeadController::class, 'showBosseSendCourseMailForm'])->name('support-bosse-converted-leads.send-course-mail');
-        Route::post('/support-bosse-converted-leads/{id}/send-course-mail', [App\Http\Controllers\SupportConvertedLeadController::class, 'sendBosseCourseMail'])->name('support-bosse-converted-leads.send-course-mail.submit');
+        Route::post('/support-bosse-converted-leads/{id}/send-whatsapp', [App\Http\Controllers\SupportConvertedLeadController::class, 'sendSupportWhatsApp'])->name('support-bosse-converted-leads.send-whatsapp');
+        Route::get('/support-bosse-converted-leads/{id}/send-course-mail', [App\Http\Controllers\SupportConvertedLeadController::class, 'showSendCourseMailForm'])->name('support-bosse-converted-leads.send-course-mail');
+        Route::post('/support-bosse-converted-leads/{id}/send-course-mail', [App\Http\Controllers\SupportConvertedLeadController::class, 'sendSupportCourseMail'])->name('support-bosse-converted-leads.send-course-mail.submit');
         Route::post('/support-bosse-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-bosse-converted-leads.update-support-details');
 
         // NIOS Support Converted Leads Routes

@@ -151,7 +151,7 @@ class SupportConvertedLeadController extends Controller
     /**
      * Send course mail form (loaded in ajax modal).
      */
-    public function showBosseSendCourseMailForm(Request $request, $id)
+    public function showSendCourseMailForm(Request $request, $id)
     {
         if (! $this->canSendSupportCourseMail()) {
             abort(403, 'Access denied.');
@@ -159,31 +159,16 @@ class SupportConvertedLeadController extends Controller
 
         $convertedLead = ConvertedLead::with(['course', 'batch', 'admissionBatch'])->findOrFail($id);
 
-        if ((int) $convertedLead->course_id !== 2) {
-            return $this->renderBosseSendCourseMailForm($request, [
-                'convertedLead' => $convertedLead,
-                'error' => 'Invalid lead for BOSSE support.',
-            ]);
-        }
-
         if (! filled($convertedLead->email)) {
-            return $this->renderBosseSendCourseMailForm($request, [
+            return $this->renderSendCourseMailForm($request, [
                 'convertedLead' => $convertedLead,
                 'error' => 'This converted lead does not have an email address.',
             ]);
         }
 
         $templates = CourseMailResolver::listForCourse((int) $convertedLead->course_id);
-        if ($templates->isEmpty()) {
-            return $this->renderBosseSendCourseMailForm($request, [
-                'convertedLead' => $convertedLead,
-                'error' => 'No mail templates found for this course. Add templates under Admin → Mail.',
-            ]);
-        }
-
         $defaultMail = CourseMailResolver::resolveForConvertedLead($convertedLead);
         $defaultId = $defaultMail?->id;
-        $selected = $defaultMail ?? $templates->first();
 
         $templateOptions = $templates->map(function (CourseMail $mail) use ($defaultId) {
             return CourseMailResolver::templateToArray($mail, (int) $mail->id === (int) $defaultId);
@@ -195,17 +180,17 @@ class SupportConvertedLeadController extends Controller
             $convertedLead->admissionBatch?->title,
         ]);
 
-        return $this->renderBosseSendCourseMailForm($request, [
+        return $this->renderSendCourseMailForm($request, [
             'convertedLead' => $convertedLead,
             'templateOptions' => $templateOptions,
-            'selectedTemplateId' => $selected->id,
+            'selectedTemplateId' => $defaultMail?->id,
             'subject' => CourseMailResolver::defaultSubject($convertedLead),
-            'content' => $selected->content,
+            'content' => $defaultMail?->content ?? '',
             'context' => $contextParts ? implode(' · ', $contextParts) : null,
         ]);
     }
 
-    private function renderBosseSendCourseMailForm(Request $request, array $data)
+    private function renderSendCourseMailForm(Request $request, array $data)
     {
         if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return view('admin.converted-leads.send-course-mail-form', $data);
@@ -215,9 +200,9 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
-     * Send edited course mail to a BOSSE support converted lead (does not update course_mails).
+     * Send edited course mail to a support converted lead (does not update course_mails).
      */
-    public function sendBosseCourseMail(Request $request, $id)
+    public function sendSupportCourseMail(Request $request, $id)
     {
         if (! $this->canSendSupportCourseMail()) {
             return $this->courseMailJsonResponse(['success' => false, 'error' => 'Access denied.']);
@@ -229,10 +214,6 @@ class SupportConvertedLeadController extends Controller
         ]);
 
         $convertedLead = ConvertedLead::with(['course'])->findOrFail($id);
-
-        if ((int) $convertedLead->course_id !== 2) {
-            return $this->courseMailJsonResponse(['success' => false, 'error' => 'Invalid lead for BOSSE support.']);
-        }
 
         if (! filled($convertedLead->email)) {
             return $this->courseMailJsonResponse([
@@ -251,7 +232,7 @@ class SupportConvertedLeadController extends Controller
             if (! $sendResult['success']) {
                 $error = $sendResult['error'] ?? 'Failed to send mail.';
 
-                Log::error('BOSSE support course mail send failed', [
+                Log::error('Support course mail send failed', [
                     'converted_lead_id' => $id,
                     'error' => $error,
                 ]);
@@ -262,7 +243,7 @@ class SupportConvertedLeadController extends Controller
                 ]);
             }
         } catch (\Throwable $e) {
-            Log::error('BOSSE support course mail send failed: '.$e->getMessage(), [
+            Log::error('Support course mail send failed: '.$e->getMessage(), [
                 'converted_lead_id' => $id,
             ]);
 
@@ -279,22 +260,15 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
-     * Send WhatsApp message to a BOSSE support converted lead via Wati.
+     * Send WhatsApp message to a support converted lead via Wati.
      */
-    public function sendBosseWhatsApp(Request $request, $id)
+    public function sendSupportWhatsApp(Request $request, $id)
     {
-        if (! RoleHelper::is_admin_or_super_admin()
-            && ! RoleHelper::is_academic_assistant()
-            && ! RoleHelper::is_admission_counsellor()
-            && ! RoleHelper::is_support_team()) {
+        if (! $this->canSendSupportCourseMail()) {
             return response()->json(['success' => false, 'error' => 'Access denied.'], 403);
         }
 
         $convertedLead = ConvertedLead::with(['leadDetail'])->findOrFail($id);
-
-        if ((int) $convertedLead->course_id !== 2) {
-            return response()->json(['success' => false, 'error' => 'Invalid lead for BOSSE support.'], 404);
-        }
 
         $recipient = ConvertedLeadWhatsAppSupport::resolveRecipient($convertedLead);
         if (! $recipient) {

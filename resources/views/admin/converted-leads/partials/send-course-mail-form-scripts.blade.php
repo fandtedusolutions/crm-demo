@@ -1,7 +1,7 @@
 <script>
 (function() {
     const CONTENT_SELECTOR = '#support_course_mail_content';
-    const courseMailTemplates = @json($templateOptions);
+    const courseMailTemplates = @json($templateOptions ?? []);
 
     function applySelectedCourseMailTemplate(templateId) {
         const tpl = courseMailTemplates.find(function(t) {

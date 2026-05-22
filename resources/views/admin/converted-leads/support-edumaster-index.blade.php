@@ -1,4 +1,4 @@
-﻿@extends('layouts.mantis')
+@extends('layouts.mantis')
 
 @section('title', 'EduMaster Converted Support List')
 
@@ -529,6 +529,7 @@
                                             <a href="{{ route('admin.invoices.index', $convertedLead->id) }}" class="btn btn-sm btn-success" title="View Invoice">
                                                 <i class="ti ti-receipt"></i>
                                             </a>
+                                            @include('admin.converted-leads.partials.support-whatsapp-mail-buttons', ['convertedLead' => $convertedLead])
                                             @php
                                             $canManageCancelFlag = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor();
                                             @endphp
@@ -628,6 +629,7 @@
                                                 <i class="ti ti-receipt me-2"></i>View Invoice
                                             </a>
                                         </li>
+                                        @include('admin.converted-leads.partials.support-whatsapp-mail-dropdown-items', ['convertedLead' => $convertedLead])
                                         @php
                                         $canManageCancelFlag = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor();
                                         @endphp
@@ -732,6 +734,8 @@
     </div>
 </div>
 <!-- [ Main Content ] end -->
+
+@include('admin.converted-leads.partials.support-whatsapp-mail-layout-includes')
 
 @endsection
 
@@ -889,7 +893,7 @@
         // Initialize dependent dropdowns on load
         loadAdmissionBatchesByBatch($('#batch_id').val(), $('#admission_batch_id').data('selected'));
 
-        // On batch change â†’ reload admission batches
+        // On batch change → reload admission batches
         $('#batch_id').on('change', function() {
             const bid = $(this).val();
             loadAdmissionBatchesByBatch(bid, '');

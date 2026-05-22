@@ -13,7 +13,7 @@
 <button type="button"
     class="btn btn-sm btn-success js-send-wati-whatsapp"
     title="Send WhatsApp template {{ $templateName }} via Wati"
-    data-url="{{ route('admin.support-bosse-converted-leads.send-whatsapp', $convertedLead->id) }}"
+    data-url="{{ route('admin.support-converted-leads.send-whatsapp', $convertedLead->id) }}"
     data-name="{{ $convertedLead->name }}"
     data-recipient="{{ $recipient['display'] }} ({{ $recipient['source'] }})"
     data-template="{{ $templateName }}">

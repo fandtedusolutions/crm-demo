@@ -505,6 +505,7 @@
                                             <a href="{{ route('admin.invoices.index', $convertedLead->id) }}" class="btn btn-sm btn-success" title="View Invoice">
                                                 <i class="ti ti-receipt"></i>
                                             </a>
+                                            @include('admin.converted-leads.partials.support-whatsapp-mail-buttons', ['convertedLead' => $convertedLead])
                                             @php
                                             $canManageCancelFlag = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor();
                                             @endphp
@@ -601,6 +602,7 @@
                                                 <i class="ti ti-receipt me-2"></i>View Invoice
                                             </a>
                                         </li>
+                                        @include('admin.converted-leads.partials.support-whatsapp-mail-dropdown-items', ['convertedLead' => $convertedLead])
                                         @php
                                         $canManageCancelFlag = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor();
                                         @endphp
@@ -726,6 +728,8 @@
     </div>
 </div>
 <!-- [ Main Content ] end -->
+
+@include('admin.converted-leads.partials.support-whatsapp-mail-layout-includes')
 
 @endsection
 

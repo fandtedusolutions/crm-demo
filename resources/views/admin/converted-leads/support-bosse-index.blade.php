@@ -503,8 +503,7 @@
                                             <a href="{{ route('admin.invoices.index', $convertedLead->id) }}" class="btn btn-sm btn-success" title="View Invoice">
                                                 <i class="ti ti-receipt"></i>
                                             </a>
-                                            @include('admin.converted-leads.partials.support-wati-whatsapp-button', ['convertedLead' => $convertedLead])
-                                            @include('admin.converted-leads.partials.support-course-mail-button', ['convertedLead' => $convertedLead])
+                                            @include('admin.converted-leads.partials.support-whatsapp-mail-buttons', ['convertedLead' => $convertedLead])
                                             @php
                                             $canManageCancelFlag = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor();
                                             @endphp
@@ -601,48 +600,7 @@
                                                 <i class="ti ti-receipt me-2"></i>View Invoice
                                             </a>
                                         </li>
-                                        @php
-                                            $watiRecipient = \App\Support\ConvertedLeadWhatsAppSupport::resolveRecipient($convertedLead);
-                                            $watiTemplate = config('wati.template_name', 'support_desk');
-                                            $watiCanSend = $watiRecipient
-                                                && config('wati.enabled')
-                                                && filled(config('wati.api_endpoint'))
-                                                && filled(config('wati.api_token'))
-                                                && filled(config('wati.channel_phone_number'));
-                                        @endphp
-                                        <li>
-                                            <button type="button"
-                                                class="dropdown-item js-send-wati-whatsapp {{ $watiCanSend ? '' : 'disabled' }}"
-                                                @if($watiCanSend)
-                                                data-url="{{ route('admin.support-bosse-converted-leads.send-whatsapp', $convertedLead->id) }}"
-                                                data-name="{{ $convertedLead->name }}"
-                                                data-recipient="{{ $watiRecipient['display'] }} ({{ $watiRecipient['source'] }})"
-                                                data-template="{{ $watiTemplate }}"
-                                                @else
-                                                disabled
-                                                @endif>
-                                                <i class="ti ti-brand-whatsapp me-2"></i>WhatsApp ({{ $watiTemplate }})
-                                            </button>
-                                        </li>
-                                        @php
-                                            $canSendCourseMail = filled($convertedLead->email)
-                                                && $convertedLead->course_id
-                                                && $convertedLead->batch_id;
-                                        @endphp
-                                        <li>
-                                            @if($canSendCourseMail)
-                                            <a href="javascript:void(0);"
-                                                class="dropdown-item"
-                                                onclick="show_large_modal('{{ route('admin.support-bosse-converted-leads.send-course-mail', $convertedLead->id) }}', {{ json_encode('Send Mail — ' . $convertedLead->name) }})">
-                                                <i class="ti ti-mail me-2"></i>Mail
-                                            </a>
-                                            @else
-                                            <span class="dropdown-item disabled text-muted"
-                                                title="{{ filled($convertedLead->email) ? 'Course and batch are required' : 'No email on file' }}">
-                                                <i class="ti ti-mail me-2"></i>Mail
-                                            </span>
-                                            @endif
-                                        </li>
+                                        @include('admin.converted-leads.partials.support-whatsapp-mail-dropdown-items', ['convertedLead' => $convertedLead])
                                         @php
                                         $canManageCancelFlag = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor();
                                         @endphp
@@ -769,7 +727,7 @@
 </div>
 <!-- [ Main Content ] end -->
 
-@include('admin.converted-leads.partials.support-wati-whatsapp-modal')
+@include('admin.converted-leads.partials.support-whatsapp-mail-layout-includes')
 
 @endsection
 
@@ -1218,7 +1176,6 @@
             });
     });
 </script>
-@include('admin.converted-leads.partials.support-wati-whatsapp-scripts')
 @endpush
 
 <!-- Support Verify Modal -->
