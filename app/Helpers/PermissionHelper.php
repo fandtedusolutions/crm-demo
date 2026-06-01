@@ -2,12 +2,21 @@
 
 namespace App\Helpers;
 
-use App\Helpers\RoleHelper;
-
-use function Symfony\Component\VarDumper\Dumper\esc;
-
 class PermissionHelper
 {
+    /**
+     * Subject Areas, Mail templates, and Flags (admin menu items with delete actions).
+     */
+    public static function can_manage_subject_areas_mails_flags(): bool
+    {
+        return RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor();
+    }
+
+    public static function can_delete_subject_areas_mails_flags(): bool
+    {
+        return self::can_manage_subject_areas_mails_flags();
+    }
+
     /**
      * Check if user has permission for a specific page
      */
@@ -16,44 +25,31 @@ class PermissionHelper
         // Check if super admin
         if (RoleHelper::is_super_admin()) {
             return self::has_permission_super_admin($permission);
-        }
-        elseif (RoleHelper::is_admin()) {
+        } elseif (RoleHelper::is_admin()) {
             return self::has_permission_admin($permission);
-        }
-        elseif (RoleHelper::is_telecaller()) {
+        } elseif (RoleHelper::is_telecaller()) {
             return self::has_permission_telecaller($permission);
-        }
-        elseif (RoleHelper::is_admission_counsellor()) {
+        } elseif (RoleHelper::is_admission_counsellor()) {
             return self::has_permission_admission_counsellor($permission);
-        }
-        elseif (RoleHelper::is_academic_assistant()) {
+        } elseif (RoleHelper::is_academic_assistant()) {
             return self::has_permission_academic_assistant($permission);
-        }
-        elseif (RoleHelper::is_finance()) {
+        } elseif (RoleHelper::is_finance()) {
             return self::has_permission_finance($permission);
-        }
-        elseif (RoleHelper::is_post_sales()) {
+        } elseif (RoleHelper::is_post_sales()) {
             return self::has_permission_post_sales($permission);
-        }
-        elseif (RoleHelper::is_support_team()) {
+        } elseif (RoleHelper::is_support_team()) {
             return self::has_permission_support_team($permission);
-        }
-        elseif (RoleHelper::is_general_manager()) {
+        } elseif (RoleHelper::is_general_manager()) {
             return self::has_permission_general_manager($permission);
-        }
-        elseif (RoleHelper::is_mentor()) {
+        } elseif (RoleHelper::is_mentor()) {
             return self::has_permission_mentor($permission);
-        }
-        elseif (RoleHelper::is_auditor()) {
+        } elseif (RoleHelper::is_auditor()) {
             return self::has_permission_auditor($permission);
-        }
-        elseif (RoleHelper::is_marketing()) {
+        } elseif (RoleHelper::is_marketing()) {
             return self::has_permission_marketing($permission);
-        }
-        elseif (RoleHelper::is_hod()) {
+        } elseif (RoleHelper::is_hod()) {
             return self::has_permission_hod($permission);
-        }
-        elseif (RoleHelper::is_placement_officer()) {
+        } elseif (RoleHelper::is_placement_officer()) {
             return self::has_permission_placement_officer($permission);
         }
 
@@ -64,26 +60,19 @@ class PermissionHelper
     {
         if (RoleHelper::is_admin_or_super_admin()) {
             return true;
-        }
-        elseif (RoleHelper::is_academic_assistant()) {
+        } elseif (RoleHelper::is_academic_assistant()) {
             return false;
-        }
-        elseif (RoleHelper::is_admission_counsellor()) {
+        } elseif (RoleHelper::is_admission_counsellor()) {
             return false;
-        }
-        elseif (RoleHelper::is_finance()) {
+        } elseif (RoleHelper::is_finance()) {
             return false;
-        }
-        elseif (RoleHelper::is_post_sales()) {
+        } elseif (RoleHelper::is_post_sales()) {
             return false;
-        }
-        elseif (RoleHelper::is_telecaller()) {
+        } elseif (RoleHelper::is_telecaller()) {
             return true;
-        }
-        elseif (RoleHelper::is_general_manager()) {
+        } elseif (RoleHelper::is_general_manager()) {
             return true;
-        }
-        elseif (RoleHelper::is_auditor()) {
+        } elseif (RoleHelper::is_auditor()) {
             return false; // Auditor has view-only, no actions
         }
 
@@ -97,9 +86,9 @@ class PermissionHelper
     {
         $permissions = [
         ];
-        return !in_array($permission, $permissions);
-    }
 
+        return ! in_array($permission, $permissions);
+    }
 
     /**
      * Admin permissions
@@ -115,9 +104,10 @@ class PermissionHelper
             'admin/reports/team-wise',
             'admin/reports/course-summary',
         ];
+
         // Admin has access to everything except the permissions listed above
         // This includes admin/marketing/d2d-form
-        return !in_array($permission, $permissions);
+        return ! in_array($permission, $permissions);
     }
 
     /**
@@ -135,6 +125,7 @@ class PermissionHelper
             'admin/payments/list',
             'profile/index',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -180,6 +171,7 @@ class PermissionHelper
             'admin/telecallers/index',
             'admin/placement-list/index',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -200,6 +192,7 @@ class PermissionHelper
             'admin/b2b-services/index',
             'admin/departments/index',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -232,6 +225,7 @@ class PermissionHelper
             'admin/universities/index',
             'admin/university-courses/index',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -248,6 +242,7 @@ class PermissionHelper
             'admin/post-sales-converted-leads/index',
             'admin/payments/list',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -275,6 +270,7 @@ class PermissionHelper
             'admin/support-eduthanzeel-converted-leads/index',
             'admin/support-e-school-converted-leads/index',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -301,6 +297,7 @@ class PermissionHelper
             'profile/index',
             'leads/pullback',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -315,6 +312,7 @@ class PermissionHelper
             'admin/converted-leads/index',
             'profile/index',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -339,6 +337,7 @@ class PermissionHelper
             'admin/auditors/index', // Auditor management (similar to general managers)
             'profile/index',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -353,6 +352,7 @@ class PermissionHelper
             'admin/marketing/marketing-leads', // Marketing Leads listing
             'profile/index',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -372,6 +372,7 @@ class PermissionHelper
             'admin/mentor-eduthanzeel-converted-leads/index',
             'admin/gmvss-mentor-converted-leads/index',
         ];
+
         return in_array($permission, $permissions);
     }
 
@@ -388,7 +389,6 @@ class PermissionHelper
         return in_array($permission, $permissions);
     }
 
-
     /**
      * Get app permissions for a specific role
      */
@@ -396,28 +396,22 @@ class PermissionHelper
     {
         if ($role_id == 1) { // Super Admin
             return self::get_permission_super_admin_app();
-        }
-        elseif ($role_id == 2) { // Admin
+        } elseif ($role_id == 2) { // Admin
             return self::get_permission_admin_app();
-        }
-        elseif ($role_id == 3) { // Telecaller
+        } elseif ($role_id == 3) { // Telecaller
             if ($is_team_manager == 1) {
                 if ($current_role == 'telecaller') {
                     return self::get_permission_telecaller_app();
-                }
-                else {
+                } else {
                     return self::get_permission_team_manager_app();
                 }
-            }
-            elseif ($is_team_lead == 1) {
+            } elseif ($is_team_lead == 1) {
                 if ($current_role == 'telecaller') {
                     return self::get_permission_telecaller_app();
-                }
-                else {
+                } else {
                     return self::get_permission_team_lead_app();
                 }
-            }
-            else {
+            } else {
                 return self::get_permission_telecaller_app();
             }
         }
@@ -443,7 +437,7 @@ class PermissionHelper
                 'admin_panel' => 1,
                 'user_roles' => 1,
                 'reports' => 1,
-            ]
+            ],
         ];
     }
 
@@ -465,7 +459,7 @@ class PermissionHelper
                 'admin_panel' => 1,
                 'user_roles' => 0,
                 'reports' => 1,
-            ]
+            ],
         ];
     }
 
@@ -487,7 +481,7 @@ class PermissionHelper
                 'admin_panel' => 0,
                 'user_roles' => 0,
                 'reports' => 1,
-            ]
+            ],
         ];
     }
 
@@ -509,7 +503,7 @@ class PermissionHelper
                 'admin_panel' => 0,
                 'user_roles' => 0,
                 'reports' => 1,
-            ]
+            ],
         ];
     }
 
@@ -532,7 +526,7 @@ class PermissionHelper
                 'admin_panel' => 0,
                 'user_roles' => 0,
                 'reports' => 0,
-            ]
+            ],
         ];
     }
 

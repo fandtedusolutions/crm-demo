@@ -66,7 +66,7 @@
                                         title="Edit">
                                         <i class="ti ti-edit"></i> Edit
                                     </a>
-                                    @if(is_super_admin())
+                                    @if(can_delete_subject_areas_mails_flags())
                                     <a href="javascript:void(0);" class="btn btn-danger btn-sm shadow-sm px-3"
                                         onclick="delete_modal('{{ route('admin.subject-areas.delete', $subjectArea->id) }}')" title="Delete">
                                         <i class="ti ti-trash"></i> Delete

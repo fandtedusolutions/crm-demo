@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PermissionHelper;
 use App\Models\Flag;
 use Illuminate\Http\Request;
-use App\Helpers\RoleHelper;
 
 class FlagController extends Controller
 {
@@ -17,7 +17,7 @@ class FlagController extends Controller
 
     private function canManage(): bool
     {
-        return RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor();
+        return PermissionHelper::can_manage_subject_areas_mails_flags();
     }
 
     private function baseRules(): array
@@ -31,20 +31,22 @@ class FlagController extends Controller
 
     public function index()
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
         $flags = Flag::orderBy('title')->get();
+
         return view('admin.flags.index', compact('flags'));
     }
 
     public function update(Request $request, $id)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Access denied.'], 403);
             }
+
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -70,7 +72,7 @@ class FlagController extends Controller
 
     public function ajax_add()
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -79,10 +81,11 @@ class FlagController extends Controller
 
     public function submit(Request $request)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Access denied.'], 403);
             }
+
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -107,17 +110,18 @@ class FlagController extends Controller
 
     public function ajax_edit($id)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
         $edit_data = Flag::findOrFail($id);
+
         return view('admin.flags.edit', compact('edit_data'));
     }
 
     public function delete($id)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 

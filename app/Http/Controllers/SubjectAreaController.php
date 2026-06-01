@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PermissionHelper;
 use App\Models\SubjectArea;
 use Illuminate\Http\Request;
-use App\Helpers\RoleHelper;
 
 class SubjectAreaController extends Controller
 {
@@ -17,22 +17,23 @@ class SubjectAreaController extends Controller
 
     private function canManage(): bool
     {
-        return RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor();
+        return PermissionHelper::can_manage_subject_areas_mails_flags();
     }
 
     public function index()
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
         $subjectAreas = SubjectArea::orderBy('title')->get();
+
         return view('admin.subject-areas.index', compact('subjectAreas'));
     }
 
     public function store(Request $request)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return response()->json(['error' => 'Access denied.'], 403);
         }
 
@@ -55,7 +56,7 @@ class SubjectAreaController extends Controller
 
     public function show(SubjectArea $subjectArea)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return response()->json(['error' => 'Access denied.'], 403);
         }
 
@@ -64,10 +65,11 @@ class SubjectAreaController extends Controller
 
     public function update(Request $request, SubjectArea $subjectArea)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Access denied.'], 403);
             }
+
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -94,7 +96,7 @@ class SubjectAreaController extends Controller
 
     public function destroy(SubjectArea $subjectArea)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return response()->json(['error' => 'Access denied.'], 403);
         }
 
@@ -108,7 +110,7 @@ class SubjectAreaController extends Controller
 
     public function ajax_add()
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -117,10 +119,11 @@ class SubjectAreaController extends Controller
 
     public function submit(Request $request)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Access denied.'], 403);
             }
+
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -147,17 +150,18 @@ class SubjectAreaController extends Controller
 
     public function ajax_edit($id)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
         $edit_data = SubjectArea::findOrFail($id);
+
         return view('admin.subject-areas.edit', compact('edit_data'));
     }
 
     public function delete($id)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 

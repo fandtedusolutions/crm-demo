@@ -1,6 +1,6 @@
 <?php
 
-if (!function_exists('has_permission')) {
+if (! function_exists('has_permission')) {
     /**
      * Check if user has permission for a specific action
      */
@@ -10,7 +10,7 @@ if (!function_exists('has_permission')) {
     }
 }
 
-if (!function_exists('can_access_menu')) {
+if (! function_exists('can_access_menu')) {
     /**
      * Check if user can access a specific menu item
      */
@@ -20,8 +20,17 @@ if (!function_exists('can_access_menu')) {
     }
 }
 
+if (! function_exists('can_delete_subject_areas_mails_flags')) {
+    /**
+     * Delete permission for Subject Areas, Mail, and Flags admin pages only.
+     */
+    function can_delete_subject_areas_mails_flags(): bool
+    {
+        return \App\Helpers\PermissionHelper::can_delete_subject_areas_mails_flags();
+    }
+}
 
-if (!function_exists('is_super_admin')) {
+if (! function_exists('is_super_admin')) {
     /**
      * Check if current user is Super Admin
      */
@@ -31,7 +40,7 @@ if (!function_exists('is_super_admin')) {
     }
 }
 
-if (!function_exists('is_admin')) {
+if (! function_exists('is_admin')) {
     /**
      * Check if current user is Admin
      */
@@ -41,7 +50,7 @@ if (!function_exists('is_admin')) {
     }
 }
 
-if (!function_exists('is_telecaller')) {
+if (! function_exists('is_telecaller')) {
     /**
      * Check if current user is Telecaller
      */
@@ -51,7 +60,7 @@ if (!function_exists('is_telecaller')) {
     }
 }
 
-if (!function_exists('is_senior_manager')) {
+if (! function_exists('is_senior_manager')) {
     /**
      * Check if current user is Senior Manager (must be telecaller and is_senior_manager = 1)
      */
@@ -61,7 +70,7 @@ if (!function_exists('is_senior_manager')) {
     }
 }
 
-if (!function_exists('is_admission_counsellor')) {
+if (! function_exists('is_admission_counsellor')) {
     /**
      * Check if current user is Admission Counsellor
      */
@@ -71,7 +80,7 @@ if (!function_exists('is_admission_counsellor')) {
     }
 }
 
-if (!function_exists('is_academic_assistant')) {
+if (! function_exists('is_academic_assistant')) {
     /**
      * Check if current user is Academic Assistant
      */
@@ -81,7 +90,7 @@ if (!function_exists('is_academic_assistant')) {
     }
 }
 
-if (!function_exists('is_finance')) {
+if (! function_exists('is_finance')) {
     /**
      * Check if current user is Finance
      */
@@ -91,7 +100,7 @@ if (!function_exists('is_finance')) {
     }
 }
 
-if (!function_exists('is_mentor')) {
+if (! function_exists('is_mentor')) {
     /**
      * Check if current user is Mentor
      */
@@ -101,8 +110,7 @@ if (!function_exists('is_mentor')) {
     }
 }
 
-
-if (!function_exists('is_general_manager')) {
+if (! function_exists('is_general_manager')) {
     /**
      * Check if current user is General Manager
      */
@@ -112,7 +120,7 @@ if (!function_exists('is_general_manager')) {
     }
 }
 
-if (!function_exists('is_auditor')) {
+if (! function_exists('is_auditor')) {
     /**
      * Check if current user is Auditor
      */
@@ -122,7 +130,7 @@ if (!function_exists('is_auditor')) {
     }
 }
 
-if (!function_exists('is_marketing')) {
+if (! function_exists('is_marketing')) {
     /**
      * Check if current user is Marketing
      */
@@ -132,8 +140,7 @@ if (!function_exists('is_marketing')) {
     }
 }
 
-
-if (!function_exists('is_logged_in')) {
+if (! function_exists('is_logged_in')) {
     /**
      * Check if user is logged in
      */
@@ -143,7 +150,7 @@ if (!function_exists('is_logged_in')) {
     }
 }
 
-if (!function_exists('get_country_code')) {
+if (! function_exists('get_country_code')) {
     /**
      * Get country codes array
      */
@@ -153,7 +160,7 @@ if (!function_exists('get_country_code')) {
     }
 }
 
-if (!function_exists('get_phone_code')) {
+if (! function_exists('get_phone_code')) {
     /**
      * Parse phone number to extract country code and phone number
      */

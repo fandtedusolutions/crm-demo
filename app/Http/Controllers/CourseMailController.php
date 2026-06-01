@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PermissionHelper;
 use App\Models\AdmissionBatch;
 use App\Models\Batch;
 use App\Models\Course;
 use App\Models\CourseMail;
 use Illuminate\Http\Request;
-use App\Helpers\RoleHelper;
 use Illuminate\Validation\ValidationException;
 
 class CourseMailController extends Controller
@@ -16,7 +16,7 @@ class CourseMailController extends Controller
 
     private function canManage(): bool
     {
-        return RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor();
+        return PermissionHelper::can_manage_subject_areas_mails_flags();
     }
 
     private function isAllAdmissionBatches($value): bool
@@ -36,7 +36,7 @@ class CourseMailController extends Controller
     private function validateHierarchy(Request $request): void
     {
         $batch = Batch::find($request->batch_id);
-        if (!$batch || (int) $batch->course_id !== (int) $request->course_id) {
+        if (! $batch || (int) $batch->course_id !== (int) $request->course_id) {
             throw ValidationException::withMessages([
                 'batch_id' => ['The selected batch does not belong to the selected course.'],
             ]);
@@ -47,7 +47,7 @@ class CourseMailController extends Controller
         }
 
         $admissionBatch = AdmissionBatch::find($request->admission_batch_id);
-        if (!$admissionBatch || (int) $admissionBatch->batch_id !== (int) $request->batch_id) {
+        if (! $admissionBatch || (int) $admissionBatch->batch_id !== (int) $request->batch_id) {
             throw ValidationException::withMessages([
                 'admission_batch_id' => ['The selected admission batch does not belong to the selected batch.'],
             ]);
@@ -77,7 +77,7 @@ class CourseMailController extends Controller
 
     public function index()
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -90,10 +90,11 @@ class CourseMailController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Access denied.'], 403);
             }
+
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -121,20 +122,22 @@ class CourseMailController extends Controller
 
     public function ajax_add()
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
         $courses = Course::active()->orderBy('title')->get();
+
         return view('admin.mails.add', compact('courses'));
     }
 
     public function submit(Request $request)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Access denied.'], 403);
             }
+
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -161,18 +164,19 @@ class CourseMailController extends Controller
 
     public function ajax_edit($id)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
         $edit_data = CourseMail::findOrFail($id);
         $courses = Course::active()->orderBy('title')->get();
+
         return view('admin.mails.edit', compact('edit_data', 'courses'));
     }
 
     public function delete($id)
     {
-        if (!$this->canManage()) {
+        if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
