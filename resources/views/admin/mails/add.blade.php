@@ -50,10 +50,14 @@
 (function() {
     initMailCascadeForm();
 
-    $('#mailAddForm').on('submit', function(e) {
+    $('#mailAddForm').off('submit.mailAdd').on('submit.mailAdd', function(e) {
         e.preventDefault();
 
         const form = $(this);
+        if (form.data('submitting')) {
+            return;
+        }
+        form.data('submitting', true);
         const formData = new FormData(this);
         const submitBtn = form.find('button[type="submit"]');
         const originalText = submitBtn.html();
@@ -89,6 +93,7 @@
                 toast_danger(errorMessage);
                 submitBtn.prop('disabled', false);
                 submitBtn.html(originalText);
+                form.data('submitting', false);
             }
         });
     });

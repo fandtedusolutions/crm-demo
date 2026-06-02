@@ -127,25 +127,36 @@ class SubjectAreaController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'is_active' => 'boolean',
         ]);
 
-        $subjectArea = SubjectArea::create([
-            'title' => $request->title,
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $title = trim((string) $validated['title']);
+        $isActive = $request->boolean('is_active');
+
+        $subjectArea = SubjectArea::whereRaw('LOWER(title) = ?', [mb_strtolower($title)])->first();
+        $wasCreated = false;
+        if (! $subjectArea) {
+            $subjectArea = SubjectArea::create([
+                'title' => $title,
+                'is_active' => $isActive,
+            ]);
+            $wasCreated = true;
+        }
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Subject Area created successfully!',
+                'message' => $wasCreated ? 'Subject Area created successfully!' : 'Subject Area already exists. Existing entry kept.',
                 'data' => $subjectArea,
             ]);
         }
 
-        return redirect()->route('admin.subject-areas.index')->with('message_success', 'Subject Area created successfully!');
+        return redirect()->route('admin.subject-areas.index')->with(
+            'message_success',
+            $wasCreated ? 'Subject Area created successfully!' : 'Subject Area already exists. Existing entry kept.'
+        );
     }
 
     public function ajax_edit($id)

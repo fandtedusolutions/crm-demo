@@ -33,10 +33,14 @@
 
 <script>
 $(document).ready(function() {
-    $('#flagAddForm').on('submit', function(e) {
+    $('#flagAddForm').off('submit.flagAdd').on('submit.flagAdd', function(e) {
         e.preventDefault();
 
         const form = $(this);
+        if (form.data('submitting')) {
+            return;
+        }
+        form.data('submitting', true);
         const formData = new FormData(this);
         const submitBtn = form.find('button[type="submit"]');
         const originalText = submitBtn.html();
@@ -72,6 +76,7 @@ $(document).ready(function() {
                 toast_danger(errorMessage);
                 submitBtn.prop('disabled', false);
                 submitBtn.html(originalText);
+                form.data('submitting', false);
             }
         });
     });

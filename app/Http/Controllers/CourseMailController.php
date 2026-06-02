@@ -141,25 +141,41 @@ class CourseMailController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $request->validate($this->baseRules());
+        $validated = $request->validate($this->baseRules());
         $this->validateHierarchy($request);
 
-        $mail = CourseMail::create([
-            'course_id' => $request->course_id,
-            'batch_id' => $request->batch_id,
-            'admission_batch_id' => $this->resolveAdmissionBatchId($request),
-            'content' => $request->content,
-        ]);
+        $admissionBatchId = $this->resolveAdmissionBatchId($request);
+        $content = trim((string) $validated['content']);
+
+        $mail = CourseMail::where('course_id', $validated['course_id'])
+            ->where('batch_id', $validated['batch_id'])
+            ->where('admission_batch_id', $admissionBatchId)
+            ->where('content', $content)
+            ->first();
+        $wasCreated = false;
+
+        if (! $mail) {
+            $mail = CourseMail::create([
+                'course_id' => $validated['course_id'],
+                'batch_id' => $validated['batch_id'],
+                'admission_batch_id' => $admissionBatchId,
+                'content' => $content,
+            ]);
+            $wasCreated = true;
+        }
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Mail created successfully!',
+                'message' => $wasCreated ? 'Mail created successfully!' : 'Duplicate mail content already exists for this course/batch/admission batch.',
                 'data' => $mail,
             ]);
         }
 
-        return redirect()->route('admin.mails.index')->with('message_success', 'Mail created successfully!');
+        return redirect()->route('admin.mails.index')->with(
+            'message_success',
+            $wasCreated ? 'Mail created successfully!' : 'Duplicate mail content already exists for this course/batch/admission batch.'
+        );
     }
 
     public function ajax_edit($id)

@@ -89,23 +89,35 @@ class FlagController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $request->validate($this->baseRules());
+        $validated = $request->validate($this->baseRules());
 
-        $flag = Flag::create([
-            'color' => $request->color,
-            'title' => $request->title,
-            'description' => $request->description,
-        ]);
+        $flag = Flag::where('color', $validated['color'])
+            ->where('title', trim((string) $validated['title']))
+            ->where('description', trim((string) $validated['description']))
+            ->first();
+        $wasCreated = false;
+
+        if (! $flag) {
+            $flag = Flag::create([
+                'color' => $validated['color'],
+                'title' => trim((string) $validated['title']),
+                'description' => trim((string) $validated['description']),
+            ]);
+            $wasCreated = true;
+        }
 
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Flag created successfully!',
+                'message' => $wasCreated ? 'Flag created successfully!' : 'Same flag already exists.',
                 'data' => $flag,
             ]);
         }
 
-        return redirect()->route('admin.flags.index')->with('message_success', 'Flag created successfully!');
+        return redirect()->route('admin.flags.index')->with(
+            'message_success',
+            $wasCreated ? 'Flag created successfully!' : 'Same flag already exists.'
+        );
     }
 
     public function ajax_edit($id)
