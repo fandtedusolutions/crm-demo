@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AdmissionBatch;
 use App\Models\Batch;
+use App\Models\Course;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Helpers\RoleHelper;
@@ -11,14 +12,59 @@ use App\Helpers\AuthHelper;
 
 class AdmissionBatchController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $admissionBatches = AdmissionBatch::with(['batch.course', 'mentor', 'createdBy', 'updatedBy'])->orderBy('created_at', 'desc')->get();
-        return view('admin.admission-batches.index', compact('admissionBatches'));
+        $courses = Course::active()->orderBy('title')->get();
+
+        $selectedCourseId = $request->filled('course_id') ? (int) $request->course_id : null;
+        $selectedBatchId = $request->filled('batch_id') ? (int) $request->batch_id : null;
+
+        if ($selectedBatchId && $selectedCourseId) {
+            $batch = Batch::find($selectedBatchId);
+            if (! $batch || (int) $batch->course_id !== $selectedCourseId) {
+                $selectedBatchId = null;
+            }
+        } elseif ($selectedBatchId && ! $selectedCourseId) {
+            $batch = Batch::find($selectedBatchId);
+            if ($batch) {
+                $selectedCourseId = (int) $batch->course_id;
+            }
+        }
+
+        $batches = collect();
+        if ($selectedCourseId) {
+            $batches = Batch::where('course_id', $selectedCourseId)
+                ->orderBy('title')
+                ->get();
+        }
+
+        $query = AdmissionBatch::with(['batch.course', 'mentor', 'createdBy', 'updatedBy'])
+            ->orderBy('created_at', 'desc');
+
+        if ($selectedBatchId) {
+            $query->where('batch_id', $selectedBatchId);
+        } elseif ($selectedCourseId) {
+            $query->whereHas('batch', function ($q) use ($selectedCourseId) {
+                $q->where('course_id', $selectedCourseId);
+            });
+        }
+
+        $admissionBatches = $query->get();
+
+        $hasActiveFilters = $selectedCourseId || $selectedBatchId;
+
+        return view('admin.admission-batches.index', compact(
+            'admissionBatches',
+            'courses',
+            'batches',
+            'selectedCourseId',
+            'selectedBatchId',
+            'hasActiveFilters'
+        ));
     }
 
     public function store(Request $request)

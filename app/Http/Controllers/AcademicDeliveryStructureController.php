@@ -11,10 +11,24 @@ class AcademicDeliveryStructureController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $academicDeliveryStructures = AcademicDeliveryStructure::with('course')->get();
-        return view('admin.master-data.academic-delivery-structures.index', compact('academicDeliveryStructures'));
+        $courses = Course::active()->orderBy('title')->get();
+        $selectedCourseId = $request->filled('course_id') ? (int) $request->course_id : null;
+
+        $query = AcademicDeliveryStructure::with('course')->orderBy('title');
+
+        if ($selectedCourseId) {
+            $query->where('course_id', $selectedCourseId);
+        }
+
+        $academicDeliveryStructures = $query->get();
+
+        return view('admin.master-data.academic-delivery-structures.index', compact(
+            'academicDeliveryStructures',
+            'courses',
+            'selectedCourseId'
+        ));
     }
 
     public function ajax_add()

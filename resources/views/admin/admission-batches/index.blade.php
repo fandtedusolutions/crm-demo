@@ -38,6 +38,52 @@
                 </div>
             </div>
             <div class="card-body">
+                <form method="GET" action="{{ route('admin.admission-batches.index') }}" class="mb-4">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-3 col-lg-3">
+                            <label for="filter_course_id" class="form-label">Course</label>
+                            <select class="form-select form-select-sm" name="course_id" id="filter_course_id">
+                                <option value="">All Courses</option>
+                                @foreach($courses as $course)
+                                    <option value="{{ $course->id }}" {{ (int) ($selectedCourseId ?? 0) === (int) $course->id ? 'selected' : '' }}>
+                                        {{ $course->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3 col-lg-3">
+                            <label for="filter_batch_id" class="form-label">Batch</label>
+                            <select class="form-select form-select-sm" name="batch_id" id="filter_batch_id"
+                                {{ $selectedCourseId ? '' : 'disabled' }}>
+                                <option value="">All Batches</option>
+                                @foreach($batches as $batch)
+                                    <option value="{{ $batch->id }}" {{ (int) ($selectedBatchId ?? 0) === (int) $batch->id ? 'selected' : '' }}>
+                                        {{ $batch->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-auto">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="ti ti-filter me-1"></i> Filter
+                            </button>
+                        </div>
+                        @if($hasActiveFilters ?? false)
+                        <div class="col-md-auto">
+                            <a href="{{ route('admin.admission-batches.index') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="ti ti-x me-1"></i> Clear
+                            </a>
+                        </div>
+                        @endif
+                    </div>
+                </form>
+
+                @if($hasActiveFilters ?? false)
+                    <p class="text-muted small mb-3">
+                        Showing {{ $admissionBatches->count() }} {{ $admissionBatches->count() === 1 ? 'admission batch' : 'admission batches' }} matching filters.
+                    </p>
+                @endif
+
                 <div class="table-responsive">
                     <table class="table table-striped datatable">
                         <thead>
@@ -53,7 +99,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($admissionBatches as $index => $admissionBatch)
+                            @forelse($admissionBatches as $index => $admissionBatch)
                             <tr>
                                 <td>{{ $index + 1 }}</td>
                                 <td>{{ $admissionBatch->title }}</td>
@@ -84,7 +130,17 @@
                                     </div>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    @if($hasActiveFilters ?? false)
+                                        No admission batches found for the selected filters.
+                                    @else
+                                        No admission batches found.
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -94,3 +150,39 @@
 </div>
 <!-- [ Main Content ] end -->
 @endsection
+
+@push('scripts')
+<script>
+(function() {
+    const $course = $('#filter_course_id');
+    const $batch = $('#filter_batch_id');
+
+    function loadFilterBatches(courseId, keepBatchId) {
+        $batch.html('<option value="">All Batches</option>');
+
+        if (!courseId) {
+            $batch.prop('disabled', true);
+            return;
+        }
+
+        $.get(`/api/batches/by-course/${courseId}`).done(function(response) {
+            if (response.success && response.batches) {
+                response.batches.forEach(function(b) {
+                    const sel = keepBatchId && String(keepBatchId) === String(b.id) ? 'selected' : '';
+                    $batch.append(`<option value="${b.id}" ${sel}>${b.title}</option>`);
+                });
+            }
+            $batch.prop('disabled', false);
+        });
+    }
+
+    $course.on('change', function() {
+        loadFilterBatches($(this).val(), '');
+    });
+
+    if (!$course.val()) {
+        $batch.prop('disabled', true);
+    }
+})();
+</script>
+@endpush

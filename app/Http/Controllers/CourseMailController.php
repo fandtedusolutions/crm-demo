@@ -75,17 +75,95 @@ class CourseMailController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
         if (! $this->canManage()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $mails = CourseMail::with(['course', 'batch', 'admissionBatch'])
-            ->orderByDesc('created_at')
-            ->get();
+        $courses = Course::active()->orderBy('title')->get();
 
-        return view('admin.mails.index', compact('mails'));
+        $selectedCourseId = $request->filled('course_id') ? (int) $request->course_id : null;
+        $selectedBatchId = $request->filled('batch_id') ? (int) $request->batch_id : null;
+        $selectedAdmissionBatchId = null;
+
+        if ($request->has('admission_batch_id') && $request->admission_batch_id !== '') {
+            $selectedAdmissionBatchId = $this->isAllAdmissionBatches($request->admission_batch_id)
+                ? self::ALL_ADMISSION_BATCHES
+                : (int) $request->admission_batch_id;
+        }
+
+        if ($selectedBatchId && $selectedCourseId) {
+            $batch = Batch::find($selectedBatchId);
+            if (! $batch || (int) $batch->course_id !== $selectedCourseId) {
+                $selectedBatchId = null;
+                $selectedAdmissionBatchId = null;
+            }
+        } elseif ($selectedBatchId && ! $selectedCourseId) {
+            $batch = Batch::find($selectedBatchId);
+            if ($batch) {
+                $selectedCourseId = (int) $batch->course_id;
+            }
+        }
+
+        if ($selectedAdmissionBatchId
+            && $selectedAdmissionBatchId !== self::ALL_ADMISSION_BATCHES
+            && $selectedBatchId) {
+            $admissionBatch = AdmissionBatch::find($selectedAdmissionBatchId);
+            if (! $admissionBatch || (int) $admissionBatch->batch_id !== $selectedBatchId) {
+                $selectedAdmissionBatchId = null;
+            }
+        }
+
+        $batches = collect();
+        if ($selectedCourseId) {
+            $batches = Batch::where('course_id', $selectedCourseId)
+                ->orderBy('title')
+                ->get();
+        }
+
+        $admissionBatches = collect();
+        if ($selectedBatchId) {
+            $admissionBatches = AdmissionBatch::where('batch_id', $selectedBatchId)
+                ->orderBy('title')
+                ->get();
+        }
+
+        $query = CourseMail::with(['course', 'batch', 'admissionBatch'])
+            ->orderByDesc('created_at');
+
+        if ($selectedCourseId) {
+            $query->where('course_id', $selectedCourseId);
+        }
+
+        if ($selectedBatchId) {
+            $query->where('batch_id', $selectedBatchId);
+        }
+
+        if ($selectedAdmissionBatchId !== null) {
+            if ($selectedAdmissionBatchId === self::ALL_ADMISSION_BATCHES) {
+                $query->whereNull('admission_batch_id');
+            } else {
+                $query->where('admission_batch_id', $selectedAdmissionBatchId);
+            }
+        }
+
+        $mails = $query->get();
+
+        $hasActiveFilters = $selectedCourseId
+            || $selectedBatchId
+            || $selectedAdmissionBatchId !== null;
+
+        return view('admin.mails.index', compact(
+            'mails',
+            'courses',
+            'batches',
+            'admissionBatches',
+            'selectedCourseId',
+            'selectedBatchId',
+            'selectedAdmissionBatchId',
+            'hasActiveFilters'
+        ));
     }
 
     public function update(Request $request, $id)

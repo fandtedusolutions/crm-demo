@@ -13,17 +13,43 @@ use App\Helpers\AuthHelper;
 
 class TelecallerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (!(RoleHelper::is_admin_or_super_admin() || RoleHelper::is_general_manager() || RoleHelper::is_admission_counsellor())) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $telecallers = User::where('role_id', 3)->with(['role', 'team'])->get();
-        $roles = UserRole::all();
-        $teams = Team::all();
-        
-        return view('admin.telecallers.index', compact('telecallers', 'roles', 'teams'));
+        $search = trim((string) $request->input('search', ''));
+        $selectedTeamId = $request->filled('team_id') ? (int) $request->team_id : null;
+
+        $query = User::where('role_id', 3)
+            ->with(['role', 'team'])
+            ->orderBy('name');
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%')
+                    ->orWhere('phone', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($selectedTeamId) {
+            $query->where('team_id', $selectedTeamId);
+        }
+
+        $telecallers = $query->get();
+        $teams = Team::orderBy('name')->get();
+
+        $hasActiveFilters = $search !== '' || $selectedTeamId;
+
+        return view('admin.telecallers.index', compact(
+            'telecallers',
+            'teams',
+            'search',
+            'selectedTeamId',
+            'hasActiveFilters'
+        ));
     }
 
     public function store(Request $request)
@@ -179,7 +205,6 @@ class TelecallerController extends Controller
             'phone' => 'required|string|max:20',
             'code' => 'required|string|max:10',
             'ext_no' => 'nullable|string|max:20',
-            'password' => 'nullable|string|min:6',
             'team_id' => 'nullable|exists:teams,id',
             'is_team_lead' => 'nullable|boolean',
             'is_senior_manager' => 'nullable|boolean',
@@ -199,10 +224,6 @@ class TelecallerController extends Controller
         $updateData['is_team_lead'] = $request->has('is_team_lead') ? 1 : 0;
         $updateData['is_senior_manager'] = $request->has('is_senior_manager') ? 1 : 0;
         $updateData['is_b2b'] = $request->has('is_b2b') ? 1 : 0;
-
-        if ($request->filled('password')) {
-            $updateData['password'] = Hash::make($request->password);
-        }
 
         $telecaller->update($updateData);
 

@@ -38,6 +38,46 @@
                 </div>
             </div>
             <div class="card-body">
+                <form method="GET" action="{{ route('admin.telecallers.index') }}" class="mb-4">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-4 col-lg-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control form-control-sm" name="search" id="search"
+                                value="{{ $search ?? request('search') }}"
+                                placeholder="Name, phone or email">
+                        </div>
+                        <div class="col-md-3 col-lg-3">
+                            <label for="filter_team_id" class="form-label">Team</label>
+                            <select class="form-select form-select-sm" name="team_id" id="filter_team_id">
+                                <option value="">All Teams</option>
+                                @foreach($teams as $team)
+                                    <option value="{{ $team->id }}" {{ (int) ($selectedTeamId ?? 0) === (int) $team->id ? 'selected' : '' }}>
+                                        {{ $team->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-auto">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="ti ti-search me-1"></i> Search
+                            </button>
+                        </div>
+                        @if($hasActiveFilters ?? false)
+                        <div class="col-md-auto">
+                            <a href="{{ route('admin.telecallers.index') }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="ti ti-x me-1"></i> Clear
+                            </a>
+                        </div>
+                        @endif
+                    </div>
+                </form>
+
+                @if($hasActiveFilters ?? false)
+                    <p class="text-muted small mb-3">
+                        Showing {{ $telecallers->count() }} {{ $telecallers->count() === 1 ? 'telecaller' : 'telecallers' }} matching your criteria.
+                    </p>
+                @endif
+
                 <div class="table-responsive">
                     <table class="table table-striped datatable">
                         <thead>
@@ -54,7 +94,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($telecallers as $index => $telecaller)
+                            @forelse($telecallers as $index => $telecaller)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
@@ -102,7 +142,17 @@
                                     </a>
                                 </td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">
+                                    @if($hasActiveFilters ?? false)
+                                        No telecallers found matching your search or filters.
+                                    @else
+                                        No telecallers found.
+                                    @endif
+                                </td>
+                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

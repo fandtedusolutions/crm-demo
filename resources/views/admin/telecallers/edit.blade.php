@@ -39,14 +39,6 @@
 
             <div class="col-md-12">
                 <div class="mb-3">
-                    <label class="form-label" for="password">Password</label>
-                    <input type="password" name="password" class="form-control" id="password" placeholder="Enter New Password">
-                    <small class="form-text text-muted">Leave blank to keep current password</small>
-                </div>
-            </div>
-
-            <div class="col-md-12">
-                <div class="mb-3">
                     <label class="form-label" for="joining_date">Joining Date <span class="text-danger">*</span></label>
                     <input type="date" name="joining_date" class="form-control" id="joining_date" value="{{ $edit_data->joining_date ? $edit_data->joining_date->format('Y-m-d') : '' }}" required>
                 </div>
