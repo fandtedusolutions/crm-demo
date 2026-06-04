@@ -684,7 +684,10 @@ class InvoiceController extends Controller
 
     private function isB2bStudent(ConvertedLead $student): bool
     {
-        return (int) (optional($student->lead)->is_b2b ?? $student->is_b2b ?? 0) === 1;
+        $student->loadMissing('lead');
+
+        return (int) ($student->is_b2b ?? 0) === 1
+            || (int) (optional($student->lead)->is_b2b ?? 0) === 1;
     }
 
     /**
@@ -862,6 +865,7 @@ class InvoiceController extends Controller
             'batch_amount' => $computed['batch_amount'],
             'university_amount' => $computed['university_amount'],
             'course_title' => $course?->title,
+            'is_b2b' => $this->isB2bStudent($student),
             'use_b2b_batch_amount' => $useB2bBatchAmount,
             'batch_amount_label' => $useB2bBatchAmount ? 'B2B Amount' : null,
             'fee_pg_amount' => $computed['fee_pg_amount'],

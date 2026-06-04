@@ -220,7 +220,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function shouldUseB2bBatchAmount(courseId) {
-        return parseInt(courseId, 10) === 25 && studentData.isB2b;
+        return parseInt(courseId, 10) === 25 && !!studentData.isB2b;
+    }
+
+    function getBatchDataAmounts(option) {
+        if (!option) {
+            return { amount: 0, b2bAmount: 0, sslcAmount: 0, plustwoAmount: 0 };
+        }
+        return {
+            amount: toNumber(option.getAttribute('data-amount')),
+            b2bAmount: toNumber(option.getAttribute('data-b2b-amount')),
+            sslcAmount: toNumber(option.getAttribute('data-sslc-amount')),
+            plustwoAmount: toNumber(option.getAttribute('data-plustwo-amount')),
+        };
     }
 
     function getBatchLabel(courseId) {
@@ -420,12 +432,24 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.success && response.batches) {
                 response.batches.forEach(function(batch) {
                     const selected = String(selectedBatchId) === String(batch.id) ? ' selected' : '';
+                    const amount = batch.amount != null ? batch.amount : '';
+                    const b2bAmount = batch.b2b_amount != null ? batch.b2b_amount : '';
+                    const useB2b = shouldUseB2bBatchAmount(courseId);
+                    let optionLabel = batch.title;
+                    if (useB2b && b2bAmount !== '') {
+                        optionLabel += ' — ' + formatINR(b2bAmount) + ' (B2B)';
+                    } else if (amount !== '') {
+                        optionLabel += ' — ' + formatINR(amount);
+                    }
+                    if (parseInt(batch.is_active, 10) === 0) {
+                        optionLabel += ' (Inactive)';
+                    }
                     options += '<option value="' + batch.id + '"' + selected +
-                        ' data-amount="' + (batch.amount || 0) + '"' +
-                        ' data-sslc-amount="' + (batch.sslc_amount || 0) + '"' +
-                        ' data-plustwo-amount="' + (batch.plustwo_amount || 0) + '"' +
-                        ' data-b2b-amount="' + (batch.b2b_amount || 0) + '">' +
-                        batch.title + (parseInt(batch.is_active, 10) === 0 ? ' (Inactive)' : '') +
+                        ' data-amount="' + (batch.amount ?? '') + '"' +
+                        ' data-sslc-amount="' + (batch.sslc_amount ?? '') + '"' +
+                        ' data-plustwo-amount="' + (batch.plustwo_amount ?? '') + '"' +
+                        ' data-b2b-amount="' + (batch.b2b_amount ?? '') + '">' +
+                        optionLabel +
                         '</option>';
                 });
             }
@@ -531,25 +555,26 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const title = selectedOption.text.trim();
+        const amounts = getBatchDataAmounts(selectedOption);
+        const title = selectedOption.text.split('—')[0].trim();
         const useB2b = apiResponse && apiResponse.use_b2b_batch_amount !== undefined
-            ? apiResponse.use_b2b_batch_amount
+            ? !!apiResponse.use_b2b_batch_amount
             : shouldUseB2bBatchAmount(courseId);
-        let shownAmount = toNumber(selectedOption.dataset.amount);
+        let shownAmount = amounts.amount;
         let label = '';
 
         if (useB2b) {
-            shownAmount = toNumber(selectedOption.dataset.b2bAmount);
+            shownAmount = amounts.b2bAmount;
             label = apiResponse && apiResponse.batch_amount_label ? apiResponse.batch_amount_label : 'B2B Amount';
-            if (!shownAmount && apiResponse && apiResponse.batch_amount) {
+            if ((!shownAmount || shownAmount <= 0) && apiResponse && apiResponse.batch_amount) {
                 shownAmount = parseFloat(apiResponse.batch_amount);
             }
         } else if (parseInt(courseId, 10) === 16 && studentData.class) {
-            if (studentData.class === 'sslc' && toNumber(selectedOption.dataset.sslcAmount) > 0) {
-                shownAmount = toNumber(selectedOption.dataset.sslcAmount);
+            if (studentData.class === 'sslc' && amounts.sslcAmount > 0) {
+                shownAmount = amounts.sslcAmount;
                 label = 'SSLC Amount';
-            } else if (toNumber(selectedOption.dataset.plustwoAmount) > 0) {
-                shownAmount = toNumber(selectedOption.dataset.plustwoAmount);
+            } else if (amounts.plustwoAmount > 0) {
+                shownAmount = amounts.plustwoAmount;
                 label = 'Plus Two Amount';
             }
         }

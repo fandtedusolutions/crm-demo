@@ -42,7 +42,9 @@
                     data-plustwo-amount="{{ (float) ($batchOption->plustwo_amount ?? 0) }}"
                     data-b2b-amount="{{ (float) ($batchOption->b2b_amount ?? 0) }}"
                     {{ (string) $selectedBatchId === (string) $batchOption->id ? 'selected' : '' }}>
-                    {{ $batchOption->title }}{{ (int) ($batchOption->is_active ?? 0) === 0 ? ' (Inactive)' : '' }}
+                    {{ $batchOption->title }}@if(!empty($ctx['useB2bBatchAmount']) && $batchOption->b2b_amount !== null)
+                         — ₹{{ number_format((float) $batchOption->b2b_amount, 2) }} (B2B)@elseif($batchOption->amount !== null)
+                         — ₹{{ number_format((float) $batchOption->amount, 2) }}@endif{{ (int) ($batchOption->is_active ?? 0) === 0 ? ' (Inactive)' : '' }}
                 </option>
             @endforeach
         </select>
