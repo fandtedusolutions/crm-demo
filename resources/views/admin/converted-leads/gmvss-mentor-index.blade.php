@@ -337,7 +337,7 @@
 <!-- [ Main Content ] start -->
 <div class="row">
     <div class="col-12">
-        <div class="card">
+        <div class="card" data-mentor-update-url="{{ route('admin.converted-leads.inline-update', ['id' => '__ID__']) }}">
             <div class="card-header">
                 <h5 class="mb-0">GMVSS Mentor List</h5>
             </div>

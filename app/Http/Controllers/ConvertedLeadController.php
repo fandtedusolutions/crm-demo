@@ -3754,10 +3754,14 @@ class ConvertedLeadController extends Controller
         }
         
         // If mentor, restrict to allowed fields only
-        $mentorAllowedFields = ['register_number', 'phone', 'enroll_no', 'registration_link_id', 'certificate_status', 'certificate_received_date', 'certificate_issued_date', 'remarks', 'all_online_result_publication_date', 'online_result_publication_date', 'certificate_publication_date', 'certificate_distribution_mode', 'courier_tracking_number'];
+        $mentorAllowedFields = ['register_number', 'phone', 'enroll_no', 'registration_link_id', 'certificate_status', 'certificate_received_date', 'certificate_issued_date', 'remarks', 'all_online_result_publication_date', 'online_result_publication_date', 'certificate_publication_date', 'certificate_distribution_mode', 'courier_tracking_number', 'flag_id', 'call_time'];
         $financeAllowedFields = ['status', 'exam_fee', 'registration_link_id'];
 
         $convertedLead = ConvertedLead::findOrFail($id);
+
+        if ($denied = \App\Support\MentorFlagFieldSupport::mentorLeadScopeDeniedJsonResponse($convertedLead)) {
+            return $denied;
+        }
         
         // Additional role-based access control
         $currentUser = AuthHelper::getCurrentUser();
@@ -4001,7 +4005,7 @@ class ConvertedLeadController extends Controller
         }
 
         if ($field === 'flag_id') {
-            return response()->json(\App\Support\MentorFlagFieldSupport::updateOnConvertedLead($convertedLead, $value));
+            return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
         }
 
         // Handle fields that are in LeadDetail (for UG/PG course and EduMaster)

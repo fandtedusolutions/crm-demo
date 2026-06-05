@@ -184,22 +184,12 @@ class MentorConvertedLeadController extends Controller
             $field = $request->field;
             $value = $request->value;
 
-            if (RoleHelper::is_mentor()) {
-                $mentorDeniedFields = ['subject_id', 'registration_status', 'status'];
+            if ($denied = \App\Support\MentorFlagFieldSupport::mentorFieldDeniedJsonResponse($field, ['subject_id', 'registration_status', 'status'])) {
+                return $denied;
+            }
 
-                if (in_array($field, $mentorDeniedFields, true)) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'You do not have permission to edit this field.',
-                    ], 403);
-                }
-
-                if (!\App\Support\MentorFlagFieldSupport::mentorCanUpdateLead($convertedLead)) {
-                    return response()->json([
-                        'success' => false,
-                        'error' => 'You do not have permission to update this lead.',
-                    ], 403);
-                }
+            if ($denied = \App\Support\MentorFlagFieldSupport::mentorLeadScopeDeniedJsonResponse($convertedLead)) {
+                return $denied;
             }
 
             // Allow only known fields to prevent SQL errors / mass assignment of unknown columns.
@@ -270,12 +260,7 @@ class MentorConvertedLeadController extends Controller
             }
 
             if ($field === 'flag_id') {
-                $flagResult = \App\Support\MentorFlagFieldSupport::updateOnConvertedLead($convertedLead, $value);
-
-                return response()->json(
-                    $flagResult,
-                    !empty($flagResult['success']) ? 200 : 403
-                );
+                return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
             }
 
             // "status" is a ConvertedLead field (converted_leads table), not mentor_details.

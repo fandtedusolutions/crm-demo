@@ -147,6 +147,10 @@ class JuniorVloggerMentorController extends Controller
             $field = $request->field;
             $value = $request->value;
 
+            if ($denied = \App\Support\MentorFlagFieldSupport::mentorLeadScopeDeniedJsonResponse($convertedLead)) {
+                return $denied;
+            }
+
             $validationRules = $this->getValidationRules($field);
             if ($validationRules) {
                 $validator = Validator::make([$field => $value], [$field => $validationRules]);
@@ -159,7 +163,7 @@ class JuniorVloggerMentorController extends Controller
             }
 
             if ($field === 'flag_id') {
-                return response()->json(\App\Support\MentorFlagFieldSupport::updateOnConvertedLead($convertedLead, $value));
+                return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
             }
 
             $convertedLeadFields = ['register_number', 'name', 'phone', 'email', 'batch_id', 'admission_batch_id', 'dob'];

@@ -340,7 +340,7 @@
 <!-- [ Main Content ] start -->
 <div class="row">
     <div class="col-12">
-        <div class="card">
+        <div class="card" data-mentor-update-url="{{ route('admin.mentor-eduthanzeel-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header">
                 <h5>Eduthanzeel Converted Mentor List</h5>
             </div>

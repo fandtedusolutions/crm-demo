@@ -8,6 +8,7 @@ use App\Models\AdmissionBatch;
 use App\Models\ConvertedLead;
 use App\Models\Flag;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
@@ -53,6 +54,35 @@ class MentorFlagFieldSupport
             'error' => 'You do not have permission to update this lead.',
         ];
     }
+
+    public static function mentorLeadScopeDeniedJsonResponse(ConvertedLead $convertedLead): ?JsonResponse
+    {
+        if (!RoleHelper::is_mentor() || self::mentorCanUpdateLead($convertedLead)) {
+            return null;
+        }
+
+        return response()->json(self::leadUpdateDeniedResponse(), 403);
+    }
+
+    public static function mentorFieldDeniedJsonResponse(string $field, array $deniedFields): ?JsonResponse
+    {
+        if (!RoleHelper::is_mentor() || !in_array($field, $deniedFields, true)) {
+            return null;
+        }
+
+        return response()->json([
+            'success' => false,
+            'error' => 'You do not have permission to edit this field.',
+        ], 403);
+    }
+
+    public static function flagUpdateJsonResponse(ConvertedLead $convertedLead, $value): JsonResponse
+    {
+        $result = self::updateOnConvertedLead($convertedLead, $value);
+
+        return response()->json($result, !empty($result['success']) ? 200 : 403);
+    }
+
     public static function forFilterSelect(): Collection
     {
         return Flag::orderBy('title')->get(['id', 'title']);

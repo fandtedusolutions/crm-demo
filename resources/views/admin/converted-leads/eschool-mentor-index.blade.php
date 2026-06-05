@@ -334,7 +334,7 @@
 <!-- [ Main Content ] start -->
 <div class="row">
     <div class="col-12">
-        <div class="card">
+        <div class="card" data-mentor-update-url="{{ route('admin.mentor-eschool-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header">
                 <h5>E-School Converted Mentor List</h5>
             </div>

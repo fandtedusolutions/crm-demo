@@ -190,6 +190,14 @@ class NiosMentorConvertedLeadController extends Controller
             $field = $request->field;
             $value = $request->value;
 
+            if ($denied = \App\Support\MentorFlagFieldSupport::mentorFieldDeniedJsonResponse($field, ['subject_id', 'registration_status', 'status'])) {
+                return $denied;
+            }
+
+            if ($denied = \App\Support\MentorFlagFieldSupport::mentorLeadScopeDeniedJsonResponse($convertedLead)) {
+                return $denied;
+            }
+
             // Validate the field and value
             $validationRules = $this->getValidationRules($field);
             if ($validationRules) {
@@ -203,7 +211,7 @@ class NiosMentorConvertedLeadController extends Controller
             }
 
             if ($field === 'flag_id') {
-                return response()->json(\App\Support\MentorFlagFieldSupport::updateOnConvertedLead($convertedLead, $value));
+                return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
             }
 
             // Handle status field - update in converted_leads table

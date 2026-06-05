@@ -218,6 +218,10 @@ class ESchoolEduthanzeelMentorController extends Controller
             $field = $request->field;
             $value = $request->value;
 
+            if ($denied = \App\Support\MentorFlagFieldSupport::mentorLeadScopeDeniedJsonResponse($convertedLead)) {
+                return $denied;
+            }
+
             // Validate the field and value
             $validationRules = $this->getValidationRules($field);
             if ($validationRules) {
@@ -231,7 +235,7 @@ class ESchoolEduthanzeelMentorController extends Controller
             }
 
             if ($field === 'flag_id') {
-                return response()->json(\App\Support\MentorFlagFieldSupport::updateOnConvertedLead($convertedLead, $value));
+                return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
             }
 
             // Special handling for tutor_id (displayed as Tutor, but uses teacher_id in DB)
