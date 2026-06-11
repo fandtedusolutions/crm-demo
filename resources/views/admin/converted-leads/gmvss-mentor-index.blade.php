@@ -1020,7 +1020,7 @@
         });
     });
 </script>
-@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.mentor-gmvss-converted-leads.update-mentor-details', ['id' => '__ID__'])])
+@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.converted-leads.inline-update', ['id' => '__ID__'])])
 @endpush
 @endsection
 

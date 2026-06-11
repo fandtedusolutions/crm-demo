@@ -1338,5 +1338,5 @@ return ['id' => $teacher->id, 'name' => $teacher->name];
         }
     });
 </script>
-@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.eduthanzeel-mentor-converted-leads.update-mentor-details', ['id' => '__ID__'])])
+@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.mentor-eduthanzeel-converted-leads.update-mentor-details', ['id' => '__ID__'])])
 @endpush

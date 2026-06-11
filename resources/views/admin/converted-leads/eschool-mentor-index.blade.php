@@ -1327,5 +1327,5 @@
         }
     });
 </script>
-@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.eschool-mentor-converted-leads.update-mentor-details', ['id' => '__ID__'])])
+@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.mentor-eschool-converted-leads.update-mentor-details', ['id' => '__ID__'])])
 @endpush

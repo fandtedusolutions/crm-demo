@@ -1460,5 +1460,5 @@
         }
     });
 </script>
-@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.nios-mentor-converted-leads.update-mentor-details', ['id' => '__ID__'])])
+@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.mentor-nios-converted-leads.update-mentor-details', ['id' => '__ID__'])])
 @endpush

@@ -349,7 +349,7 @@
 </div>
 @include('admin.converted-leads.partials.placement-modal-reopen-script')
 @push('scripts')
-@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.additional-mentor-course-converted-leads.update-mentor-details', ['id' => '__ID__'])])
+@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.converted-leads.inline-update', ['id' => '__ID__'])])
 @endpush
 @endsection
 
