@@ -301,7 +301,7 @@ class FollowupLeadsController extends Controller
             $user->role_id == 1 ||
             $user->role_id == 2 ||
             $user->is_senior_manager ||
-            in_array($user->role_id, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+            in_array($user->role_id, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
         ) {
             return $query;
         }
@@ -337,7 +337,7 @@ class FollowupLeadsController extends Controller
             $user->role_id == 3 ||
             $user->is_team_lead ||
             $user->is_senior_manager ||
-            in_array($user->role_id, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
+            in_array($user->role_id, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
         ) {
             return true;
         }

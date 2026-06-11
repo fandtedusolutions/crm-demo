@@ -155,7 +155,7 @@ class RoleHelper
     }
 
     /**
-     * Check if current user is Mentor
+     * Check if current user is Mentor or Faculty (same converted-leads mentor access).
      */
     public static function is_mentor()
     {
@@ -168,7 +168,24 @@ class RoleHelper
             return false;
         }
 
-        return $user->role_id == 9;
+        return in_array((int) $user->role_id, [9, 15], true);
+    }
+
+    /**
+     * Check if current user is Faculty (role_id = 15).
+     */
+    public static function is_faculty()
+    {
+        if (!self::is_logged_in()) {
+            return false;
+        }
+
+        $user = AuthHelper::getCurrentUser();
+        if (!$user) {
+            return false;
+        }
+
+        return (int) $user->role_id === 15;
     }
 
     /**
@@ -324,7 +341,7 @@ class RoleHelper
             return false;
         }
 
-        return $user->role_id == 15;
+        return (int) $user->role_id === 16;
     }
 
 

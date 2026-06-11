@@ -164,7 +164,7 @@
                 @endif
 
                 {{-- User Management Section --}}
-                @if(has_permission('admin/telecallers/index') || has_permission('admin/marketing/index') || has_permission('admin/admins/index') || has_permission('admin/admission-counsellors/index') || has_permission('admin/academic-assistants/index') || has_permission('admin/teachers/index') || has_permission('admin/support-team/index') || has_permission('admin/mentor/index') || has_permission('admin/finance/index') || has_permission('admin/hod/index') || has_permission('admin/placement-officers/index'))
+                @if(has_permission('admin/telecallers/index') || has_permission('admin/marketing/index') || has_permission('admin/admins/index') || has_permission('admin/admission-counsellors/index') || has_permission('admin/academic-assistants/index') || has_permission('admin/teachers/index') || has_permission('admin/support-team/index') || has_permission('admin/mentor/index') || has_permission('admin/faculty/index') || has_permission('admin/finance/index') || has_permission('admin/hod/index') || has_permission('admin/placement-officers/index'))
                 <li class="pc-item pc-caption">
                     <label>User Management</label>
                 </li>
@@ -285,6 +285,16 @@
                             <i class="ti ti-user-check"></i>
                         </span>
                         <span class="pc-mtext">Mentor</span>
+                    </a>
+                </li>
+                @endif
+                @if(has_permission('admin/faculty/index'))
+                <li class="pc-item {{ request()->routeIs('admin.faculty.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.faculty.index') }}" class="pc-link">
+                        <span class="pc-micon">
+                            <i class="ti ti-school"></i>
+                        </span>
+                        <span class="pc-mtext">Faculty</span>
                     </a>
                 </li>
                 @endif

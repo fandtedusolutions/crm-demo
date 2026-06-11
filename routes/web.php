@@ -600,7 +600,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/auditors-change-password/{id}', [App\Http\Controllers\AuditorController::class, 'changePassword'])->name('auditors.change-password');
         Route::post('/auditors-update-password/{id}', [App\Http\Controllers\AuditorController::class, 'updatePassword'])->name('auditors.update-password');
 
-        // Placement Officer routes (role_id = 15)
+        // Placement Officer routes (role_id = 16)
         Route::resource('placement-officers', App\Http\Controllers\PlacementOfficerController::class)->except(['create', 'edit']);
         Route::get('/placement-officers-add', [App\Http\Controllers\PlacementOfficerController::class, 'ajax_add'])->name('placement-officers.add');
         Route::get('/placement-officers-edit/{id}', [App\Http\Controllers\PlacementOfficerController::class, 'ajax_edit'])->name('placement-officers.edit');
@@ -659,6 +659,16 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::delete('/mentor-delete/{id}', [App\Http\Controllers\MentorController::class, 'delete'])->name('mentor.delete');
         Route::get('/mentor-change-password/{id}', [App\Http\Controllers\MentorController::class, 'changePassword'])->name('mentor.change-password');
         Route::post('/mentor-update-password/{id}', [App\Http\Controllers\MentorController::class, 'updatePassword'])->name('mentor.update-password');
+
+        // Faculty routes (role_id = 15)
+        Route::resource('faculty', App\Http\Controllers\FacultyController::class)->except(['create', 'edit']);
+        Route::get('/faculty-add', [App\Http\Controllers\FacultyController::class, 'ajax_add'])->name('faculty.add');
+        Route::get('/faculty-edit/{id}', [App\Http\Controllers\FacultyController::class, 'ajax_edit'])->name('faculty.edit');
+        Route::post('/faculty-submit', [App\Http\Controllers\FacultyController::class, 'submit'])->name('faculty.submit');
+        Route::put('/faculty-update/{id}', [App\Http\Controllers\FacultyController::class, 'update'])->name('faculty.update');
+        Route::delete('/faculty-delete/{id}', [App\Http\Controllers\FacultyController::class, 'delete'])->name('faculty.delete');
+        Route::get('/faculty-change-password/{id}', [App\Http\Controllers\FacultyController::class, 'changePassword'])->name('faculty.change-password');
+        Route::post('/faculty-update-password/{id}', [App\Http\Controllers\FacultyController::class, 'updatePassword'])->name('faculty.update-password');
 
         // Post-sales routes (role_id = 7)
         Route::resource('post-sales', App\Http\Controllers\PostSalesController::class)->except(['create', 'edit']);

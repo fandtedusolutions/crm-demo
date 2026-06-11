@@ -719,7 +719,7 @@ class ConvertedLeadsController extends Controller
         if ($user->role_id == 1 || // Super Admin
             $user->role_id == 2 || // Admin
             $user->is_senior_manager ||
-            in_array($user->role_id, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14])) {
+            in_array($user->role_id, [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])) {
             // Can see all leads
             return;
         }

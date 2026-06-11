@@ -102,11 +102,21 @@ if (! function_exists('is_finance')) {
 
 if (! function_exists('is_mentor')) {
     /**
-     * Check if current user is Mentor
+     * Check if current user is Mentor or Faculty
      */
     function is_mentor()
     {
         return \App\Helpers\RoleHelper::is_mentor();
+    }
+}
+
+if (! function_exists('is_faculty')) {
+    /**
+     * Check if current user is Faculty
+     */
+    function is_faculty()
+    {
+        return \App\Helpers\RoleHelper::is_faculty();
     }
 }
 

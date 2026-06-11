@@ -168,6 +168,7 @@ class PermissionHelper
             'admin/academic-assistants/index',
             'admin/support-team/index',
             'admin/mentor/index',
+            'admin/faculty/index',
             'admin/b2b-services/index',
             'admin/departments/index',
             'admin/telecallers/index',

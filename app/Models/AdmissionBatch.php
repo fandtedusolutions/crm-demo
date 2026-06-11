@@ -50,7 +50,7 @@ class AdmissionBatch extends Model
 
     public function mentor()
     {
-        return $this->belongsTo(User::class, 'mentor_id')->where('role_id', 9);
+        return $this->belongsTo(User::class, 'mentor_id')->whereIn('role_id', [9, 15]);
     }
 
     /**

@@ -9,23 +9,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class PlacementOfficerController extends Controller
+class FacultyController extends Controller
 {
     public function index()
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficers = User::where('role_id', 16)->with(['role'])->get();
+        $facultyUsers = User::where('role_id', 15)->with(['role'])->get();
         $roles = UserRole::all();
 
-        return view('admin.placement-officers.index', compact('placementOfficers', 'roles'));
+        return view('admin.faculty.index', compact('facultyUsers', 'roles'));
     }
 
     public function store(Request $request)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return response()->json(['error' => 'Access denied.'], 403);
         }
 
@@ -40,61 +40,61 @@ class PlacementOfficerController extends Controller
 
         $data = $request->only(['name', 'email', 'phone', 'code', 'ext_no', 'password']);
         $data['password'] = Hash::make($data['password']);
-        $data['role_id'] = 16;
+        $data['role_id'] = 15;
         $data['is_active'] = 1;
 
-        $placementOfficer = User::create($data);
+        $facultyUser = User::create($data);
 
         return response()->json([
             'success' => true,
-            'message' => 'Placement Officer created successfully.',
-            'data' => $placementOfficer->load('role'),
+            'message' => 'Faculty user created successfully.',
+            'data' => $facultyUser->load('role'),
         ]);
     }
 
-    public function show(User $placementOfficer)
+    public function show(User $facultyUser)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return response()->json(['error' => 'Access denied.'], 403);
         }
 
-        return response()->json($placementOfficer->load('role'));
+        return response()->json($facultyUser->load('role'));
     }
 
-    public function destroy(User $placementOfficer)
+    public function destroy(User $facultyUser)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return response()->json(['error' => 'Access denied.'], 403);
         }
 
-        if ($placementOfficer->leads()->count() > 0) {
+        if ($facultyUser->leads()->count() > 0) {
             return response()->json([
-                'error' => 'Cannot delete placement officer. They have assigned leads.',
+                'error' => 'Cannot delete faculty user. They have assigned leads.',
             ], 422);
         }
 
-        $placementOfficer->delete();
+        $facultyUser->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Placement Officer deleted successfully.',
+            'message' => 'Faculty user deleted successfully.',
         ]);
     }
 
     public function ajax_add(Request $request)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
         $country_codes = get_country_code();
 
-        return view('admin.placement-officers.add', compact('country_codes'));
+        return view('admin.faculty.add', compact('country_codes'));
     }
 
     public function submit(Request $request)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
@@ -109,8 +109,7 @@ class PlacementOfficerController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $firstError = $validator->errors()->first();
-            return redirect()->back()->with('message_danger', $firstError)->withInput();
+            return redirect()->back()->with('message_danger', $validator->errors()->first())->withInput();
         }
 
         User::create([
@@ -120,32 +119,32 @@ class PlacementOfficerController extends Controller
             'code' => $request->code,
             'ext_no' => $request->ext_no,
             'password' => Hash::make($request->password),
-            'role_id' => 16,
+            'role_id' => 15,
             'is_active' => $request->has('is_active') ? 1 : 0,
         ]);
 
-        return redirect()->route('admin.placement-officers.index')->with('message_success', 'Placement Officer created successfully!');
+        return redirect()->route('admin.faculty.index')->with('message_success', 'Faculty user created successfully!');
     }
 
     public function ajax_edit($id)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
+        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
         $country_codes = get_country_code();
 
-        return view('admin.placement-officers.edit', compact('placementOfficer', 'country_codes'));
+        return view('admin.faculty.edit', compact('facultyUser', 'country_codes'));
     }
 
     public function update(Request $request, $id)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
+        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -157,11 +156,10 @@ class PlacementOfficerController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $firstError = $validator->errors()->first();
-            return redirect()->back()->with('message_danger', $firstError)->withInput();
+            return redirect()->back()->with('message_danger', $validator->errors()->first())->withInput();
         }
 
-        $placementOfficer->update([
+        $facultyUser->update([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
@@ -170,58 +168,56 @@ class PlacementOfficerController extends Controller
             'is_active' => $request->has('is_active') ? 1 : 0,
         ]);
 
-        return redirect()->route('admin.placement-officers.index')->with('message_success', 'Placement Officer updated successfully!');
+        return redirect()->route('admin.faculty.index')->with('message_success', 'Faculty user updated successfully!');
     }
 
     public function delete($id)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
+        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
 
-        if ($placementOfficer->leads()->count() > 0) {
-            return redirect()->route('admin.placement-officers.index')->with('message_danger', 'Cannot delete placement officer. They have assigned leads.');
+        if ($facultyUser->leads()->count() > 0) {
+            return redirect()->route('admin.faculty.index')->with('message_danger', 'Cannot delete faculty user. They have assigned leads.');
         }
 
-        $placementOfficer->delete();
+        $facultyUser->delete();
 
-        return redirect()->route('admin.placement-officers.index')->with('message_success', 'Placement Officer deleted successfully!');
+        return redirect()->route('admin.faculty.index')->with('message_success', 'Faculty user deleted successfully!');
     }
 
     public function changePassword($id)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
+        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
 
-        return view('admin.placement-officers.change-password', compact('placementOfficer'));
+        return view('admin.faculty.change-password', compact('facultyUser'));
     }
 
     public function updatePassword(Request $request, $id)
     {
-        if (!RoleHelper::is_admin_or_super_admin()) {
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
-
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
 
         $validator = Validator::make($request->all(), [
             'password' => 'required|string|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {
-            $firstError = $validator->errors()->first();
-            return redirect()->back()->with('message_danger', $firstError)->withInput();
+            return redirect()->back()->with('message_danger', $validator->errors()->first());
         }
 
-        $placementOfficer->update([
+        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
+        $facultyUser->update([
             'password' => Hash::make($request->password),
         ]);
 
-        return redirect()->route('admin.placement-officers.index')->with('message_success', 'Password updated successfully!');
+        return redirect()->route('admin.faculty.index')->with('message_success', 'Password updated successfully!');
     }
 }
