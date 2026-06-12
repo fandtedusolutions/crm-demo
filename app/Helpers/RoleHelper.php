@@ -168,11 +168,11 @@ class RoleHelper
             return false;
         }
 
-        return in_array((int) $user->role_id, [9, 15], true);
+        return in_array((int) $user->role_id, [9, 16], true);
     }
 
     /**
-     * Check if current user is Faculty (role_id = 15).
+     * Check if current user is Faculty (role_id = 16).
      */
     public static function is_faculty()
     {
@@ -185,7 +185,7 @@ class RoleHelper
             return false;
         }
 
-        return (int) $user->role_id === 15;
+        return (int) $user->role_id === 16;
     }
 
     /**
@@ -328,7 +328,7 @@ class RoleHelper
     }
 
     /**
-     * Check if current user is Placement Officer
+     * Check if current user is Placement Manager (role_id = 15).
      */
     public static function is_placement_officer()
     {
@@ -341,7 +341,7 @@ class RoleHelper
             return false;
         }
 
-        return (int) $user->role_id === 16;
+        return (int) $user->role_id === 15;
     }
 
 

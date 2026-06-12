@@ -169,6 +169,7 @@ class PermissionHelper
             'admin/support-team/index',
             'admin/mentor/index',
             'admin/faculty/index',
+            'admin/placement-officers/index',
             'admin/b2b-services/index',
             'admin/departments/index',
             'admin/telecallers/index',
@@ -380,7 +381,7 @@ class PermissionHelper
     }
 
     /**
-     * Placement Officer permissions
+     * Placement Manager permissions (role_id = 15)
      */
     public static function has_permission_placement_officer($permission = '')
     {

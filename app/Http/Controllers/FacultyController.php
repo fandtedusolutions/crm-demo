@@ -17,7 +17,7 @@ class FacultyController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $facultyUsers = User::where('role_id', 15)->with(['role'])->get();
+        $facultyUsers = User::where('role_id', 16)->with(['role'])->get();
         $roles = UserRole::all();
 
         return view('admin.faculty.index', compact('facultyUsers', 'roles'));
@@ -40,7 +40,7 @@ class FacultyController extends Controller
 
         $data = $request->only(['name', 'email', 'phone', 'code', 'ext_no', 'password']);
         $data['password'] = Hash::make($data['password']);
-        $data['role_id'] = 15;
+        $data['role_id'] = 16;
         $data['is_active'] = 1;
 
         $facultyUser = User::create($data);
@@ -119,7 +119,7 @@ class FacultyController extends Controller
             'code' => $request->code,
             'ext_no' => $request->ext_no,
             'password' => Hash::make($request->password),
-            'role_id' => 15,
+            'role_id' => 16,
             'is_active' => $request->has('is_active') ? 1 : 0,
         ]);
 
@@ -132,7 +132,7 @@ class FacultyController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
+        $facultyUser = User::where('id', $id)->where('role_id', 16)->firstOrFail();
         $country_codes = get_country_code();
 
         return view('admin.faculty.edit', compact('facultyUser', 'country_codes'));
@@ -144,7 +144,7 @@ class FacultyController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
+        $facultyUser = User::where('id', $id)->where('role_id', 16)->firstOrFail();
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -177,7 +177,7 @@ class FacultyController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
+        $facultyUser = User::where('id', $id)->where('role_id', 16)->firstOrFail();
 
         if ($facultyUser->leads()->count() > 0) {
             return redirect()->route('admin.faculty.index')->with('message_danger', 'Cannot delete faculty user. They have assigned leads.');
@@ -194,7 +194,7 @@ class FacultyController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
+        $facultyUser = User::where('id', $id)->where('role_id', 16)->firstOrFail();
 
         return view('admin.faculty.change-password', compact('facultyUser'));
     }
@@ -213,7 +213,7 @@ class FacultyController extends Controller
             return redirect()->back()->with('message_danger', $validator->errors()->first());
         }
 
-        $facultyUser = User::where('id', $id)->where('role_id', 15)->firstOrFail();
+        $facultyUser = User::where('id', $id)->where('role_id', 16)->firstOrFail();
         $facultyUser->update([
             'password' => Hash::make($request->password),
         ]);

@@ -98,6 +98,18 @@ class UserRoleSeeder extends Seeder
                 'description' => 'Head of Department access',
                 'is_active' => true,
             ],
+            [
+                'id' => 15,
+                'title' => 'Placement Manager',
+                'description' => 'Placement Manager role with placement list access',
+                'is_active' => true,
+            ],
+            [
+                'id' => 16,
+                'title' => 'Faculty',
+                'description' => 'Faculty role with mentor converted-leads access',
+                'is_active' => true,
+            ],
         ];
 
         foreach ($roles as $role) {

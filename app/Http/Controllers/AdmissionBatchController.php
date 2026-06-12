@@ -134,7 +134,7 @@ class AdmissionBatchController extends Controller
         }
 
         $batches = Batch::with('course')->where('is_active', true)->get();
-        $mentors = User::whereIn('role_id', [9, 15])->where('is_active', true)->get();
+        $mentors = User::whereIn('role_id', [9, 16])->where('is_active', true)->get();
         return view('admin.admission-batches.add', compact('batches', 'mentors'));
     }
 
@@ -181,7 +181,7 @@ class AdmissionBatchController extends Controller
 
         $edit_data = AdmissionBatch::findOrFail($id);
         $batches = Batch::with('course')->where('is_active', true)->get();
-        $mentors = User::whereIn('role_id', [9, 15])->where('is_active', true)->get();
+        $mentors = User::whereIn('role_id', [9, 16])->where('is_active', true)->get();
         return view('admin.admission-batches.edit', compact('edit_data', 'batches', 'mentors'));
     }
 

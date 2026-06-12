@@ -17,7 +17,7 @@ class PlacementOfficerController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficers = User::where('role_id', 16)->with(['role'])->get();
+        $placementOfficers = User::where('role_id', 15)->with(['role'])->get();
         $roles = UserRole::all();
 
         return view('admin.placement-officers.index', compact('placementOfficers', 'roles'));
@@ -40,7 +40,7 @@ class PlacementOfficerController extends Controller
 
         $data = $request->only(['name', 'email', 'phone', 'code', 'ext_no', 'password']);
         $data['password'] = Hash::make($data['password']);
-        $data['role_id'] = 16;
+        $data['role_id'] = 15;
         $data['is_active'] = 1;
 
         $placementOfficer = User::create($data);
@@ -120,7 +120,7 @@ class PlacementOfficerController extends Controller
             'code' => $request->code,
             'ext_no' => $request->ext_no,
             'password' => Hash::make($request->password),
-            'role_id' => 16,
+            'role_id' => 15,
             'is_active' => $request->has('is_active') ? 1 : 0,
         ]);
 
@@ -133,7 +133,7 @@ class PlacementOfficerController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
+        $placementOfficer = User::where('id', $id)->where('role_id', 15)->firstOrFail();
         $country_codes = get_country_code();
 
         return view('admin.placement-officers.edit', compact('placementOfficer', 'country_codes'));
@@ -145,7 +145,7 @@ class PlacementOfficerController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
+        $placementOfficer = User::where('id', $id)->where('role_id', 15)->firstOrFail();
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -179,7 +179,7 @@ class PlacementOfficerController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
+        $placementOfficer = User::where('id', $id)->where('role_id', 15)->firstOrFail();
 
         if ($placementOfficer->leads()->count() > 0) {
             return redirect()->route('admin.placement-officers.index')->with('message_danger', 'Cannot delete placement officer. They have assigned leads.');
@@ -196,7 +196,7 @@ class PlacementOfficerController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
+        $placementOfficer = User::where('id', $id)->where('role_id', 15)->firstOrFail();
 
         return view('admin.placement-officers.change-password', compact('placementOfficer'));
     }
@@ -207,7 +207,7 @@ class PlacementOfficerController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $placementOfficer = User::where('id', $id)->where('role_id', 16)->firstOrFail();
+        $placementOfficer = User::where('id', $id)->where('role_id', 15)->firstOrFail();
 
         $validator = Validator::make($request->all(), [
             'password' => 'required|string|min:6|confirmed',

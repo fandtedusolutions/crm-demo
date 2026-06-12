@@ -600,7 +600,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/auditors-change-password/{id}', [App\Http\Controllers\AuditorController::class, 'changePassword'])->name('auditors.change-password');
         Route::post('/auditors-update-password/{id}', [App\Http\Controllers\AuditorController::class, 'updatePassword'])->name('auditors.update-password');
 
-        // Placement Officer routes (role_id = 16)
+        // Placement Manager routes (role_id = 15)
         Route::resource('placement-officers', App\Http\Controllers\PlacementOfficerController::class)->except(['create', 'edit']);
         Route::get('/placement-officers-add', [App\Http\Controllers\PlacementOfficerController::class, 'ajax_add'])->name('placement-officers.add');
         Route::get('/placement-officers-edit/{id}', [App\Http\Controllers\PlacementOfficerController::class, 'ajax_edit'])->name('placement-officers.edit');
@@ -660,7 +660,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/mentor-change-password/{id}', [App\Http\Controllers\MentorController::class, 'changePassword'])->name('mentor.change-password');
         Route::post('/mentor-update-password/{id}', [App\Http\Controllers\MentorController::class, 'updatePassword'])->name('mentor.update-password');
 
-        // Faculty routes (role_id = 15)
+        // Faculty routes (role_id = 16)
         Route::resource('faculty', App\Http\Controllers\FacultyController::class)->except(['create', 'edit']);
         Route::get('/faculty-add', [App\Http\Controllers\FacultyController::class, 'ajax_add'])->name('faculty.add');
         Route::get('/faculty-edit/{id}', [App\Http\Controllers\FacultyController::class, 'ajax_edit'])->name('faculty.edit');
