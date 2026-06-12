@@ -181,6 +181,8 @@
 @endif
 <!-- [ Mentor List ] end -->
 
+@include('admin.converted-leads.partials.faculty-list-nav', ['activeFacultyRoute' => $activeFacultyRoute ?? null])
+
 <!-- [ Support List ] start -->
 @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_support_team())
 <div class="row mb-3">
@@ -290,7 +292,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        @include('admin.converted-leads.partials.course-flag-filter-field')
+                        @include('admin.converted-leads.partials.mentor-flag-filter-field')
                         
 
                         <div class="col-12 col-sm-6 col-md-2">
@@ -353,7 +355,7 @@
                                     <th>Academic Verified At</th>
                                     <th>Support Verified At</th>
                                     <th>Registration Number</th>
-                                    <th>Course Flag</th>
+                                    <th>Flag</th>
                                     <th>Call Time</th>
                                     <th>Name</th>
                                     <th>Type</th>
@@ -421,7 +423,7 @@
                                             @endif
                                         </div>
                                     </td>
-                                    @include('admin.converted-leads.partials.inline-course-flag-cell', ['convertedLead' => $convertedLead])
+                                    @include('admin.converted-leads.partials.inline-mentor-flag-cell', ['convertedLead' => $convertedLead])
                                     @include('admin.converted-leads.partials.inline-call-time-cell', ['convertedLead' => $convertedLead])
                                     <td>
                                         <div class="d-flex align-items-center">
@@ -1020,7 +1022,7 @@
         });
     });
 </script>
-@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.converted-leads.inline-update', ['id' => '__ID__'])])
+@include('admin.converted-leads.partials.mentor-flag-inline-scripts')
 @endpush
 @endsection
 

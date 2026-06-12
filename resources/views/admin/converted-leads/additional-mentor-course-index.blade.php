@@ -149,6 +149,8 @@
 </div>
 @endif
 
+@include('admin.converted-leads.partials.faculty-list-nav', ['activeFacultyRoute' => $activeFacultyRoute ?? null])
+
 @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_support_team())
 <div class="row mb-3">
     <div class="col-12">
@@ -221,7 +223,7 @@
                         <input type="text" class="form-control" id="search" name="search"
                             value="{{ request('search') }}" placeholder="Name, Phone, Register Number">
                     </div>
-                    @include('admin.converted-leads.partials.course-flag-filter-field')
+                    @include('admin.converted-leads.partials.mentor-flag-filter-field')
                     <div class="col-12 col-sm-6 col-md-2">
                         <label for="date_from" class="form-label">From Date</label>
                         <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request('date_from') }}">
@@ -256,7 +258,7 @@
                                 <th>Support</th>
                                 <th>Register Number</th>
                                 <th>Converted Date</th>
-                                <th>Course Flag</th>
+                                <th>Flag</th>
                                     <th>Call Time</th>
                                 <th>Name</th>
                                 <th>Date of Birth</th>
@@ -287,7 +289,7 @@
                                 </td>
                                 <td>{{ $convertedLead->register_number ?: '-' }}</td>
                                 <td>{{ $convertedLead->created_at ? $convertedLead->created_at->format('d-m-Y') : '-' }}</td>
-                                @include('admin.converted-leads.partials.inline-course-flag-cell', ['convertedLead' => $convertedLead])
+                                @include('admin.converted-leads.partials.inline-mentor-flag-cell', ['convertedLead' => $convertedLead])
                                     @include('admin.converted-leads.partials.inline-call-time-cell', ['convertedLead' => $convertedLead])
                                 <td>{{ $convertedLead->name }}</td>
                                 <td>{{ $convertedLead->dob ? \Carbon\Carbon::parse($convertedLead->dob)->format('d-m-Y') : '-' }}</td>
@@ -349,7 +351,7 @@
 </div>
 @include('admin.converted-leads.partials.placement-modal-reopen-script')
 @push('scripts')
-@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.converted-leads.inline-update', ['id' => '__ID__'])])
+@include('admin.converted-leads.partials.mentor-flag-inline-scripts')
 @endpush
 @endsection
 

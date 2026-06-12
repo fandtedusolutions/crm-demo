@@ -29,7 +29,7 @@ class JuniorVloggerMentorController extends Controller
 
         $query = ConvertedLead::with([
             
-            'flag', 'courseFlag','lead',
+            'flag','lead',
             'lead.team',
             'lead.team.detail',
             'lead.juniorVloggerStudentDetails.classTime',
@@ -96,7 +96,6 @@ class JuniorVloggerMentorController extends Controller
             $query->where('admission_batch_id', $request->admission_batch_id);
         }
         \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
-        \App\Support\CourseFlagFieldSupport::applyListingFilter($query, $request);
 
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -165,10 +164,6 @@ class JuniorVloggerMentorController extends Controller
 
             if ($field === 'flag_id') {
                 return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
-            }
-
-            if ($field === 'course_flag_id') {
-                return \App\Support\CourseFlagFieldSupport::courseFlagUpdateJsonResponse($convertedLead, $value);
             }
 
             $convertedLeadFields = ['register_number', 'name', 'phone', 'email', 'batch_id', 'admission_batch_id', 'dob'];

@@ -30,7 +30,7 @@ class MentorConvertedLeadController extends Controller
             'studentDetails',
             'mentorDetails',
             'subject',
-            'flag', 'courseFlag',
+            'flag',
             'batch',
             'admissionBatch'
         ])->where('course_id', 2) // BOSSE course
@@ -148,7 +148,6 @@ class MentorConvertedLeadController extends Controller
         }
 
         \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
-        \App\Support\CourseFlagFieldSupport::applyListingFilter($query, $request);
 
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -239,7 +238,7 @@ class MentorConvertedLeadController extends Controller
                 'exam_subject_6',
             ];
 
-            $allowedTopLevelFields = ['status', 'flag_id', 'course_flag_id'];
+            $allowedTopLevelFields = ['status', 'flag_id'];
 
             if (!in_array($field, $allowedMentorFields, true) && !in_array($field, $allowedTopLevelFields, true)) {
                 return response()->json([
@@ -262,10 +261,6 @@ class MentorConvertedLeadController extends Controller
 
             if ($field === 'flag_id') {
                 return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
-            }
-
-            if ($field === 'course_flag_id') {
-                return \App\Support\CourseFlagFieldSupport::courseFlagUpdateJsonResponse($convertedLead, $value);
             }
 
             // "status" is a ConvertedLead field (converted_leads table), not mentor_details.
@@ -315,7 +310,6 @@ class MentorConvertedLeadController extends Controller
         $rules = [
             'subject_id' => 'nullable|exists:subjects,id',
             'flag_id' => \App\Support\MentorFlagFieldSupport::validationRule(),
-            'course_flag_id' => \App\Support\CourseFlagFieldSupport::validationRule(),
             'registration_status' => 'nullable|in:Paid,Not Paid',
             'technology_side' => 'nullable|in:No Knowledge,Limited Knowledge,Moderate Knowledge,High Knowledge',
             'student_status' => 'nullable|in:Low Level,Below Medium,Medium Level,Advanced Level',

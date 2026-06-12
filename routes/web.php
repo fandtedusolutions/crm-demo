@@ -947,6 +947,59 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/flutter-mentor-converted-leads', [App\Http\Controllers\AdditionalMentorCourseController::class, 'flutterIndex'])->name('flutter-mentor-converted-leads.index');
         Route::get('/rpa-mentor-converted-leads', [App\Http\Controllers\AdditionalMentorCourseController::class, 'rpaIndex'])->name('rpa-mentor-converted-leads.index');
 
+        // BOSSE Faculty Converted Leads Routes
+        Route::get('/faculty-bosse-converted-leads', [App\Http\Controllers\FacultyConvertedLeadController::class, 'index'])->name('faculty-bosse-converted-leads.index');
+        Route::post('/faculty-bosse-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\FacultyConvertedLeadController::class, 'updateMentorDetails'])->name('faculty-bosse-converted-leads.update-mentor-details');
+
+        // UG/PG Faculty Converted Leads Routes
+        Route::get('/faculty-ugpg-converted-leads', [App\Http\Controllers\UGPGFacultyConvertedLeadController::class, 'index'])->name('faculty-ugpg-converted-leads.index');
+        Route::post('/faculty-ugpg-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\UGPGFacultyConvertedLeadController::class, 'updateMentorDetails'])->name('faculty-ugpg-converted-leads.update-mentor-details');
+
+        // EduMaster Faculty Converted Leads Routes
+        Route::get('/faculty-edumaster-converted-leads', [App\Http\Controllers\EduMasterFacultyConvertedLeadController::class, 'index'])->name('faculty-edumaster-converted-leads.index');
+        Route::post('/faculty-edumaster-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\EduMasterFacultyConvertedLeadController::class, 'updateMentorDetails'])->name('faculty-edumaster-converted-leads.update-mentor-details');
+
+        // NIOS Faculty Converted Leads Routes
+        Route::get('/faculty-nios-converted-leads', [App\Http\Controllers\NiosFacultyConvertedLeadController::class, 'index'])->name('faculty-nios-converted-leads.index');
+        Route::post('/faculty-nios-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\NiosFacultyConvertedLeadController::class, 'updateMentorDetails'])->name('faculty-nios-converted-leads.update-mentor-details');
+
+        // E-School Faculty Converted Leads Routes
+        Route::get('/faculty-eschool-converted-leads', [App\Http\Controllers\ESchoolEduthanzeelFacultyController::class, 'eschoolIndex'])->name('faculty-eschool-converted-leads.index');
+        Route::post('/faculty-eschool-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\ESchoolEduthanzeelFacultyController::class, 'updateMentorDetails'])->name('faculty-eschool-converted-leads.update-mentor-details');
+
+        // Eduthanzeel Faculty Converted Leads Routes
+        Route::get('/faculty-eduthanzeel-converted-leads', [App\Http\Controllers\ESchoolEduthanzeelFacultyController::class, 'eduthanzeelIndex'])->name('faculty-eduthanzeel-converted-leads.index');
+        Route::post('/faculty-eduthanzeel-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\ESchoolEduthanzeelFacultyController::class, 'updateMentorDetails'])->name('faculty-eduthanzeel-converted-leads.update-mentor-details');
+
+        // Data Science Faculty Converted Leads Routes
+        Route::get('/data-science-faculty-converted-leads', [App\Http\Controllers\DataScienceFacultyController::class, 'index'])->name('data-science-faculty-converted-leads.index');
+        Route::post('/data-science-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\DataScienceFacultyController::class, 'updateMentorDetails'])->name('data-science-faculty-converted-leads.update-mentor-details');
+
+        // Machine Learning Faculty Converted Leads Routes
+        Route::get('/machine-learning-faculty-converted-leads', [App\Http\Controllers\MachineLearningFacultyController::class, 'index'])->name('machine-learning-faculty-converted-leads.index');
+        Route::post('/machine-learning-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\MachineLearningFacultyController::class, 'updateMentorDetails'])->name('machine-learning-faculty-converted-leads.update-mentor-details');
+
+        // Digital Marketing Faculty Converted Leads Routes
+        Route::get('/digital-marketing-faculty-converted-leads', [App\Http\Controllers\DigitalMarketingFacultyController::class, 'index'])->name('digital-marketing-faculty-converted-leads.index');
+        Route::post('/digital-marketing-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\DigitalMarketingFacultyController::class, 'updateMentorDetails'])->name('digital-marketing-faculty-converted-leads.update-mentor-details');
+
+        // Graphic Designing Faculty Converted Leads Routes
+        Route::get('/graphic-designing-faculty-converted-leads', [App\Http\Controllers\GraphicDesigningFacultyController::class, 'index'])->name('graphic-designing-faculty-converted-leads.index');
+        Route::post('/graphic-designing-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\GraphicDesigningFacultyController::class, 'updateMentorDetails'])->name('graphic-designing-faculty-converted-leads.update-mentor-details');
+
+        // Junior Vlogger Faculty Converted Leads Routes
+        Route::get('/junior-vlogger-faculty-converted-leads', [App\Http\Controllers\JuniorVloggerFacultyController::class, 'index'])->name('junior-vlogger-faculty-converted-leads.index');
+        Route::post('/junior-vlogger-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\JuniorVloggerFacultyController::class, 'updateMentorDetails'])->name('junior-vlogger-faculty-converted-leads.update-mentor-details');
+
+        // GMVSS Faculty Converted Leads Routes
+        Route::get('/gmvss-faculty-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'gmvssFacultyIndex'])->name('gmvss-faculty-converted-leads.index');
+
+        // Additional Faculty Converted Leads Routes
+        Route::get('/medical-coding-faculty-converted-leads', [App\Http\Controllers\AdditionalFacultyCourseController::class, 'medicalCodingIndex'])->name('medical-coding-faculty-converted-leads.index');
+        Route::get('/python-faculty-converted-leads', [App\Http\Controllers\AdditionalFacultyCourseController::class, 'pythonIndex'])->name('python-faculty-converted-leads.index');
+        Route::get('/flutter-faculty-converted-leads', [App\Http\Controllers\AdditionalFacultyCourseController::class, 'flutterIndex'])->name('flutter-faculty-converted-leads.index');
+        Route::get('/rpa-faculty-converted-leads', [App\Http\Controllers\AdditionalFacultyCourseController::class, 'rpaIndex'])->name('rpa-faculty-converted-leads.index');
+
         // Support Converted Lead Details Route (Unified)
         Route::get('/support-converted-leads/{id}/details', [App\Http\Controllers\SupportConvertedLeadController::class, 'show'])->name('support-converted-leads.details');
         Route::post('/support-converted-leads/{id}/feedback', [App\Http\Controllers\SupportConvertedLeadController::class, 'submitFeedback'])->name('support-converted-leads.feedback');

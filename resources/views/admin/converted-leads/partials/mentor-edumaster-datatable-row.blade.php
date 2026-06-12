@@ -26,7 +26,7 @@
                                     </td>
                                     <td>{{ $convertedLead->created_at->format('d-m-Y') }}</td>
                                     <td>{{ $convertedLead->register_number ?? '-' }}</td>
-                                    @include('admin.converted-leads.partials.inline-course-flag-cell', ['convertedLead' => $convertedLead])
+                                    @include('admin.converted-leads.partials.inline-mentor-flag-cell', ['convertedLead' => $convertedLead])
                                     @include('admin.converted-leads.partials.inline-call-time-cell', ['convertedLead' => $convertedLead])
                                     <td>
                                         {{ $convertedLead->name }}

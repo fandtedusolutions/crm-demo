@@ -1748,6 +1748,117 @@ class ConvertedLeadController extends Controller
         return view('admin.converted-leads.gmvss-mentor-index', compact('convertedLeads', 'courses', 'batches', 'admission_batches', 'country_codes', 'registration_links', 'flags'));
     }
 
+    public function gmvssFacultyIndex(Request $request)
+    {
+        $query = ConvertedLead::with(['lead.studentDetails', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'batch', 'admissionBatch', 'subject', 'flag', 'courseFlag', 'studentDetails.registrationLink', 'mentorDetails'])
+            ->where('course_id', 16);
+
+        $currentUser = AuthHelper::getCurrentUser();
+        if ($currentUser) {
+            if (RoleHelper::is_team_lead()) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = \App\Models\User::where('team_id', $teamId)->pluck('id')->toArray();
+                    $query->whereHas('lead', function($q) use ($teamMemberIds) {
+                        $q->whereIn('telecaller_id', $teamMemberIds);
+                    });
+                } else {
+                    $query->whereHas('lead', function($q) {
+                        $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                    });
+                }
+            } elseif (RoleHelper::is_mentor_head()) {
+                // Mentor Head: Can see all leads
+            } elseif (RoleHelper::is_faculty()) {
+                $facultyAdmissionBatchIds = \App\Models\AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())
+                    ->pluck('id')
+                    ->toArray();
+                if (!empty($facultyAdmissionBatchIds)) {
+                    $query->whereIn('admission_batch_id', $facultyAdmissionBatchIds);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            } elseif (RoleHelper::is_senior_manager()) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = \App\Models\User::where('team_id', $teamId)->pluck('id')->toArray();
+                    $query->whereHas('lead', function($q) use ($teamMemberIds) {
+                        $q->whereIn('telecaller_id', $teamMemberIds);
+                    });
+                } else {
+                    $query->whereHas('lead', function($q) {
+                        $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                    });
+                }
+            } elseif (RoleHelper::is_general_manager()) {
+                // Can see all
+            } elseif (RoleHelper::is_admission_counsellor()) {
+                // Can see all
+            } elseif (RoleHelper::is_academic_assistant()) {
+                // Can see all
+            } elseif (RoleHelper::is_telecaller()) {
+                $query->whereHas('lead', function($q) {
+                    $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                });
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('register_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('batch_id')) {
+            $query->where('batch_id', $request->batch_id);
+        }
+
+        if ($request->filled('admission_batch_id')) {
+            $query->where('admission_batch_id', $request->admission_batch_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        if ($request->filled('registration_link_id')) {
+            $query->whereHas('studentDetails', function($q) use ($request) {
+                $q->where('registration_link_id', $request->registration_link_id);
+            });
+        }
+
+        if ($request->filled('certificate_status')) {
+            $query->whereHas('studentDetails', function($q) use ($request) {
+                $q->where('certificate_status', $request->certificate_status);
+            });
+        }
+
+        $convertedLeads = $query->orderBy('created_at', 'desc')->get();
+
+        $courses = \App\Models\Course::all();
+        $batches = \App\Models\Batch::where('course_id', 16)->get();
+        $admission_batches = \App\Models\AdmissionBatch::orderBy('is_active', 'desc')->orderBy('title')->get();
+        $country_codes = get_country_code();
+        $registration_links = \App\Models\RegistrationLink::all();
+        $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
+
+        return view('admin.converted-leads.gmvss-faculty-index', compact('convertedLeads', 'courses', 'batches', 'admission_batches', 'country_codes', 'registration_links', 'flags'));
+    }
+
     /**
      * Display AI with Python converted leads (course_id = 10)
      */

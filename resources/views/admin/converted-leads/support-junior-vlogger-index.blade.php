@@ -218,6 +218,8 @@
 @endif
 <!-- [ Mentor List ] end -->
 
+@include('admin.converted-leads.partials.faculty-list-nav', ['activeFacultyRoute' => $activeFacultyRoute ?? null])
+
 <!-- [ Support List ] start -->
 @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_support_team())
 <div class="row mb-3">

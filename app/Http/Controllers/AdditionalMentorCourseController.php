@@ -50,7 +50,7 @@ class AdditionalMentorCourseController extends Controller
             'lead',
             'leadDetail',
             'course',
-            'flag', 'courseFlag',
+            'flag',
             'mentorDetails',
         ])->where('course_id', $courseId)
             ->where('is_support_verified', 1);
@@ -106,7 +106,6 @@ class AdditionalMentorCourseController extends Controller
         }
 
         \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
-        \App\Support\CourseFlagFieldSupport::applyListingFilter($query, $request);
 
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);

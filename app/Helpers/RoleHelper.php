@@ -155,7 +155,7 @@ class RoleHelper
     }
 
     /**
-     * Check if current user is Mentor or Faculty (same converted-leads mentor access).
+     * Check if current user is Mentor (role_id = 9).
      */
     public static function is_mentor()
     {
@@ -168,7 +168,7 @@ class RoleHelper
             return false;
         }
 
-        return in_array((int) $user->role_id, [9, 16], true);
+        return (int) $user->role_id === 9;
     }
 
     /**

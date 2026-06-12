@@ -23,7 +23,7 @@ class EduMasterMentorConvertedLeadController extends Controller
     {
         $query = ConvertedLead::with([
             
-            'flag', 'courseFlag','lead', 
+            'flag','lead', 
             'leadDetail.university',
             'leadDetail.universityCourse',
             'course', 
@@ -135,7 +135,6 @@ class EduMasterMentorConvertedLeadController extends Controller
         }
 
         \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
-        \App\Support\CourseFlagFieldSupport::applyListingFilter($query, $request);
 
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -194,10 +193,6 @@ class EduMasterMentorConvertedLeadController extends Controller
 
             if ($field === 'flag_id') {
                 return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
-            }
-
-            if ($field === 'course_flag_id') {
-                return \App\Support\CourseFlagFieldSupport::courseFlagUpdateJsonResponse($convertedLead, $value);
             }
 
             // Handle all fields - update in converted_student_mentor_details table

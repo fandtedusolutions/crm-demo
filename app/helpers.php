@@ -102,7 +102,7 @@ if (! function_exists('is_finance')) {
 
 if (! function_exists('is_mentor')) {
     /**
-     * Check if current user is Mentor or Faculty
+     * Check if current user is Mentor
      */
     function is_mentor()
     {

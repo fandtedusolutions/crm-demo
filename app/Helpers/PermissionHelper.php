@@ -41,6 +41,8 @@ class PermissionHelper
             return self::has_permission_support_team($permission);
         } elseif (RoleHelper::is_general_manager()) {
             return self::has_permission_general_manager($permission);
+        } elseif (RoleHelper::is_faculty()) {
+            return self::has_permission_faculty($permission);
         } elseif (RoleHelper::is_mentor()) {
             return self::has_permission_mentor($permission);
         } elseif (RoleHelper::is_auditor()) {
@@ -321,6 +323,37 @@ class PermissionHelper
     }
 
     /**
+     * Faculty permissions (same converted-leads access as mentor, faculty routes)
+     */
+    public static function has_permission_faculty($permission = '')
+    {
+        $permissions = [
+            'dashboard/index',
+            'leads/index',
+            'admin/converted-leads/index',
+            'profile/index',
+            'admin/faculty-bosse-converted-leads/index',
+            'admin/faculty-nios-converted-leads/index',
+            'admin/faculty-ugpg-converted-leads/index',
+            'admin/faculty-edumaster-converted-leads/index',
+            'admin/faculty-eschool-converted-leads/index',
+            'admin/faculty-eduthanzeel-converted-leads/index',
+            'admin/gmvss-faculty-converted-leads/index',
+            'admin/digital-marketing-faculty-converted-leads/index',
+            'admin/data-science-faculty-converted-leads/index',
+            'admin/graphic-designing-faculty-converted-leads/index',
+            'admin/machine-learning-faculty-converted-leads/index',
+            'admin/medical-coding-faculty-converted-leads/index',
+            'admin/python-faculty-converted-leads/index',
+            'admin/flutter-faculty-converted-leads/index',
+            'admin/rpa-faculty-converted-leads/index',
+            'admin/junior-vlogger-faculty-converted-leads/index',
+        ];
+
+        return in_array($permission, $permissions);
+    }
+
+    /**
      * Auditor permissions - view only access
      */
     public static function has_permission_auditor($permission = '')
@@ -375,6 +408,11 @@ class PermissionHelper
             'admin/mentor-eschool-converted-leads/index',
             'admin/mentor-eduthanzeel-converted-leads/index',
             'admin/gmvss-mentor-converted-leads/index',
+            'admin/faculty-bosse-converted-leads/index',
+            'admin/faculty-nios-converted-leads/index',
+            'admin/faculty-eschool-converted-leads/index',
+            'admin/faculty-eduthanzeel-converted-leads/index',
+            'admin/gmvss-faculty-converted-leads/index',
         ];
 
         return in_array($permission, $permissions);

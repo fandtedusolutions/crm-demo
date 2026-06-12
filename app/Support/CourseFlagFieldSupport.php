@@ -20,13 +20,14 @@ class CourseFlagFieldSupport
             || RoleHelper::is_admission_counsellor()
             || RoleHelper::is_academic_assistant()
             || RoleHelper::is_mentor()
+            || RoleHelper::is_faculty()
             || RoleHelper::is_mentor_head()
             || RoleHelper::is_hod();
     }
 
     public static function mentorCanUpdateLead(ConvertedLead $convertedLead): bool
     {
-        if (! RoleHelper::is_mentor()) {
+        if (! RoleHelper::is_mentor() && ! RoleHelper::is_faculty()) {
             return true;
         }
 
@@ -57,7 +58,7 @@ class CourseFlagFieldSupport
 
     public static function mentorLeadScopeDeniedJsonResponse(ConvertedLead $convertedLead): ?JsonResponse
     {
-        if (! RoleHelper::is_mentor() || self::mentorCanUpdateLead($convertedLead)) {
+        if ((! RoleHelper::is_mentor() && ! RoleHelper::is_faculty()) || self::mentorCanUpdateLead($convertedLead)) {
             return null;
         }
 

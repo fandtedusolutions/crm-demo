@@ -217,6 +217,8 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
 @endif
 <!-- [ Mentor List ] end -->
 
+@include('admin.converted-leads.partials.faculty-list-nav', ['activeFacultyRoute' => $activeFacultyRoute ?? null])
+
 <!-- [ Support List ] start -->
 @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_support_team())
 <div class="row mb-3">
@@ -312,7 +314,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
                                 <option value="">All</option>
                             </select>
                         </div>
-                        @include('admin.converted-leads.partials.course-flag-filter-field')
+                        @include('admin.converted-leads.partials.mentor-flag-filter-field')
                         
                         <div class="col-12 col-sm-6 col-md-2">
                             <label for="date_from" class="form-label">From Date</label>
@@ -363,7 +365,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
                                 <th>Batch</th>
                                 <th>Time</th>
                                 <th>Reg. Number</th>
-                                <th>Course Flag</th>
+                                <th>Flag</th>
                                     <th>Call Time</th>
                                     <th>Full Name</th>
                                 <th>Age</th>
@@ -461,7 +463,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
                                     {{ $lead->register_number ?? '-' }}
                                     @endif
                                 </td>
-                                @include('admin.converted-leads.partials.inline-course-flag-cell', ['convertedLead' => $lead])
+                                @include('admin.converted-leads.partials.inline-mentor-flag-cell', ['convertedLead' => $lead])
                                 @include('admin.converted-leads.partials.inline-call-time-cell', ['convertedLead' => $lead])
                                 <td>
                                     @if($canEdit)
@@ -901,5 +903,5 @@ $(document).ready(function() {
     });
 });
 </script>
-@include('admin.converted-leads.partials.course-flag-inline-scripts', ['courseUpdateUrl' => route('admin.junior-vlogger-mentor-converted-leads.update-mentor-details', ['id' => '__ID__'])])
+@include('admin.converted-leads.partials.mentor-flag-inline-scripts')
 @endpush
