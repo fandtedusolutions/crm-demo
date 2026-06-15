@@ -202,6 +202,11 @@ Route::prefix('register')->group(function () {
     Route::post('/junior-vlogger', [App\Http\Controllers\Public\LeadJuniorVloggerRegistrationController::class, 'store'])->name('public.lead.junior-vlogger.store');
     Route::get('/junior-vlogger/{leadId}/success', [App\Http\Controllers\Public\LeadJuniorVloggerRegistrationController::class, 'showSuccess'])->name('public.lead.junior-vlogger.register.success');
 
+    // Plus Two Follow-Up Questionnaire (lead_source_id = 13)
+    Route::get('/plus-two-follow-up/{leadId?}', [App\Http\Controllers\Public\LeadPlusTwoFollowUpController::class, 'showForm'])->name('public.lead.plus-two-follow-up.register');
+    Route::post('/plus-two-follow-up', [App\Http\Controllers\Public\LeadPlusTwoFollowUpController::class, 'store'])->name('public.lead.plus-two-follow-up.store');
+    Route::get('/plus-two-follow-up/{leadId}/success', [App\Http\Controllers\Public\LeadPlusTwoFollowUpController::class, 'showSuccess'])->name('public.lead.plus-two-follow-up.success');
+
     // Diploma in Data Science Registration Routes
     Route::get('/diploma-in-data-science/{leadId?}', [App\Http\Controllers\Public\LeadAIAutomationRegistrationController::class, 'showAIAutomationForm'])->name('public.lead.diploma-in-data-science.register');
     Route::post('/diploma-in-data-science', [App\Http\Controllers\Public\LeadAIAutomationRegistrationController::class, 'store'])->name('public.lead.diploma-in-data-science.register.store');
@@ -289,6 +294,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
     Route::post('/leads/{lead}/convert', [LeadController::class, 'convertSubmit'])->name('leads.convert.submit');
     Route::get('leads/{lead}/call-logs', [VoxbayCallLogController::class, 'list'])->name('leads.call-logs');
     Route::get('/leads/{lead}/registration-details', [LeadController::class, 'getLeadRegistrationDetails'])->name('leads.registration-details');
+    Route::get('/leads/{lead}/plus-two-questionnaire', [LeadController::class, 'plusTwoQuestionnaireDetails'])->name('leads.plus-two-questionnaire');
     Route::get('/leads/{lead}/approve-modal', [LeadController::class, 'showApproveModal'])->name('leads.approve-modal');
     Route::get('/leads/{lead}/reject-modal', [LeadController::class, 'showRejectModal'])->name('leads.reject-modal');
     Route::post('/leads/{lead}/registration-status', [LeadController::class, 'updateRegistrationStatus'])->name('leads.update-registration-status');

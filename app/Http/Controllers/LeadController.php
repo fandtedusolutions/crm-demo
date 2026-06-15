@@ -12,6 +12,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\Models\LeadActivity;
 use App\Models\ConvertedLead;
+use App\Models\PlusTwoFollowUpQuestionnaire;
 use App\Helpers\AuthHelper;
 use App\Helpers\RoleHelper;
 use App\Exports\LeadsExport;
@@ -243,7 +244,8 @@ class LeadController extends Controller
                     'reviewed_at'
                 ]);
             },
-            'studentDetails.sslcCertificates:id,lead_detail_id,verification_status'
+            'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
+            'plusTwoFollowUpQuestionnaire:id,lead_id,created_at'
         ]);
 
         // Apply filters - optimized date range query
@@ -504,7 +506,8 @@ class LeadController extends Controller
                     'reviewed_at'
                 ]);
             },
-            'studentDetails.sslcCertificates:id,lead_detail_id,verification_status'
+            'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
+            'plusTwoFollowUpQuestionnaire:id,lead_id,created_at'
         ]);
 
         // All filters are already applied in the base query above
@@ -554,7 +557,7 @@ class LeadController extends Controller
             $canViewFirstCreated = $isAdminOrSuperAdmin || $isGeneralManager;
             
             // Check if registration_details column is included
-            $hasRegistrationDetails = $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor;
+            $hasRegistrationDetails = $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isTeamLeadRole || $isGeneralManager;
             
             // Build dynamic column mapping based on whether registration_details is included
             $columnIndex = 0;
@@ -622,7 +625,7 @@ class LeadController extends Controller
             $canViewFirstCreated = $isAdminOrSuperAdmin || $isGeneralManager;
             
             // Check if registration_details column is included
-            $hasRegistrationDetails = $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor;
+            $hasRegistrationDetails = $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isTeamLeadRole || $isGeneralManager;
             
             // Build dynamic column mapping based on whether registration_details is included
             $columnIndex = 0;
@@ -731,7 +734,7 @@ class LeadController extends Controller
                     'DT_RowData' => ['id' => $lead->id],
                     'index' => $start + $index + 1,
                     'actions' => $this->renderActions($lead, $isAdminOrSuperAdmin, $isTeamLeadRole, $isGeneralManager, $hasLeadActionPermission, $isTelecallerRole, $isAcademicAssistant, $isAdmissionCounsellor),
-                    'registration_details' => ($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor) ? $this->renderRegistrationDetails($lead, $courseName) : '',
+                    'registration_details' => ($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isTeamLeadRole || $isGeneralManager) ? $this->renderRegistrationDetails($lead, $courseName) : '',
                     'created_at' => $lead->created_at->format('d-m-Y h:i A'),
                     'name' => $this->renderName($lead),
                     'profile' => $this->renderProfile($lead, $profileCompleteness, $profileStatus, $missingFieldsDisplayClean, count($missingFields)),
@@ -740,7 +743,7 @@ class LeadController extends Controller
                     'status' => $this->renderStatus($lead),
                     'interest' => $this->renderInterest($lead),
                     'rating' => $this->renderRating($lead),
-                    'source' => $leadSourceTitle ?: '-',
+                    'source' => $this->renderSource($lead, $leadSourceTitle),
                     'course' => $leadCourseTitle ?: '-',
                     'telecaller' => $leadTelecallerName,
                     'place' => $leadPlace ?: '-',
@@ -978,7 +981,8 @@ class LeadController extends Controller
                             'reviewed_at'
                         ]);
                     },
-                    'studentDetails.sslcCertificates:id,lead_detail_id,verification_status'
+                    'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
+                    'plusTwoFollowUpQuestionnaire:id,lead_id,created_at'
                 ]);
             }
 
@@ -998,7 +1002,7 @@ class LeadController extends Controller
             $hasLeadActionPermission = \App\Helpers\PermissionHelper::has_lead_action_permission();
             $canViewFirstCreated = $isAdminOrSuperAdmin || $isGeneralManager;
             
-            $hasRegistrationDetails = $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor;
+            $hasRegistrationDetails = $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isTeamLeadRole || $isGeneralManager;
             
             // Build dynamic column mapping (same as getLeadsData)
             $columnIndex = 0;
@@ -1125,7 +1129,7 @@ class LeadController extends Controller
                     'DT_RowData' => ['id' => $lead->id],
                     'index' => $start + $index + 1,
                     'actions' => $this->renderActions($lead, $isAdminOrSuperAdmin, $isTeamLeadRole, $isGeneralManager, $hasLeadActionPermission, $isTelecallerRole, $isAcademicAssistant, $isAdmissionCounsellor),
-                    'registration_details' => ($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor) ? $this->renderRegistrationDetails($lead, $courseName) : '',
+                    'registration_details' => ($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isTeamLeadRole || $isGeneralManager) ? $this->renderRegistrationDetails($lead, $courseName) : '',
                     'created_at' => $lead->created_at->format('d-m-Y h:i A'),
                     'name' => $this->renderName($lead),
                     'profile' => $this->renderProfile($lead, $profileCompleteness, $profileStatus, $missingFieldsDisplayClean, count($missingFields)),
@@ -1135,7 +1139,7 @@ class LeadController extends Controller
                     'interest' => $this->renderInterest($lead),
                     'rating' => $this->renderRating($lead),
                     'converted' => $this->renderConvertedStatus($lead),
-                    'source' => $leadSourceTitle ?: '-',
+                    'source' => $this->renderSource($lead, $leadSourceTitle),
                     'course' => $leadCourseTitle ?: '-',
                     'telecaller' => $leadTelecallerName,
                     'place' => $leadPlace ?: '-',
@@ -1293,6 +1297,20 @@ class LeadController extends Controller
             $html .= '</div>';
             return $html;
         }
+
+        if ($lead->plusTwoFollowUpQuestionnaire) {
+            $html = '<div class="d-flex flex-column gap-1">';
+            $html .= '<span class="badge bg-success">Questionnaire Submitted</span>';
+            $html .= '<small class="text-muted">Plus Two Follow-Up</small>';
+            $html .= '<small class="text-muted d-block">Submitted on ' . $lead->plusTwoFollowUpQuestionnaire->created_at->format('M d, Y h:i A') . '</small>';
+            $html .= '<a href="' . route('leads.plus-two-questionnaire', $lead->id) . '" class="btn btn-sm btn-outline-primary mt-1" title="View Questionnaire Details"><i class="ti ti-eye me-1"></i>View Details</a>';
+            $html .= '</div>';
+            return $html;
+        }
+
+        if ((int) $lead->lead_source_id === PlusTwoFollowUpQuestionnaire::LEAD_SOURCE_ID) {
+            return $this->renderPlusTwoQuestionnaireActions($lead, true);
+        }
         
         // Render registration form links based on course_id
         $courseRoutes = [
@@ -1329,6 +1347,46 @@ class LeadController extends Controller
         }
         
         return '';
+    }
+
+    /**
+     * Render Plus Two questionnaire action buttons for lead_source_id = 13.
+     */
+    private function renderPlusTwoQuestionnaireActions($lead, bool $compact = false)
+    {
+        if ($lead->plusTwoFollowUpQuestionnaire) {
+            $html = '<div class="d-flex flex-column gap-1' . ($compact ? ' mt-1' : '') . '">';
+            $html .= '<span class="badge bg-success">Questionnaire Submitted</span>';
+            if (!$compact) {
+                $html .= '<small class="text-muted d-block">Submitted on ' . $lead->plusTwoFollowUpQuestionnaire->created_at->format('M d, Y h:i A') . '</small>';
+            }
+            $html .= '<a href="' . route('leads.plus-two-questionnaire', $lead->id) . '" class="btn btn-sm btn-outline-primary' . ($compact ? '' : ' mt-1') . '" title="View Questionnaire Details"><i class="ti ti-eye' . ($compact ? '' : ' me-1') . '"></i>' . ($compact ? '' : 'View Details') . '</a>';
+            $html .= '</div>';
+            return $html;
+        }
+
+        $html = '<div class="d-flex gap-1' . ($compact ? ' mt-1' : '') . '">';
+        $html .= '<a href="' . route('public.lead.plus-two-follow-up.register', $lead->id) . '" target="_blank" class="btn btn-sm btn-outline-warning" title="Open Plus Two Follow-Up Questionnaire"><i class="ti ti-external-link"></i></a>';
+        $html .= '<button type="button" class="btn btn-sm btn-outline-info copy-link-btn" data-url="' . route('public.lead.plus-two-follow-up.register', $lead->id) . '" title="Copy Plus Two Follow-Up Questionnaire Link"><i class="ti ti-copy"></i></button>';
+        $html .= '</div>';
+        return $html;
+    }
+
+    /**
+     * Render source column with Plus Two questionnaire actions when applicable.
+     */
+    private function renderSource($lead, $sourceTitle)
+    {
+        $title = htmlspecialchars($sourceTitle ?: '-', ENT_QUOTES, 'UTF-8');
+        $html = '<div class="d-flex flex-column gap-1">';
+        $html .= '<span>' . $title . '</span>';
+
+        if ((int) $lead->lead_source_id === PlusTwoFollowUpQuestionnaire::LEAD_SOURCE_ID) {
+            $html .= $this->renderPlusTwoQuestionnaireActions($lead, true);
+        }
+
+        $html .= '</div>';
+        return $html;
     }
 
     /**
@@ -1524,6 +1582,9 @@ class LeadController extends Controller
             'telecaller' => $this->cleanUtf8($lead->telecaller->name ?? 'Unassigned'),
             'course' => $this->cleanUtf8($lead->course->title ?? '-'),
             'source' => $this->cleanUtf8($lead->leadSource->title ?? '-'),
+            'plus_two_questionnaire_html' => (int) $lead->lead_source_id === PlusTwoFollowUpQuestionnaire::LEAD_SOURCE_ID
+                ? $this->renderPlusTwoQuestionnaireActions($lead, true)
+                : '',
             'place' => $this->cleanUtf8($lead->place ?? '-'),
             'followup_date' => $lead->followup_date ? $lead->followup_date->format('M d, Y') : null,
             'remarks' => $this->cleanUtf8($lead->remarks),
@@ -1539,6 +1600,10 @@ class LeadController extends Controller
                 'document_verification_status' => $lead->studentDetails->getDocumentVerificationStatus(),
                 'reviewed_at' => $lead->studentDetails->reviewed_at ? $lead->studentDetails->reviewed_at->format('d-m-Y h:i A') : null,
             ] : null,
+            'plus_two_questionnaire' => $lead->plusTwoFollowUpQuestionnaire ? [
+                'submitted_at' => $lead->plusTwoFollowUpQuestionnaire->created_at->format('d-m-Y h:i A'),
+            ] : null,
+            'lead_source_id' => $lead->lead_source_id,
             'course_id' => $lead->course_id,
             'lead_status_id' => $lead->lead_status_id,
             'is_converted' => $lead->is_converted,
@@ -1550,6 +1615,7 @@ class LeadController extends Controller
                 'call_logs' => route('leads.call-logs', $lead),
                 'delete' => route('leads.destroy', $lead->id),
                 'registration_details' => route('leads.registration-details', $lead->id),
+                'plus_two_questionnaire_details' => route('leads.plus-two-questionnaire', $lead->id),
                 'registration_link' => $this->getRegistrationLinkRoute($lead)
             ],
             'permissions' => [
@@ -1572,6 +1638,10 @@ class LeadController extends Controller
      */
     private function getRegistrationLinkRoute($lead)
     {
+        if ((int) $lead->lead_source_id === PlusTwoFollowUpQuestionnaire::LEAD_SOURCE_ID && !$lead->plusTwoFollowUpQuestionnaire) {
+            return route('public.lead.plus-two-follow-up.register', $lead->id);
+        }
+
         $courseRoutes = [
             1 => 'public.lead.nios.register',
             2 => 'public.lead.bosse.register',
@@ -4705,6 +4775,27 @@ class LeadController extends Controller
 
         return redirect()->route('leads.index')
             ->with('message_danger', 'This lead has already been converted.');
+    }
+
+    /**
+     * View Plus Two Follow-Up Questionnaire details for iPhone Challenge leads (lead_source_id = 13).
+     */
+    public function plusTwoQuestionnaireDetails(Lead $lead)
+    {
+        if (!RoleHelper::is_admin_or_super_admin() &&
+            !RoleHelper::is_telecaller() &&
+            !RoleHelper::is_academic_assistant() &&
+            !RoleHelper::is_admission_counsellor()) {
+            return redirect()->route('leads.index')->with('message_danger', 'Access denied.');
+        }
+
+        $questionnaire = $lead->plusTwoFollowUpQuestionnaire;
+
+        if (!$questionnaire) {
+            return redirect()->route('leads.index')->with('message_danger', 'No questionnaire found for this lead.');
+        }
+
+        return view('admin.leads.plus-two-questionnaire-details', compact('lead', 'questionnaire'));
     }
 
     /**

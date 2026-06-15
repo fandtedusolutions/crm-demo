@@ -218,6 +218,11 @@ class Lead extends Model
         return $this->hasOne(LeadDetail::class, 'lead_id')->where('course_id', 25);
     }
 
+    public function plusTwoFollowUpQuestionnaire()
+    {
+        return $this->hasOne(PlusTwoFollowUpQuestionnaire::class, 'lead_id');
+    }
+
     // Scopes
     public function scopeWithStatusCount($query)
     {

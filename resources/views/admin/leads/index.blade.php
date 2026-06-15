@@ -309,7 +309,7 @@ $canViewFirstCreated = $isAdminOrSuperAdmin || $isGeneralManager;
                                 <tr>
                                     <th>#</th>
                                     <th>Actions</th>
-                                    @if($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor)
+                                    @if($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isTeamLeadRole || $isGeneralManager)
                                     <th>Registration Details</th>
                                     @endif
                                     <th>Created At</th>
@@ -366,7 +366,7 @@ $columns = [
     ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],
 ];
 
-if ($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor) {
+if ($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isTeamLeadRole || $isGeneralManager) {
     $columns[] = ['data' => 'registration_details', 'name' => 'registration_details', 'orderable' => false, 'searchable' => false];
 }
 
@@ -1155,6 +1155,13 @@ $columns = array_merge($columns, [
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-star f-12 text-muted me-1"></i><span class="badge bg-primary f-10">' + escapeHtml(data.rating || 'Not Rated') + '</span></div></div>';
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-user f-12 text-muted me-1"></i><small class="text-muted f-11">' + escapeHtml(data.telecaller || 'Unassigned') + '</small></div></div>';
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-book f-12 text-muted me-1"></i><small class="text-muted f-11">' + escapeHtml(data.course || '-') + '</small></div></div>';
+                if (data.source) {
+                    cardHtml += '<div class="col-12"><div class="d-flex align-items-start"><i class="ti ti-source-code f-12 text-muted me-1 mt-1"></i><div><small class="text-muted f-11 d-block">' + escapeHtml(data.source) + '</small>';
+                    if (data.plus_two_questionnaire_html) {
+                        cardHtml += '<div class="mt-1">' + data.plus_two_questionnaire_html + '</div>';
+                    }
+                    cardHtml += '</div></div></div>';
+                }
                 const createdDate = data.created_at ? (data.created_at.split(' ')[0] || '') : '';
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-calendar f-12 text-muted me-1"></i><small class="text-muted f-11">' + createdDate + '</small></div></div>';
                 if (data.followup_date) {
@@ -1194,6 +1201,18 @@ $columns = array_merge($columns, [
                     const regDetailsRoute = (data.routes && data.routes.registration_details) ? data.routes.registration_details : '#';
                     if (data.permissions && data.permissions.can_view_registration) {
                         cardHtml += '<div class="mt-2"><a href="' + regDetailsRoute + '" class="btn btn-sm btn-outline-primary" title="View Registration Details"><i class="ti ti-eye me-1"></i>View Details</a></div>';
+                    }
+                    cardHtml += '</div></div>';
+                } else if (data.plus_two_questionnaire) {
+                    cardHtml += '<div class="col-12 mt-2"><div class="border-top pt-2">';
+                    cardHtml += '<div class="d-flex align-items-center justify-content-between mb-2">';
+                    cardHtml += '<small class="text-muted f-11 fw-bold">Plus Two Questionnaire:</small>';
+                    cardHtml += '<span class="badge bg-success f-10">Submitted</span>';
+                    cardHtml += '</div>';
+                    cardHtml += '<small class="text-muted f-10 d-block mb-2">Submitted on: ' + escapeHtml(data.plus_two_questionnaire.submitted_at) + '</small>';
+                    const questionnaireRoute = (data.routes && data.routes.plus_two_questionnaire_details) ? data.routes.plus_two_questionnaire_details : '#';
+                    if (data.permissions && data.permissions.can_view_registration) {
+                        cardHtml += '<a href="' + questionnaireRoute + '" class="btn btn-sm btn-outline-primary" title="View Questionnaire Details"><i class="ti ti-eye me-1"></i>View Details</a>';
                     }
                     cardHtml += '</div></div>';
                 } else if (data.routes && data.routes.registration_link && data.permissions && data.permissions.can_view_registration) {

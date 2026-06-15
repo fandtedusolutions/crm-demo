@@ -25,6 +25,7 @@ Route::prefix('v1')->group(function () {
         Route::get('leads/call', [LeadsController::class, 'callLead']);
         Route::get('leads/{lead}/status-update', [LeadsController::class, 'statusUpdateData'])->whereNumber('lead');
         Route::post('leads/{lead}/status-update', [LeadsController::class, 'statusUpdate'])->whereNumber('lead');
+        Route::get('leads/{lead}/plus-two-follow-up', [LeadsController::class, 'plusTwoFollowUpDetails'])->whereNumber('lead');
         Route::get('leads/{lead}/call-history', [App\Http\Controllers\VoxbayCallLogController::class, 'callHistory'])->whereNumber('lead');
         Route::get('notifications', [NotificationController::class, 'index']);
 

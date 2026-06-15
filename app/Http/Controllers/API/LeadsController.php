@@ -8,6 +8,7 @@ use App\Models\LeadStatus;
 use App\Models\LeadSource;
 use App\Models\Course;
 use App\Models\LeadActivity;
+use App\Models\PlusTwoFollowUpQuestionnaire;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -45,7 +46,8 @@ class LeadsController extends Controller
                 'leadSource:id,title',
                 'course:id,title',
                 'telecaller:id,name',
-                'studentDetails:id,lead_id,status'
+                'studentDetails:id,lead_id,status',
+                'plusTwoFollowUpQuestionnaire:id,lead_id'
             ]);
 
         // Apply role-based filtering
@@ -115,6 +117,76 @@ class LeadsController extends Controller
                 'from' => $leads->firstItem(),
                 'to' => $leads->lastItem()
             ]
+        ], 200);
+    }
+
+    /**
+     * Get submitted Plus Two follow-up questionnaire details for a lead (lead_source_id = 13).
+     */
+    public function plusTwoFollowUpDetails(Request $request, $leadId)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $lead = Lead::with([
+            'leadStatus:id,title',
+            'leadSource:id,title',
+            'course:id,title',
+            'telecaller:id,name,team_id',
+            'plusTwoFollowUpQuestionnaire',
+        ])->find($leadId);
+
+        if (!$lead) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Lead not found.',
+            ], 404);
+        }
+
+        if (!$this->userCanAccessLead((int) $lead->id, $user)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Access denied for this lead.',
+            ], 403);
+        }
+
+        if ((int) $lead->lead_source_id !== PlusTwoFollowUpQuestionnaire::LEAD_SOURCE_ID) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Plus Two follow-up questionnaire is not applicable for this lead source.',
+            ], 422);
+        }
+
+        $questionnaire = $lead->plusTwoFollowUpQuestionnaire;
+
+        if (!$questionnaire) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Plus Two follow-up questionnaire has not been submitted for this lead.',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => [
+                'lead' => [
+                    'id' => $lead->id,
+                    'name' => $lead->title ?? '',
+                    'lead_source_id' => $lead->lead_source_id,
+                    'lead_source' => $lead->leadSource?->title ?? '',
+                    'course_id' => $lead->course_id,
+                    'course_name' => $lead->course?->title ?? '',
+                    'lead_status' => $lead->leadStatus?->title ?? '',
+                    'telecaller_name' => $lead->telecaller?->name ?? '',
+                ],
+                'questionnaire' => $this->formatPlusTwoQuestionnaireForApi($questionnaire),
+            ],
         ], 200);
     }
 
@@ -707,6 +779,18 @@ class LeadsController extends Controller
 
         $registrationDetailsStatus = $isLeadRegFormSubmitted ? $this->getRegistrationDetailsStatus($lead) : '';
 
+        $isPlusTwoFollowUpLead = (int) $lead->lead_source_id === PlusTwoFollowUpQuestionnaire::LEAD_SOURCE_ID;
+        $isPlusTwoFollowUpFormSubmitted = $isPlusTwoFollowUpLead && $lead->plusTwoFollowUpQuestionnaire ? 1 : 0;
+        $showPlusTwoFollowUpFormLink = $isPlusTwoFollowUpLead && !$lead->plusTwoFollowUpQuestionnaire ? 1 : 0;
+        $plusTwoFollowUpFormLink = '';
+        if ($showPlusTwoFollowUpFormLink) {
+            try {
+                $plusTwoFollowUpFormLink = route('public.lead.plus-two-follow-up.register', $lead->id);
+            } catch (\Exception $e) {
+                $plusTwoFollowUpFormLink = '';
+            }
+        }
+
         return [
             'id' => $lead->id,
             'name' => $lead->title ?? '',
@@ -723,6 +807,9 @@ class LeadsController extends Controller
             'is_lead_reg_form_submitted' => $isLeadRegFormSubmitted,
             'show_lead_reg_form_link' => $showLeadRegFormLink,
             'reg_form_link' => $regFormLink,
+            'show_plus_two_follow_up_form_link' => $showPlusTwoFollowUpFormLink,
+            'plus_two_follow_up_form_link' => $plusTwoFollowUpFormLink,
+            'is_plus_two_follow_up_form_submitted' => $isPlusTwoFollowUpFormSubmitted,
             'remarks' => $this->stripHtmlContent($lead->remarks ?? ''),
             'marketing_remarks' => $this->stripHtmlContent($lead->marketing_remarks ?? ''),
             'date' => $date,
@@ -896,6 +983,130 @@ class LeadsController extends Controller
         }
 
         return $number;
+    }
+
+    /**
+     * Format Plus Two questionnaire record for API response.
+     */
+    private function formatPlusTwoQuestionnaireForApi(PlusTwoFollowUpQuestionnaire $questionnaire): array
+    {
+        $submittedAt = Carbon::parse($questionnaire->created_at);
+        $followupTime = $questionnaire->followup_time
+            ? Carbon::parse($questionnaire->followup_time)->format('h:i A')
+            : '';
+
+        return [
+            'id' => $questionnaire->id,
+            'lead_id' => $questionnaire->lead_id,
+            'submitted_at' => $submittedAt->format('d-m-Y h:i A'),
+            'submitted_date' => $submittedAt->format('d-m-Y'),
+            'submitted_time' => $submittedAt->format('h:i A'),
+            'name' => $questionnaire->name ?? '',
+            'mobile_number' => $questionnaire->mobile_number ?? '',
+            'section_1_result_status' => [
+                'received_plus_two_result' => $this->plusTwoLabel('yes_no', $questionnaire->received_plus_two_result),
+                'result_outcome' => $this->plusTwoLabel('result_outcome', $questionnaire->result_outcome),
+                'stream_completed' => $this->plusTwoLabel('stream_completed', $questionnaire->stream_completed),
+            ],
+            'section_2_future_plan' => [
+                'current_plan' => $this->plusTwoLabel('current_plan', $questionnaire->current_plan),
+                'college_selection' => $this->plusTwoLabel('college_selection', $questionnaire->college_selection),
+                'planned_course' => $questionnaire->planned_course ?? '',
+                'course_selection_reason' => $questionnaire->course_selection_reason ?? '',
+            ],
+            'section_3_decision_stage' => [
+                'admission_started' => $this->plusTwoLabel('yes_no', $questionnaire->admission_started),
+                'decision_maker' => $this->plusTwoLabel('decision_maker', $questionnaire->decision_maker),
+            ],
+            'section_4_pain_point' => [
+                'career_clarity_level' => $this->plusTwoLabel('career_clarity_level', $questionnaire->career_clarity_level),
+                'biggest_challenge' => $questionnaire->biggest_challenge ?? '',
+            ],
+            'section_5_opportunity_qualification' => [
+                'guidance_interested_level' => $this->plusTwoLabel('guidance_interested_level', $questionnaire->guidance_interested_level),
+                'counseling_preference' => $this->plusTwoLabel('counseling_preference', $questionnaire->counseling_preference),
+                'best_contact_time' => $questionnaire->best_contact_time ?? '',
+            ],
+            'summary' => [
+                'result_status' => $questionnaire->result_status ?? '',
+                'stream' => $questionnaire->stream ?? '',
+                'future_plan' => $questionnaire->future_plan ?? '',
+                'course_interested' => $questionnaire->course_interested ?? '',
+                'college_selected' => $questionnaire->college_selected ?? '',
+                'decision_maker' => $questionnaire->decision_maker_summary ?? '',
+                'career_clarity' => $questionnaire->career_clarity ?? '',
+                'main_challenge' => $questionnaire->main_challenge ?? '',
+                'guidance_interested' => $questionnaire->guidance_interested ?? '',
+                'followup_date' => $questionnaire->followup_date
+                    ? Carbon::parse($questionnaire->followup_date)->format('d-m-Y')
+                    : '',
+                'followup_time' => $followupTime,
+            ],
+        ];
+    }
+
+    /**
+     * Human-readable labels for Plus Two questionnaire enum values.
+     */
+    private function plusTwoLabel(string $field, ?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+
+        $maps = [
+            'yes_no' => [
+                'yes' => 'Yes',
+                'no' => 'No',
+            ],
+            'result_outcome' => [
+                'passed' => 'Passed',
+                'failed' => 'Failed',
+                'improvement' => 'Improvement',
+            ],
+            'stream_completed' => [
+                'science' => 'Science',
+                'commerce' => 'Commerce',
+                'humanities' => 'Humanities',
+            ],
+            'current_plan' => [
+                'degree' => 'Degree',
+                'professional_course' => 'Professional Course',
+                'government_exam' => 'Government Exam Preparation',
+                'job' => 'Job',
+                'abroad_studies' => 'Abroad Studies',
+                'business' => 'Business',
+                'not_decided' => 'Not Decided Yet',
+            ],
+            'college_selection' => [
+                'finalized' => 'Finalized',
+                'shortlisted' => 'Shortlisted',
+                'not_decided' => 'Not Decided',
+            ],
+            'decision_maker' => [
+                'self' => 'Self',
+                'parents' => 'Parents',
+                'both_together' => 'Both Together',
+                'guardian' => 'Guardian',
+            ],
+            'career_clarity_level' => [
+                'yes' => 'Yes',
+                'somewhat' => 'Somewhat',
+                'no' => 'No',
+            ],
+            'guidance_interested_level' => [
+                'yes' => 'Yes',
+                'maybe' => 'Maybe',
+                'no' => 'No',
+            ],
+            'counseling_preference' => [
+                'online' => 'Online',
+                'direct' => 'Direct',
+                'either' => 'Either',
+            ],
+        ];
+
+        return $maps[$field][$value] ?? ucfirst(str_replace('_', ' ', $value));
     }
 }
 
