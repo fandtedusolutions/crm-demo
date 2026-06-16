@@ -439,7 +439,7 @@
                                     <th>Name</th>
                                     <th>Phone</th>
                                     <th>WhatsApp</th>
-                                    @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor())
+                                    @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
                                     <th>Parent Phone</th>
                                     @endif
                                     <th>Course</th>
@@ -523,7 +523,7 @@ $convertedLeadsColumns = [
     ['data' => 'phone', 'name' => 'phone', 'orderable' => false, 'searchable' => false],
     ['data' => 'whatsapp', 'name' => 'whatsapp', 'orderable' => false, 'searchable' => false],
 ];
-if (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor()) {
+if (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant()) {
     $convertedLeadsColumns[] = ['data' => 'parent_phone', 'name' => 'parent_phone', 'orderable' => false, 'searchable' => false];
 }
 $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
@@ -1165,6 +1165,8 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
         });
 
         // Inline editing functionality
+        const inlinePhoneFields = ['phone', 'whatsapp_number', 'parents_number'];
+
         $(document).on('click', '.edit-btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -1196,6 +1198,9 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
                 editForm = createStatusSelect(currentValue);
             } else if (field === 'reg_fee') {
                 editForm = createRegFeeSelect(currentValue);
+            } else if (inlinePhoneFields.includes(field)) {
+                const currentCode = container.data('code') || '';
+                editForm = createPhoneField(currentCode, currentValue);
             } else {
                 editForm = createInputField(field, currentValue);
             }
@@ -1225,7 +1230,14 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             const container = $(this).closest('.inline-edit');
             const field = container.data('field');
             const id = container.data('id');
-            const value = container.find('input, select').val();
+            let value = container.find('input, select').val();
+            let extra = {};
+
+            if (inlinePhoneFields.includes(field)) {
+                value = container.find('input[name="phone"]').val();
+                const codeField = container.data('code-field') || 'code';
+                extra[codeField] = container.find('select[name="code"]').val();
+            }
 
             const btn = $(this);
             if (btn.data('busy')) return;
@@ -1235,18 +1247,23 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             $.ajax({
                 url: `/admin/converted-leads/${id}/inline-update`,
                 method: 'POST',
-                data: {
+                data: $.extend({
                     field: field,
                     value: value,
                     _token: $('meta[name="csrf-token"]').attr('content')
-                },
+                }, extra),
                 success: function(response) {
                     if (response.success) {
-                        // Update display value with the response value (which should be the title, not ID)
                         let displayValue = response.value || 'N/A';
                         container.find('.display-value').text(displayValue);
-                        // Update the data-current attribute with the new display value
-                        container.data('current', displayValue);
+                        if (inlinePhoneFields.includes(field)) {
+                            const num = container.find('input[name="phone"]').val();
+                            const code = container.find('select[name="code"]').val();
+                            container.data('current', num || '');
+                            container.data('code', code || '');
+                        } else {
+                            container.data('current', displayValue);
+                        }
                         // Update avatar initial when name changes
                         if (field === 'name') {
                             const row = container.closest('tr');
@@ -1311,7 +1328,6 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             container.find('.edit-form').remove();
         });
 
-        // Helper functions for creating form elements
         function createInputField(field, currentValue) {
             const inputType = 'text';
             const displayValue = currentValue === 'N/A' ? '' : currentValue;
@@ -1320,6 +1336,46 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             return `
                 <div class="edit-form">
                     <input type="${inputType}" ${valueAttr} ${commonAttrs} class="form-control form-control-sm">
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createPhoneField(currentCode, currentPhone) {
+            const codeOptionsEl = document.getElementById('country-codes-json');
+            let codeOptions = {};
+            try {
+                codeOptions = codeOptionsEl ? JSON.parse(codeOptionsEl.textContent || '{}') : {};
+            } catch (e) {
+                codeOptions = {};
+            }
+
+            const buildOptions = (selected) => {
+                let opts = '<option value="">Select Country</option>';
+                for (const c in codeOptions) {
+                    const isSel = String(selected) === String(c) ? 'selected' : '';
+                    opts += `<option value="${c}" ${isSel}>${c} - ${codeOptions[c]}</option>`;
+                }
+                return opts;
+            };
+
+            const safePhone = (currentPhone && currentPhone !== 'N/A') ? currentPhone : '';
+
+            return `
+                <div class="edit-form">
+                    <div class="row g-1">
+                        <div class="col-5">
+                            <select name="code" class="form-select form-select-sm">
+                                ${buildOptions(currentCode)}
+                            </select>
+                        </div>
+                        <div class="col-7">
+                            <input type="text" name="phone" value="${safePhone}" class="form-control form-control-sm" placeholder="Phone number" autocomplete="off">
+                        </div>
+                    </div>
                     <div class="btn-group mt-1">
                         <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
                         <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>

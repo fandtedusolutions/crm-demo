@@ -120,7 +120,9 @@ class ConvertedLeadController extends Controller
                 ->flip();
 
             $appTimezone = config('app.timezone');
-            $showParentPhone = RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor();
+            $showParentPhone = RoleHelper::is_admin_or_super_admin()
+                || RoleHelper::is_admission_counsellor()
+                || RoleHelper::is_academic_assistant();
 
             $data = [];
             foreach ($convertedLeads as $i => $convertedLead) {
@@ -374,19 +376,36 @@ class ConvertedLeadController extends Controller
             ? '<span class="badge bg-success">'.e($convertedLead->register_number).'</span>'
             : '<span class="text-muted">Not Set</span>';
 
-        $whatsappCell = ($convertedLead->leadDetail && $convertedLead->leadDetail->whatsapp_number)
-            ? e(\App\Helpers\PhoneNumberHelper::display(
-                $convertedLead->leadDetail->whatsapp_code,
-                $convertedLead->leadDetail->whatsapp_number
-            ))
-            : '<span class="text-muted">N/A</span>';
+        $canEditPhoneFields = RoleHelper::is_admin_or_super_admin()
+            || RoleHelper::is_admission_counsellor()
+            || RoleHelper::is_academic_assistant();
 
-        $parentPhoneCell = ($convertedLead->leadDetail && $convertedLead->leadDetail->parents_number)
-            ? e(\App\Helpers\PhoneNumberHelper::display(
-                $convertedLead->leadDetail->parents_code,
-                $convertedLead->leadDetail->parents_number
-            ))
-            : '<span class="text-muted">N/A</span>';
+        $phoneCell = view('admin.converted-leads.partials.dt-cell-inline-phone', [
+            'convertedLead' => $convertedLead,
+            'field' => 'phone',
+            'codeField' => 'code',
+            'number' => $convertedLead->phone,
+            'code' => $convertedLead->code,
+            'canEdit' => $canEditPhoneFields,
+        ])->render();
+
+        $whatsappCell = view('admin.converted-leads.partials.dt-cell-inline-phone', [
+            'convertedLead' => $convertedLead,
+            'field' => 'whatsapp_number',
+            'codeField' => 'whatsapp_code',
+            'number' => $convertedLead->leadDetail?->whatsapp_number,
+            'code' => $convertedLead->leadDetail?->whatsapp_code,
+            'canEdit' => $canEditPhoneFields,
+        ])->render();
+
+        $parentPhoneCell = view('admin.converted-leads.partials.dt-cell-inline-phone', [
+            'convertedLead' => $convertedLead,
+            'field' => 'parents_number',
+            'codeField' => 'parents_code',
+            'number' => $convertedLead->leadDetail?->parents_number,
+            'code' => $convertedLead->leadDetail?->parents_code,
+            'canEdit' => $canEditPhoneFields,
+        ])->render();
 
         $pendingPayment = $this->convertedLeadHasPendingPayment($convertedLead)
             ? '<span class="badge bg-warning">Pending</span>'
@@ -416,7 +435,7 @@ class ConvertedLeadController extends Controller
             'dob' => e($dobDisplay),
             'type' => e($typeLabel),
             'name' => $nameHtml,
-            'phone' => e(\App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone)),
+            'phone' => $phoneCell,
             'whatsapp' => $whatsappCell,
             'course' => e($convertedLead->course ? $convertedLead->course->title : 'N/A'),
             'batch' => e($convertedLead->batch ? $convertedLead->batch->title : 'N/A'),
@@ -2654,6 +2673,7 @@ class ConvertedLeadController extends Controller
 
         $leadActivitiesTruncated = $leadActivityTotal > $leadActivitiesLimit;
         $convertedStudentActivitiesTruncated = $convertedStudentActivityTotal > $convertedStudentActivitiesLimit;
+        $country_codes = get_country_code();
 
         return view('admin.converted-leads.show', compact(
             'convertedLead',
@@ -2666,7 +2686,8 @@ class ConvertedLeadController extends Controller
             'leadActivitiesTruncated',
             'convertedStudentActivitiesTruncated',
             'leadActivitiesLimit',
-            'convertedStudentActivitiesLimit'
+            'convertedStudentActivitiesLimit',
+            'country_codes'
         ));
     }
 
@@ -4043,6 +4064,17 @@ class ConvertedLeadController extends Controller
             // phone & code inline updates
             'phone' => 'nullable|string|max:20',
             'code' => 'nullable|string|max:5',
+            'email' => 'nullable|email|max:255',
+            // Lead detail personal fields
+            'father_name' => 'nullable|string|max:255',
+            'mother_name' => 'nullable|string|max:255',
+            'second_language' => 'nullable|string|in:malayalam,hindi',
+            'personal_number' => 'nullable|string|max:20',
+            'personal_code' => 'nullable|string|max:5',
+            'parents_number' => 'nullable|string|max:20',
+            'parents_code' => 'nullable|string|max:5',
+            'date_of_birth' => 'nullable|date|before_or_equal:today',
+            'lead_detail_batch_id' => 'nullable|exists:batches,id',
             // LeadDetail fields for UG/PG
             'whatsapp_number' => 'nullable|string|max:20',
             'whatsapp_code' => 'nullable|string|max:5',
@@ -4153,7 +4185,13 @@ class ConvertedLeadController extends Controller
         }
 
         // Handle fields that are in LeadDetail (for UG/PG course and EduMaster)
-        $leadDetailFields = ['whatsapp_number', 'whatsapp_code', 'university_id', 'course_type', 'university_course_id', 'passed_year', 'date_of_birth', 'dob', 'programme_type', 'location', 'class_time_id', 'selected_courses', 'sslc_back_year', 'plustwo_back_year', 'degree_back_year', 'edumaster_course_name', 'class'];
+        $leadDetailFields = [
+            'whatsapp_number', 'whatsapp_code', 'university_id', 'course_type', 'university_course_id',
+            'passed_year', 'date_of_birth', 'dob', 'programme_type', 'location', 'class_time_id',
+            'selected_courses', 'sslc_back_year', 'plustwo_back_year', 'degree_back_year',
+            'edumaster_course_name', 'class', 'father_name', 'mother_name', 'second_language',
+            'personal_number', 'personal_code', 'parents_number', 'parents_code', 'lead_detail_batch_id',
+        ];
 
         // Handle fields that are now in ConvertedStudentDetail
         $studentDetailFields = ['reg_fee', 'exam_fee', 'enroll_no', 'internship_id', 'id_card', 'tma', 'registration_number', 'enrollment_number', 'registration_link_id', 'certificate_status', 'certificate_received_date', 'certificate_issued_date', 'remarks', 'continuing_studies', 'reason', 'application_number', 'board_registration_number', 'st', 'phy', 'che', 'bio', 'app', 'group', 'interview', 'howmany_interview', 'call_status', 'class_information', 'orientation_class_status', 'class_starting_date', 'class_ending_date', 'whatsapp_group_status', 'class_time', 'class_status', 'complete_cancel_date', 'teacher_id', 'screening'];
@@ -4176,10 +4214,20 @@ class ConvertedLeadController extends Controller
             if ($field === 'whatsapp_number' && $request->filled('whatsapp_code')) {
                 $leadDetail->whatsapp_code = $request->input('whatsapp_code');
             }
+
+            if ($field === 'personal_number' && $request->filled('personal_code')) {
+                $leadDetail->personal_code = $request->input('personal_code');
+            }
+
+            if ($field === 'parents_number' && $request->filled('parents_code')) {
+                $leadDetail->parents_code = $request->input('parents_code');
+            }
             
             // Special handling for date_of_birth (DOB in lead_details)
             if ($field === 'dob') {
                 $leadDetail->date_of_birth = $value;
+            } elseif ($field === 'lead_detail_batch_id') {
+                $leadDetail->batch_id = $value ?: null;
             } elseif ($field === 'selected_courses') {
                 // Store selected_courses as JSON
                 $leadDetail->selected_courses = $value; // Value is already JSON string from frontend
@@ -4248,6 +4296,20 @@ class ConvertedLeadController extends Controller
                     }
                 } else {
                     $updatedValue = $value;
+                }
+            } elseif ($field === 'date_of_birth') {
+                if ($convertedLead->leadDetail && $convertedLead->leadDetail->date_of_birth) {
+                    $updatedValue = $convertedLead->leadDetail->date_of_birth->format('d M Y');
+                } else {
+                    $updatedValue = 'N/A';
+                }
+            } elseif ($field === 'lead_detail_batch_id') {
+                $batchId = $convertedLead->leadDetail ? $convertedLead->leadDetail->batch_id : null;
+                if ($batchId) {
+                    $batch = \App\Models\Batch::find($batchId);
+                    $updatedValue = $batch ? $batch->title : 'N/A';
+                } else {
+                    $updatedValue = 'N/A';
                 }
             } else {
                 $updatedValue = $convertedLead->leadDetail ? $convertedLead->leadDetail->$field : $value;
@@ -4327,8 +4389,28 @@ class ConvertedLeadController extends Controller
                 $leadDetail ? $leadDetail->whatsapp_code : '', 
                 $updatedValue
             );
-        } elseif (in_array($field, ['whatsapp_number', 'whatsapp_code']) && !$updatedValue) {
-            $updatedValue = '-';
+        } elseif ($field === 'personal_number' && $updatedValue) {
+            $leadDetail = $convertedLead->leadDetail;
+            $updatedValue = \App\Helpers\PhoneNumberHelper::display(
+                $leadDetail ? $leadDetail->personal_code : '',
+                $updatedValue
+            );
+        } elseif ($field === 'parents_number' && $updatedValue) {
+            $leadDetail = $convertedLead->leadDetail;
+            $updatedValue = \App\Helpers\PhoneNumberHelper::display(
+                $leadDetail ? $leadDetail->parents_code : '',
+                $updatedValue
+            );
+        } elseif (in_array($field, ['whatsapp_number', 'whatsapp_code', 'personal_number', 'parents_number']) && !$updatedValue) {
+            $updatedValue = 'N/A';
+        } elseif ($field === 'email' && !$updatedValue) {
+            $updatedValue = 'N/A';
+        } elseif (in_array($field, ['father_name', 'mother_name']) && !$updatedValue) {
+            $updatedValue = 'N/A';
+        } elseif ($field === 'second_language' && $updatedValue) {
+            $updatedValue = ucfirst($updatedValue);
+        } elseif ($field === 'second_language' && !$updatedValue) {
+            $updatedValue = 'N/A';
         } elseif ($field === 'dob' && $updatedValue) {
             // Format DOB for display (d-m-Y format)
             try {

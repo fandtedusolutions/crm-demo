@@ -6,6 +6,20 @@
 @php
     $listRoute = $listRoute ?? route('admin.converted-leads.index');
     $pdfRoute = $pdfRoute ?? route('admin.converted-leads.details-pdf', $convertedLead->id);
+    $canInlineEditPersonal = \App\Helpers\RoleHelper::is_admin_or_super_admin()
+        || \App\Helpers\RoleHelper::is_admission_counsellor()
+        || \App\Helpers\RoleHelper::is_academic_assistant();
+    $leadDetail = $convertedLead->leadDetail;
+    $personalDobRaw = $convertedLead->dob
+        ? (strtotime($convertedLead->dob) ? date('Y-m-d', strtotime($convertedLead->dob)) : $convertedLead->dob)
+        : '';
+    $personalDobDisplay = $personalDobRaw ? date('d-m-Y', strtotime($personalDobRaw)) : 'N/A';
+    $leadDetailDobRaw = ($leadDetail && $leadDetail->date_of_birth)
+        ? $leadDetail->date_of_birth->format('Y-m-d')
+        : '';
+    $leadDetailDobDisplay = ($leadDetail && $leadDetail->date_of_birth)
+        ? $leadDetail->date_of_birth->format('d M Y')
+        : 'N/A';
     $__fileMeta = $fileExistenceMeta ?? [];
     $fileExistsOnDisk = function (?string $p) use ($__fileMeta) {
         if (!$p) {
@@ -78,10 +92,19 @@
                             <div class="col-12">
                                 <div class="d-flex align-items-center mb-3">
                                     <div class="avtar avtar-s rounded-circle bg-light-success me-2" style="width: 60px; height: 60px;">
-                                        <span class="text-info fw-bold" style="font-size: 1.5rem;">{{ strtoupper(substr($convertedLead->name, 0, 1)) }}</span>
+                                        <span class="text-info fw-bold js-cl-show-name-initial" style="font-size: 1.5rem;">{{ strtoupper(substr($convertedLead->name, 0, 1)) }}</span>
                                     </div>
                                     <div>
-                                        <h4 class="mb-1">{{ $convertedLead->name }}</h4>
+                                        @if($canInlineEditPersonal)
+                                            <div class="inline-edit-show-cl d-inline-block" data-field="name" data-id="{{ $convertedLead->id }}" data-type="text" data-current="{{ e($convertedLead->name) }}">
+                                                <h4 class="mb-1 d-inline js-cl-show-name-heading"><span class="display-value">{{ $convertedLead->name }}</span></h4>
+                                                <button type="button" class="btn btn-sm btn-link p-0 ms-1 edit-btn-show-cl" title="Edit Name">
+                                                    <i class="ti ti-pencil"></i>
+                                                </button>
+                                            </div>
+                                        @else
+                                            <h4 class="mb-1 js-cl-show-name-heading">{{ $convertedLead->name }}</h4>
+                                        @endif
                                         <p class="text-muted mb-0">Converted Lead</p>
                                         @if($convertedLead->is_cancelled)
                                             <div>
@@ -98,29 +121,58 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <label class="form-label text-muted">Phone</label>
-                                <p class="fw-bold">{{ \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone) }}</p>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label text-muted">Email</label>
-                                <p class="fw-bold">{{ $convertedLead->email ?? 'N/A' }}</p>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label text-muted">Register Number</label>
-                                <p class="fw-bold">{{ $convertedLead->register_number ?? 'N/A' }}</p>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label text-muted">DOB</label>
-                                @php
-                                    $dobDisplay = $convertedLead->dob ? (strtotime($convertedLead->dob) ? date('d-m-Y', strtotime($convertedLead->dob)) : $convertedLead->dob) : 'N/A';
-                                @endphp
-                                <p class="fw-bold">{{ $dobDisplay }}</p>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label text-muted">Remarks</label>
-                                <p class="fw-bold">{{ $convertedLead->remarks ?? 'N/A' }}</p>
-                            </div>
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Phone',
+                                'field' => 'phone',
+                                'type' => 'phone',
+                                'displayValue' => \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone),
+                                'rawValue' => $convertedLead->phone ?? '',
+                                'code' => $convertedLead->code ?? '',
+                                'codeField' => 'code',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 6,
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Email',
+                                'field' => 'email',
+                                'type' => 'email',
+                                'displayValue' => $convertedLead->email ?? 'N/A',
+                                'rawValue' => $convertedLead->email ?? '',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 6,
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Register Number',
+                                'field' => 'register_number',
+                                'type' => 'text',
+                                'displayValue' => $convertedLead->register_number ?? 'N/A',
+                                'rawValue' => $convertedLead->register_number ?? '',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 6,
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'DOB',
+                                'field' => 'dob',
+                                'type' => 'date',
+                                'displayValue' => $personalDobDisplay,
+                                'rawValue' => $personalDobRaw,
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 6,
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Remarks',
+                                'field' => 'remarks',
+                                'type' => 'textarea',
+                                'displayValue' => $convertedLead->remarks ?? 'N/A',
+                                'rawValue' => $convertedLead->remarks ?? '',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 6,
+                            ])
                             <div class="col-6">
                                 <label class="form-label text-muted">Lead Type</label>
                                 <p class="fw-bold">{{ $convertedLead->is_b2b == 1 ? ('B2B' . ($convertedLead->lead?->team?->name ? ' (' . $convertedLead->lead->team->name . ')' : '')) : 'In House' }}</p>
@@ -393,66 +445,114 @@
                     </div>
                     @endif
 
-                    @if($convertedLead->leadDetail)
+                    @if($leadDetail || $canInlineEditPersonal)
                     <div class="col-12 mt-4">
                         <hr>
                         <h6 class="text-primary mb-3">Lead Details</h6>
                         <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label text-muted">Father's Name</label>
-                                <p class="fw-bold">{{ $convertedLead->leadDetail->father_name ?? 'N/A' }}</p>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label text-muted">Mother's Name</label>
-                                <p class="fw-bold">{{ $convertedLead->leadDetail->mother_name ?? 'N/A' }}</p>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label text-muted">Date of Birth</label>
-                                <p class="fw-bold">{{ $convertedLead->leadDetail->date_of_birth ? $convertedLead->leadDetail->date_of_birth->format('d M Y') : 'N/A' }}</p>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label text-muted">Second Language</label>
-                                <p class="fw-bold">{{ $convertedLead->leadDetail->second_language ?? 'N/A' }}</p>
-                            </div>
-
-                            <div class="col-md-3">
-                                <label class="form-label text-muted">Personal Phone</label>
-                                <p class="fw-bold">
-                                    @if($convertedLead->leadDetail && $convertedLead->leadDetail->personal_number)
-                                        {{ \App\Helpers\PhoneNumberHelper::display($convertedLead->leadDetail->personal_code, $convertedLead->leadDetail->personal_number) }}
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </p>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label text-muted">WhatsApp</label>
-                                <p class="fw-bold">
-                                    @if($convertedLead->leadDetail && $convertedLead->leadDetail->whatsapp_number)
-                                        {{ \App\Helpers\PhoneNumberHelper::display($convertedLead->leadDetail->whatsapp_code, $convertedLead->leadDetail->whatsapp_number) }}
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </p>
-                            </div>
-                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor())
-                            <div class="col-md-3">
-                                <label class="form-label text-muted">Parent Phone</label>
-                                <p class="fw-bold">
-                                    @if($convertedLead->leadDetail && $convertedLead->leadDetail->parents_number)
-                                        {{ \App\Helpers\PhoneNumberHelper::display($convertedLead->leadDetail->parents_code, $convertedLead->leadDetail->parents_number) }}
-                                    @else
-                                        <span class="text-muted">N/A</span>
-                                    @endif
-                                </p>
-                            </div>
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => "Father's Name",
+                                'field' => 'father_name',
+                                'type' => 'text',
+                                'displayValue' => $leadDetail?->father_name ?? 'N/A',
+                                'rawValue' => $leadDetail?->father_name ?? '',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 3,
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => "Mother's Name",
+                                'field' => 'mother_name',
+                                'type' => 'text',
+                                'displayValue' => $leadDetail?->mother_name ?? 'N/A',
+                                'rawValue' => $leadDetail?->mother_name ?? '',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 3,
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Date of Birth',
+                                'field' => 'date_of_birth',
+                                'type' => 'date',
+                                'displayValue' => $leadDetailDobDisplay,
+                                'rawValue' => $leadDetailDobRaw,
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 3,
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Second Language',
+                                'field' => 'second_language',
+                                'type' => 'select',
+                                'options' => ['' => 'Select Language', 'malayalam' => 'Malayalam', 'hindi' => 'Hindi'],
+                                'displayValue' => $leadDetail?->second_language
+                                    ? ucfirst($leadDetail->second_language)
+                                    : 'N/A',
+                                'rawValue' => $leadDetail?->second_language
+                                    ? strtolower($leadDetail->second_language)
+                                    : '',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 3,
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Personal Phone',
+                                'field' => 'personal_number',
+                                'type' => 'phone',
+                                'displayValue' => ($leadDetail && $leadDetail->personal_number)
+                                    ? \App\Helpers\PhoneNumberHelper::display($leadDetail->personal_code, $leadDetail->personal_number)
+                                    : 'N/A',
+                                'rawValue' => $leadDetail?->personal_number ?? '',
+                                'code' => $leadDetail?->personal_code ?? '',
+                                'codeField' => 'personal_code',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 3,
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'WhatsApp',
+                                'field' => 'whatsapp_number',
+                                'type' => 'phone',
+                                'displayValue' => ($leadDetail && $leadDetail->whatsapp_number)
+                                    ? \App\Helpers\PhoneNumberHelper::display($leadDetail->whatsapp_code, $leadDetail->whatsapp_number)
+                                    : 'N/A',
+                                'rawValue' => $leadDetail?->whatsapp_number ?? '',
+                                'code' => $leadDetail?->whatsapp_code ?? '',
+                                'codeField' => 'whatsapp_code',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 3,
+                            ])
+                            @if($canInlineEditPersonal)
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Parent Phone',
+                                'field' => 'parents_number',
+                                'type' => 'phone',
+                                'displayValue' => ($leadDetail && $leadDetail->parents_number)
+                                    ? \App\Helpers\PhoneNumberHelper::display($leadDetail->parents_code, $leadDetail->parents_number)
+                                    : 'N/A',
+                                'rawValue' => $leadDetail?->parents_number ?? '',
+                                'code' => $leadDetail?->parents_code ?? '',
+                                'codeField' => 'parents_code',
+                                'canEdit' => true,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 3,
+                            ])
                             @endif
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Batch',
+                                'field' => 'lead_detail_batch_id',
+                                'type' => 'select',
+                                'displayValue' => optional($leadDetail?->batch)->title ?? 'N/A',
+                                'rawValue' => $leadDetail?->batch_id ?? '',
+                                'currentId' => $leadDetail?->batch_id ?? '',
+                                'courseId' => $convertedLead->course_id,
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 3,
+                            ])
 
-                            <div class="col-md-3">
-                                <label class="form-label text-muted">Batch</label>
-                                <p class="fw-bold">{{ optional($convertedLead->leadDetail->batch)->title ?? 'N/A' }}</p>
-                            </div>
-
+                            @if($leadDetail)
                             <div class="col-12 d-flex justify-content-between align-items-center">
                                 <h6 class="text-primary mt-2 mb-0">Uploaded Documents</h6>
                                 @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor())
@@ -708,6 +808,7 @@
                                         @endif
                                     </div>
                                 </div>
+                            @endif
                             @endif
                         </div>
                     </div>
@@ -1026,6 +1127,15 @@
 </div>
 @endif
 
+@if($canInlineEditPersonal)
+<div
+    id="jsConvertedLeadShowConfig"
+    data-inline-url="{{ route('admin.converted-leads.inline-update', $convertedLead->id) }}"
+    style="display: none;"
+></div>
+<script id="country-codes-json" type="application/json">{!! json_encode($country_codes ?? [], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+@endif
+
 @endsection
 
 @push('styles')
@@ -1076,5 +1186,33 @@
 .timeline-item:last-child .timeline::before {
     display: none;
 }
+
+.inline-edit-show-cl.editing .display-value,
+.inline-edit-show-cl.editing .edit-btn-show-cl {
+    display: none !important;
+}
+
+.inline-edit-show-cl .edit-form-show-cl {
+    display: none;
+}
+
+.inline-edit-show-cl.editing .edit-form-show-cl {
+    display: block;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 </style>
+@endpush
+
+@push('scripts')
+@if($canInlineEditPersonal)
+    <script src="{{ asset('assets/js/converted-lead-show-inline-edit.js') }}"></script>
+@endif
 @endpush
