@@ -149,7 +149,7 @@ class HomeController extends Controller
                 'active_leads' => $activeLeads,
                 'active_this_week_lead' => $activeThisWeekLead
             ],
-            'app_maintenance' => $this->getAppMaintenanceFlag(),
+            'app_maintenance' => $this->resolveAppMaintenance(),
             'lead_status_overview' => $leadStatusOverview,
             'recent_leads' => $recentLeads,
             'unread_notification_count' => $unreadNotificationCount,
@@ -382,7 +382,7 @@ class HomeController extends Controller
                 'not_assigned' => $notAssigned,
                 'this_week_not_assigned' => $thisWeekNotAssigned
             ],
-            'app_maintenance' => $this->getAppMaintenanceFlag(),
+            'app_maintenance' => $this->resolveAppMaintenance(),
             'recent_marketing_leads' => $recentMarketingLeads,
             'unread_notification_count' => $unreadNotificationCount,
             'user_data' => $userData
@@ -416,14 +416,18 @@ class HomeController extends Controller
     }
 
     /**
-     * App maintenance flag for mobile clients.
-     * 0 = off, 1 = on (reads from settings table, defaults to off).
+     * Mobile app maintenance flag: 0 = off, 1 = on.
+     * Uses database setting when present, otherwise APP_MOBILE_MAINTENANCE env.
      */
-    private function getAppMaintenanceFlag(): int
+    private function resolveAppMaintenance(): int
     {
-        $value = Setting::get('app_maintenance', 0);
+        $setting = Setting::where('key', 'app_maintenance')->first();
 
-        return (int) $value === 1 ? 1 : 0;
+        if ($setting) {
+            return filter_var($setting->value, FILTER_VALIDATE_BOOLEAN) ? 1 : 0;
+        }
+
+        return config('app.mobile_maintenance') ? 1 : 0;
     }
 }
 

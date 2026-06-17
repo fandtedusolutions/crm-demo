@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Mobile App Maintenance Flag
+    |--------------------------------------------------------------------------
+    |
+    | Returned by the home API as app_maintenance (0 = off, 1 = on).
+    | Can be overridden via the app_maintenance setting in the database.
+    |
+    */
+
+    'mobile_maintenance' => filter_var(env('APP_MOBILE_MAINTENANCE', false), FILTER_VALIDATE_BOOLEAN),
+
 ];

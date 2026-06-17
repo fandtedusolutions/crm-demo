@@ -188,6 +188,14 @@ class SettingsSeeder extends Seeder
                 'is_public' => false,
             ],
             [
+                'key' => 'app_maintenance',
+                'value' => '0',
+                'type' => 'boolean',
+                'description' => 'Mobile app maintenance mode (0 = off, 1 = on)',
+                'group' => 'app',
+                'is_public' => true,
+            ],
+            [
                 'key' => 'login_form_style',
                 'value' => 'modern',
                 'type' => 'text',
