@@ -9,6 +9,7 @@ use App\Models\ConvertedLead;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\MarketingLead;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -148,6 +149,7 @@ class HomeController extends Controller
                 'active_leads' => $activeLeads,
                 'active_this_week_lead' => $activeThisWeekLead
             ],
+            'app_maintenance' => $this->getAppMaintenanceFlag(),
             'lead_status_overview' => $leadStatusOverview,
             'recent_leads' => $recentLeads,
             'unread_notification_count' => $unreadNotificationCount,
@@ -380,6 +382,7 @@ class HomeController extends Controller
                 'not_assigned' => $notAssigned,
                 'this_week_not_assigned' => $thisWeekNotAssigned
             ],
+            'app_maintenance' => $this->getAppMaintenanceFlag(),
             'recent_marketing_leads' => $recentMarketingLeads,
             'unread_notification_count' => $unreadNotificationCount,
             'user_data' => $userData
@@ -410,6 +413,17 @@ class HomeController extends Controller
         }
 
         return $query;
+    }
+
+    /**
+     * App maintenance flag for mobile clients.
+     * 0 = off, 1 = on (reads from settings table, defaults to off).
+     */
+    private function getAppMaintenanceFlag(): int
+    {
+        $value = Setting::get('app_maintenance', 0);
+
+        return (int) $value === 1 ? 1 : 0;
     }
 }
 
