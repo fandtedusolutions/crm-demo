@@ -363,11 +363,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        @if($payment->transaction_id)
-                                            <code class="bg-light px-2 py-1 rounded">{{ $payment->transaction_id }}</code>
-                                        @else
-                                            <span class="text-muted">N/A</span>
-                                        @endif
+                                        @include('admin.payments.partials.transaction-ids-display', ['payment' => $payment])
                                     </td>
                                     <td>
                                         @if($payment->status == 'Pending Approval')
@@ -435,20 +431,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if($payment->file_upload)
-                                            <div class="btn-group btn-group-sm" role="group" aria-label="Receipt/Proof">
-                                                <a href="{{ route('admin.payments.download', $payment->id) }}" class="btn btn-outline-primary" title="Download Receipt/Proof">
-                                                    <i class="fas fa-download"></i>
-                                                </a>
-                                                <a href="{{ route('admin.payments.view', $payment->id) }}" class="btn btn-primary" title="View Receipt/Proof" target="_blank">
-                                                    <i class="fas fa-file-alt"></i>
-                                                </a>
-                                            </div>
-                                        @else
-                                            <span class="text-muted">
-                                                <i class="fas fa-file-slash me-1"></i>No file
-                                            </span>
-                                        @endif
+                                        @include('admin.payments.partials.proof-files-display', ['payment' => $payment])
                                     </td>
                                     <td>
                                         <div class="d-flex flex-wrap gap-1 justify-content-start">

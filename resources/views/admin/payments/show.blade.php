@@ -58,8 +58,10 @@
                                     <td>{{ $payment->payment_type }}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Transaction ID:</strong></td>
-                                    <td>{{ $payment->transaction_id ?? 'N/A' }}</td>
+                                    <td><strong>Transaction ID{{ $payment->getDisplayProofs()->count() > 1 ? 's' : '' }}:</strong></td>
+                                    <td>
+                                        @include('admin.payments.partials.transaction-ids-display', ['payment' => $payment])
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td><strong>Status:</strong></td>
@@ -199,21 +201,36 @@
                         </div>
                     </div>
 
-                    @if($payment->file_upload)
+                    @php $displayProofFiles = $payment->getDisplayProofs()->filter(fn ($proof) => !empty($proof->file_upload)); @endphp
+                    @if($displayProofFiles->isNotEmpty())
                     <div class="row mt-4">
                         <div class="col-12">
-                            <h6>Uploaded File</h6>
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <i class="fas fa-file fa-3x text-primary mb-3"></i>
-                                    <p class="mb-3">Receipt/Proof Document</p>
-                                    <a href="{{ route('admin.payments.download', $payment->id) }}" class="btn btn-primary">
-                                        <i class="fas fa-download"></i> Download File
-                                    </a>
-                                    <a href="{{ route('admin.payments.view', $payment->id) }}" class="btn btn-primary me-2" target="_blank">
-                                        <i class="fas fa-file-alt"></i> Receipt/Proof
-                                    </a>
+                            <h6>Uploaded File{{ $displayProofFiles->count() > 1 ? 's' : '' }}</h6>
+                            <div class="row g-3">
+                                @foreach($displayProofFiles as $proof)
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-file fa-3x text-primary mb-3"></i>
+                                            <p class="mb-3">Receipt/Proof {{ $displayProofFiles->count() > 1 ? $loop->iteration : 'Document' }}</p>
+                                            @php
+                                                $viewUrl = !empty($proof->id)
+                                                    ? route('admin.payments.proofs.view', $proof->id)
+                                                    : route('admin.payments.view', $payment->id);
+                                                $downloadUrl = !empty($proof->id)
+                                                    ? route('admin.payments.proofs.download', $proof->id)
+                                                    : route('admin.payments.download', $payment->id);
+                                            @endphp
+                                            <a href="{{ $downloadUrl }}" class="btn btn-primary">
+                                                <i class="fas fa-download"></i> Download File
+                                            </a>
+                                            <a href="{{ $viewUrl }}" class="btn btn-primary me-2" target="_blank">
+                                                <i class="fas fa-file-alt"></i> Receipt/Proof
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>

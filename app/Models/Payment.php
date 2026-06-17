@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 class Payment extends Model
 {
@@ -76,6 +78,36 @@ class Payment extends Model
     public function collectedBy()
     {
         return $this->belongsTo(User::class, 'collected_by');
+    }
+
+    public function proofs(): HasMany
+    {
+        return $this->hasMany(PaymentProof::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Proof rows for display (child records, or legacy single fields on the payment).
+     */
+    public function getDisplayProofs(): Collection
+    {
+        if ($this->relationLoaded('proofs') ? $this->proofs->isNotEmpty() : $this->proofs()->exists()) {
+            return $this->proofs;
+        }
+
+        if ($this->transaction_id || $this->file_upload) {
+            return collect([
+                (object) [
+                    'id' => null,
+                    'payment_id' => $this->id,
+                    'transaction_id' => $this->transaction_id,
+                    'file_upload' => $this->file_upload,
+                    'sort_order' => 0,
+                    'is_legacy' => true,
+                ],
+            ]);
+        }
+
+        return collect();
     }
 
     // Scopes

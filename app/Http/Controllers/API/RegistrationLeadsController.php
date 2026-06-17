@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\PaymentProofHelper;
 
 class RegistrationLeadsController extends Controller
 {
@@ -625,6 +626,9 @@ class RegistrationLeadsController extends Controller
             'payment_amount' => 'required_if:payment_collected,1|required_if:payment_collected,true|required_if:payment_collected,"1"|nullable|numeric|min:0.01',
             'payment_type' => 'required_if:payment_collected,1|required_if:payment_collected,true|required_if:payment_collected,"1"|nullable|in:Cash,Online,Bank,Cheque,Card,Other',
             'transaction_id' => 'nullable|string|max:255',
+            'payment_proofs' => 'nullable|array',
+            'payment_proofs.*.transaction_id' => 'nullable|string|max:255',
+            'payment_proofs.*.file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'payment_date' => 'nullable|date',
             'payment_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'custom_total_amount' => 'nullable|numeric|min:0',
@@ -665,6 +669,17 @@ class RegistrationLeadsController extends Controller
 
             if (!$request->boolean('payment_collected')) {
                 return;
+            }
+
+            $paymentProofs = PaymentProofHelper::normalizeFromRequest($request);
+            $transactionIds = PaymentProofHelper::collectTransactionIds($paymentProofs);
+
+            foreach (PaymentProofHelper::findDuplicateWithinSubmission($transactionIds) as $duplicateId) {
+                $validator->errors()->add('payment_proofs', "Duplicate transaction ID in submission: {$duplicateId}");
+            }
+
+            foreach (PaymentProofHelper::findExistingTransactionIds($transactionIds) as $existingId) {
+                $validator->errors()->add('payment_proofs', "Transaction ID already exists: {$existingId}");
             }
 
             if ((int) $lead->course_id !== 23) {
@@ -791,10 +806,11 @@ class RegistrationLeadsController extends Controller
 
             if ($request->boolean('payment_collected') && $invoice) {
                 $paymentController = new \App\Http\Controllers\PaymentController();
+                $paymentProofs = PaymentProofHelper::normalizeFromRequest($request);
+
                 if ((int) $lead->course_id === 23) {
                     $paymentDate = $request->payment_date;
                     $paymentType = $request->payment_type;
-                    $transactionId = $request->transaction_id;
 
                     $splitPayments = [
                         'PG' => ['amount' => (float) ($request->input('payment_pg_amount') ?: 0), 'file' => $request->file('payment_pg_file')],
@@ -803,19 +819,36 @@ class RegistrationLeadsController extends Controller
                         'SSLC' => ['amount' => (float) ($request->input('payment_sslc_amount') ?: 0), 'file' => $request->file('payment_sslc_file')],
                     ];
 
+                    $attachSharedProofs = true;
                     foreach ($splitPayments as $feeHead => $payload) {
-                        if (($payload['amount'] ?? 0) > 0) {
-                            $paymentController->autoCreate(
-                                $invoice->id,
-                                $payload['amount'],
-                                $paymentType,
-                                $transactionId,
-                                $payload['file'],
-                                $paymentDate,
-                                $feeHead,
-                                $user->id
-                            );
+                        if (($payload['amount'] ?? 0) <= 0) {
+                            continue;
                         }
+
+                        $proofsForPayment = [];
+                        if ($attachSharedProofs) {
+                            $proofsForPayment = $paymentProofs;
+                            $attachSharedProofs = false;
+                        }
+
+                        if (!empty($payload['file'])) {
+                            $proofsForPayment[] = [
+                                'transaction_id' => null,
+                                'file' => $payload['file'],
+                            ];
+                        }
+
+                        $paymentController->autoCreate(
+                            $invoice->id,
+                            $payload['amount'],
+                            $paymentType,
+                            $request->transaction_id,
+                            $payload['file'],
+                            $paymentDate,
+                            $feeHead,
+                            $user->id,
+                            $proofsForPayment
+                        );
                     }
                 } else {
                     $paymentController->autoCreate(
@@ -826,7 +859,8 @@ class RegistrationLeadsController extends Controller
                         $request->file('payment_file'),
                         $request->payment_date,
                         null,
-                        $user->id
+                        $user->id,
+                        $paymentProofs
                     );
                 }
             }

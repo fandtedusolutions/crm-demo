@@ -36,7 +36,7 @@ class PaymentController extends Controller
         // Check permissions
         $this->checkInvoiceAccess($invoice);
         
-        $payments = Payment::with(['createdBy'])
+        $payments = Payment::with(['createdBy', 'proofs'])
             ->where('invoice_id', $invoiceId)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -80,6 +80,7 @@ class PaymentController extends Controller
             'invoice.batch',
             'createdBy',
             'collectedBy',
+            'proofs',
         ];
 
         $pendingQuery = Payment::with($withRelations)
@@ -503,7 +504,7 @@ class PaymentController extends Controller
      */
     public function show($id)
     {
-        $payment = Payment::with(['invoice.course', 'invoice.batch', 'invoice.student.lead', 'createdBy'])
+        $payment = Payment::with(['invoice.course', 'invoice.batch', 'invoice.student.lead', 'createdBy', 'proofs'])
             ->findOrFail($id);
         
         // Check permissions
@@ -516,6 +517,47 @@ class PaymentController extends Controller
             ->first();
 
         return view('admin.payments.show', compact('payment', 'firstPayment'));
+    }
+
+    /**
+     * View a payment proof file.
+     */
+    public function viewProofFile($proofId)
+    {
+        $proof = \App\Models\PaymentProof::with('payment.invoice')->findOrFail($proofId);
+        $this->checkInvoiceAccess($proof->payment->invoice);
+
+        if (!$proof->file_upload || !Storage::disk('public')->exists($proof->file_upload)) {
+            return redirect()->back()
+                ->with('message_danger', 'File not found.');
+        }
+
+        $filePath = storage_path('app/public/' . $proof->file_upload);
+        $mimeType = mime_content_type($filePath);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($proof->file_upload) . '"',
+        ]);
+    }
+
+    /**
+     * Download a payment proof file.
+     */
+    public function downloadProofFile($proofId)
+    {
+        $proof = \App\Models\PaymentProof::with('payment.invoice')->findOrFail($proofId);
+        $this->checkInvoiceAccess($proof->payment->invoice);
+
+        if (!$proof->file_upload || !Storage::disk('public')->exists($proof->file_upload)) {
+            return redirect()->back()
+                ->with('message_danger', 'File not found.');
+        }
+
+        return response()->download(
+            storage_path('app/public/' . $proof->file_upload),
+            basename($proof->file_upload)
+        );
     }
 
     /**
@@ -1142,7 +1184,7 @@ class PaymentController extends Controller
     /**
      * Auto-create payment during lead conversion
      */
-    public function autoCreate($invoiceId, $amount, $paymentType, $transactionId = null, $fileUpload = null, $paymentDate = null, $feeHead = null, $createdByUserId = null)
+    public function autoCreate($invoiceId, $amount, $paymentType, $transactionId = null, $fileUpload = null, $paymentDate = null, $feeHead = null, $createdByUserId = null, array $proofs = [])
     {
         try {
             $invoice = Invoice::findOrFail($invoiceId);
@@ -1152,12 +1194,19 @@ class PaymentController extends Controller
             $previousBalance = Payment::where('invoice_id', $invoiceId)
                 ->where('status', 'Approved')
                 ->sum('amount_paid');
-            
-            $filePath = null;
-            if ($fileUpload) {
-                $fileName = Str::uuid() . '_' . $fileUpload->getClientOriginalName();
-                $filePath = $fileUpload->storeAs('payments', $fileName, 'public');
+
+            if (empty($proofs) && ($transactionId || $fileUpload)) {
+                $proofs = [
+                    [
+                        'transaction_id' => $transactionId,
+                        'file' => $fileUpload,
+                    ],
+                ];
             }
+
+            $storedProofs = \App\Helpers\PaymentProofHelper::storeProofFiles($proofs);
+            $primaryTxn = $storedProofs[0]['transaction_id'] ?? $transactionId;
+            $primaryFile = $storedProofs[0]['file_upload'] ?? null;
 
             $payment = Payment::create([
                 'invoice_id' => $invoiceId,
@@ -1165,13 +1214,17 @@ class PaymentController extends Controller
                 'fee_head' => $feeHead,
                 'previous_balance' => $previousBalance,
                 'payment_type' => $paymentType,
-                'transaction_id' => $transactionId,
+                'transaction_id' => $primaryTxn,
                 'payment_date' => $paymentDate ?? now()->toDateString(),
-                'file_upload' => $filePath,
+                'file_upload' => $primaryFile,
                 'status' => 'Pending Approval', // Keep as pending for manual approval
                 'created_by' => $actorId,
                 'collected_by' => $actorId,
             ]);
+
+            if (!empty($storedProofs)) {
+                \App\Helpers\PaymentProofHelper::attachToPayment($payment->id, $storedProofs);
+            }
 
             // Don't update invoice until payment is approved
 
@@ -1270,7 +1323,10 @@ class PaymentController extends Controller
                                 ->orWhere('phone', 'like', $search);
                         });
                 })
-                ->orWhere('transaction_id', 'like', $search);
+                ->orWhere('transaction_id', 'like', $search)
+                ->orWhereHas('proofs', function ($proofQuery) use ($search) {
+                    $proofQuery->where('transaction_id', 'like', $search);
+                });
             });
         }
 

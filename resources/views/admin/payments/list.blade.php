@@ -212,11 +212,7 @@
                                             </td>
                                             <td>{{ $payment->payment_type }}</td>
                                             <td>
-                                                @if($payment->transaction_id)
-                                                    <code>{{ $payment->transaction_id }}</code>
-                                                @else
-                                                    <span class="text-muted">N/A</span>
-                                                @endif
+                                                @include('admin.payments.partials.transaction-ids-display', ['payment' => $payment])
                                             </td>
                                             <td>{{ optional($payment->createdBy)->name ?: (optional($payment->collectedBy)->name ?: (optional($payment->approvedBy)->name ?: (optional($payment->rejectedBy)->name ?: 'N/A')) ) }}</td>
                                             <td>{{ optional($payment->approvedBy)->name ?: (optional($payment->createdBy)->name ?: 'N/A') }}</td>
@@ -225,11 +221,7 @@
                                                     <a href="{{ route('admin.payments.show', $payment->id) }}" class="btn btn-outline-info" title="View Payment">
                                                         <i class="ti ti-eye"></i>
                                                     </a>
-                                                    @if($payment->file_upload)
-                                                    <a href="{{ route('admin.payments.view', $payment->id) }}" class="btn btn-outline-primary" title="View Receipt/Proof" target="_blank">
-                                                        <i class="ti ti-file-invoice"></i>
-                                                    </a>
-                                                    @endif
+                                                    @include('admin.payments.partials.proof-files-compact', ['payment' => $payment])
                                                     @if($canApprovePayments)
                                                     <button type="button"
                                                         class="btn btn-success"
@@ -362,11 +354,7 @@
                                             </td>
                                             <td>{{ $payment->payment_type }}</td>
                                             <td>
-                                                @if($payment->transaction_id)
-                                                    <code>{{ $payment->transaction_id }}</code>
-                                                @else
-                                                    <span class="text-muted">N/A</span>
-                                                @endif
+                                                @include('admin.payments.partials.transaction-ids-display', ['payment' => $payment])
                                             </td>
                                             <td>{{ optional($payment->createdBy)->name ?: (optional($payment->collectedBy)->name ?: (optional($payment->approvedBy)->name ?: (optional($payment->rejectedBy)->name ?: 'N/A')) ) }}</td>
                                             <td>{{ optional($payment->approvedBy)->name ?: (optional($payment->createdBy)->name ?: 'N/A') }}</td>
@@ -375,11 +363,7 @@
                                                     <a href="{{ route('admin.payments.show', $payment->id) }}" class="btn btn-outline-info" title="View Payment">
                                                         <i class="ti ti-eye"></i>
                                                     </a>
-                                                    @if($payment->file_upload)
-                                                    <a href="{{ route('admin.payments.view', $payment->id) }}" class="btn btn-outline-primary" title="View Receipt/Proof" target="_blank">
-                                                        <i class="ti ti-file-invoice"></i>
-                                                    </a>
-                                                    @endif
+                                                    @include('admin.payments.partials.proof-files-compact', ['payment' => $payment])
                                                     @if($payment->invoice && $payment->invoice->invoice_type === 'course' && $isFirstApprovedPayment)
                                                     <a href="{{ route('admin.payments.tax-invoice-pdf', $payment->id) }}" class="btn btn-outline-danger" title="Tax Invoice PDF" target="_blank">
                                                         <i class="fas fa-file-pdf"></i>
@@ -503,11 +487,7 @@
                                             </td>
                                             <td>{{ $payment->payment_type }}</td>
                                             <td>
-                                                @if($payment->transaction_id)
-                                                    <code>{{ $payment->transaction_id }}</code>
-                                                @else
-                                                    <span class="text-muted">N/A</span>
-                                                @endif
+                                                @include('admin.payments.partials.transaction-ids-display', ['payment' => $payment])
                                             </td>
                                             <td>{{ optional($payment->createdBy)->name ?: (optional($payment->collectedBy)->name ?: (optional($payment->approvedBy)->name ?: (optional($payment->rejectedBy)->name ?: 'N/A')) ) }}</td>
                                             <td>{{ $payment->rejectedBy->name ?? 'N/A' }}</td>
@@ -526,11 +506,7 @@
                                                     <a href="{{ route('admin.payments.show', $payment->id) }}" class="btn btn-outline-info" title="View Payment">
                                                         <i class="ti ti-eye"></i>
                                                     </a>
-                                                    @if($payment->file_upload)
-                                                    <a href="{{ route('admin.payments.view', $payment->id) }}" class="btn btn-outline-primary" title="View Receipt/Proof" target="_blank">
-                                                        <i class="ti ti-file-invoice"></i>
-                                                    </a>
-                                                    @endif
+                                                    @include('admin.payments.partials.proof-files-compact', ['payment' => $payment])
                                                 </div>
                                             </td>
                                         </tr>
