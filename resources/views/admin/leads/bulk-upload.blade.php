@@ -166,7 +166,7 @@
 
         <div class="d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-success">Upload & Process</button>
+            <button type="submit" class="btn btn-success" id="bulkUploadSubmitBtn">Upload & Process</button>
         </div>
     </form>
 </div>
@@ -345,9 +345,15 @@
             $('#bulk-upload-error').hide();
         });
 
-        // Form submission with loading state
-        $('#bulkUploadForm').on('submit', function(e) {
+        // Form submission with loading state (single request only)
+        $(document).off('submit.bulkUpload', '#bulkUploadForm');
+        $(document).on('submit.bulkUpload', '#bulkUploadForm', function(e) {
             e.preventDefault();
+            e.stopImmediatePropagation();
+
+            if (window.__bulkUploadSubmitting) {
+                return false;
+            }
 
             // Check file size before submission
             const fileInput = $('#excel_file')[0];
@@ -379,60 +385,62 @@
                 return false;
             }
 
-            const submitBtn = $(this).find('button[type="submit"]');
-            const originalText = submitBtn.html();
             const form = $(this);
+            const submitBtn = $('#bulkUploadSubmitBtn');
+            const originalText = submitBtn.html();
             const formData = new FormData(this);
 
+            window.__bulkUploadSubmitting = true;
             submitBtn.prop('disabled', true);
             submitBtn.html('<i class="ti ti-loader-2"></i> Processing...');
 
-            $.ajax({
+            if (window.__bulkUploadXhr && typeof window.__bulkUploadXhr.abort === 'function') {
+                window.__bulkUploadXhr.abort();
+            }
+
+            window.__bulkUploadXhr = $.ajax({
                 url: form.attr('action'),
                 type: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,
                 success: function(response) {
-                    // Close modal
                     $('#ajax_modal').modal('hide');
 
-                    // Show success message
                     if (response.message) {
                         toast_success(response.message);
                     } else {
                         toast_success('Leads uploaded successfully!');
                     }
 
-                    // Reload the page to show updated data
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
                 },
                 error: function(xhr) {
+                    if (xhr.statusText === 'abort') {
+                        return;
+                    }
+
                     let errorMessage = 'An error occurred while uploading leads.';
                     let errorDetails = '';
 
-                    // Clear previous field errors
                     $('.text-danger').hide();
                     $('#bulk-upload-error').hide();
 
                     if (xhr.responseJSON) {
-                        // Show main error message
                         if (xhr.responseJSON.message) {
                             errorMessage = xhr.responseJSON.message;
                         }
 
-                        // Show detailed validation errors
                         if (xhr.responseJSON.errors) {
                             const errors = xhr.responseJSON.errors;
                             const errorList = Object.values(errors).flat();
 
-                            // Show field-specific errors
                             Object.keys(errors).forEach(field => {
-                                const errorDiv = $('#' + field + '_error');
-                                if (errorDiv.length) {
-                                    errorDiv.html(errors[field].join('<br>')).show();
+                                const fieldErrorDiv = $('#' + field + '_error');
+                                if (fieldErrorDiv.length) {
+                                    fieldErrorDiv.html(errors[field].join('<br>')).show();
                                 }
                             });
 
@@ -442,18 +450,28 @@
                         }
                     }
 
-                    // Show error in alert box
                     $('#bulk-upload-error-message').html(errorMessage + errorDetails);
                     $('#bulk-upload-error').show();
-
-                    // Also show toast error
                     toast_error(errorMessage + errorDetails);
 
-                    // Re-enable submit button
+                    window.__bulkUploadSubmitting = false;
                     submitBtn.prop('disabled', false);
                     submitBtn.html(originalText);
+                },
+                complete: function() {
+                    window.__bulkUploadXhr = null;
                 }
             });
+
+            return false;
+        });
+
+        $('#ajax_modal').off('hidden.bs.modal.bulkUpload').on('hidden.bs.modal.bulkUpload', function() {
+            window.__bulkUploadSubmitting = false;
+            if (window.__bulkUploadXhr && typeof window.__bulkUploadXhr.abort === 'function') {
+                window.__bulkUploadXhr.abort();
+            }
+            window.__bulkUploadXhr = null;
         });
     });
 </script>

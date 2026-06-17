@@ -203,6 +203,79 @@ class PhoneNumberHelper
             'formatted' => '+' . $parsed['code'] . $parsed['phone']
         ];
     }
+
+    /**
+     * Normalize country code and national number for lead duplicate checks / storage.
+     */
+    public static function normalizeLeadParts(?string $code, ?string $phone): array
+    {
+        $normalizedCode = ltrim(preg_replace('/\D+/', '', (string) $code) ?? '', '');
+        $normalizedPhone = preg_replace('/\D+/', '', (string) $phone) ?? '';
+
+        if ($normalizedPhone !== '' && $normalizedCode !== '' && str_starts_with($normalizedPhone, $normalizedCode)) {
+            $withoutCode = substr($normalizedPhone, strlen($normalizedCode));
+            if ($withoutCode !== '') {
+                $normalizedPhone = $withoutCode;
+            }
+        }
+
+        $normalizedPhone = ltrim($normalizedPhone, '0');
+
+        return [
+            'code' => $normalizedCode,
+            'phone' => $normalizedPhone,
+        ];
+    }
+
+    /**
+     * Parse a bulk-upload phone value (Excel numeric/text) into normalized code + phone.
+     */
+    public static function parseBulkUploadPhone(mixed $rawValue): array
+    {
+        if ($rawValue === null || $rawValue === '') {
+            return ['code' => '', 'phone' => ''];
+        }
+
+        if (is_numeric($rawValue) && ! is_string($rawValue)) {
+            $rawValue = number_format((float) $rawValue, 0, '', '');
+        }
+
+        $rawPhone = trim((string) $rawValue);
+        if ($rawPhone === '') {
+            return ['code' => '', 'phone' => ''];
+        }
+
+        $digitsOnly = preg_replace('/\D+/', '', $rawPhone) ?? '';
+
+        // Common Excel formats for Indian numbers (avoid mis-parsing 987... as +98 Iran).
+        if (preg_match('/^\d{10}$/', $digitsOnly)) {
+            return self::normalizeLeadParts('91', $digitsOnly);
+        }
+
+        if (preg_match('/^91\d{10}$/', $digitsOnly)) {
+            return self::normalizeLeadParts('91', substr($digitsOnly, 2));
+        }
+
+        if (preg_match('/^0\d{10}$/', $digitsOnly)) {
+            return self::normalizeLeadParts('91', substr($digitsOnly, 1));
+        }
+
+        $parsed = self::get_phone_code($rawPhone);
+        $code = $parsed['code'] ?: '91';
+        $phone = $parsed['phone'] ?: $rawPhone;
+
+        return self::normalizeLeadParts($code, $phone);
+    }
+
+    /**
+     * Build a stable duplicate key for code + phone + course.
+     */
+    public static function leadDuplicateKey(?string $code, ?string $phone, int $courseId): string
+    {
+        $parts = self::normalizeLeadParts($code, $phone);
+
+        return $parts['code'] . '|' . $parts['phone'] . '|' . $courseId;
+    }
 }
 
 

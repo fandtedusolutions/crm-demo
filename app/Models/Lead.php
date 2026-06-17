@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Helpers\AuthHelper;
+use App\Helpers\PhoneNumberHelper;
 
 class Lead extends Model
 {
@@ -75,6 +76,37 @@ class Lead extends Model
                 $lead->first_created_at = now();
             }
         });
+    }
+
+    /**
+     * Find an existing lead with the same code, phone, and course (matches add-lead form duplicate logic).
+     */
+    public static function findDuplicateByPhoneAndCourse(?string $code, ?string $phone, int $courseId, ?int $excludeLeadId = null): ?self
+    {
+        $normalized = PhoneNumberHelper::normalizeLeadParts($code, $phone);
+        $code = $normalized['code'];
+        $phone = $normalized['phone'];
+
+        if ($code === '' || $phone === '') {
+            return null;
+        }
+
+        $query = static::query()
+            ->where('course_id', $courseId)
+            ->whereNull('deleted_at')
+            ->where(function (Builder $builder) use ($code, $phone) {
+                $builder->where(function (Builder $exact) use ($code, $phone) {
+                    $exact->where('code', $code)->where('phone', $phone);
+                })->orWhere(function (Builder $full) use ($code, $phone) {
+                    $full->where('code', $code)->where('phone', $code . $phone);
+                });
+            });
+
+        if ($excludeLeadId !== null) {
+            $query->where('id', '!=', $excludeLeadId);
+        }
+
+        return $query->first();
     }
 
     // Relationships

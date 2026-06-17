@@ -14,10 +14,12 @@ use App\Models\LeadActivity;
 use App\Models\ConvertedLead;
 use App\Models\PlusTwoFollowUpQuestionnaire;
 use App\Helpers\AuthHelper;
+use App\Helpers\PhoneNumberHelper;
 use App\Helpers\RoleHelper;
 use App\Exports\LeadsExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -2222,11 +2224,11 @@ class LeadController extends Controller
         }
 
         // Check for duplicate lead (code + phone + course_id combination)
-        $existingLead = Lead::where('code', $request->code)
-            ->where('phone', $request->phone)
-            ->where('course_id', $request->course_id)
-            ->whereNull('deleted_at')
-            ->first();
+        $existingLead = Lead::findDuplicateByPhoneAndCourse(
+            $request->code,
+            $request->phone,
+            (int) $request->course_id
+        );
 
         if ($existingLead) {
             return redirect()->back()
@@ -2325,11 +2327,11 @@ class LeadController extends Controller
         }
 
         // Check for duplicate lead (phone + code + course)
-        $existingLead = Lead::where('phone', $request->phone)
-                           ->where('code', $request->code)
-                           ->where('course_id', $request->course_id)
-                           ->whereNull('deleted_at')
-                           ->first();
+        $existingLead = Lead::findDuplicateByPhoneAndCourse(
+            $request->code,
+            $request->phone,
+            (int) $request->course_id
+        );
 
         if ($existingLead) {
             return redirect()->back()
@@ -2823,12 +2825,12 @@ class LeadController extends Controller
             }
 
             // Check for duplicate lead (phone + code + course, excluding current lead)
-            $existingLead = Lead::where('phone', $request->phone)
-                               ->where('code', $request->code)
-                               ->where('course_id', $request->course_id)
-                               ->where('id', '!=', $lead->id)
-                               ->whereNull('deleted_at')
-                               ->first();
+            $existingLead = Lead::findDuplicateByPhoneAndCourse(
+                $request->code,
+                $request->phone,
+                (int) $request->course_id,
+                $lead->id
+            );
 
             if ($existingLead) {
                 if (request()->ajax()) {
@@ -3049,6 +3051,16 @@ class LeadController extends Controller
             ], 422);
         }
 
+        $userId = AuthHelper::getCurrentUserId();
+        $uploadLock = Cache::lock('leads_bulk_upload_user_' . $userId, 600);
+
+        if (! $uploadLock->get()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A bulk upload is already in progress. Please wait for it to finish.',
+            ], 429);
+        }
+
         try {
             $file = $request->file('excel_file');
             
@@ -3135,39 +3147,44 @@ class LeadController extends Controller
             $telecallerIndex = 0;
             $successCount = 0;
             $duplicateCount = 0;
+            $seenInUpload = [];
 
             // Limit the number of rows to prevent timeout
             $maxRows = min($highestRow, config('timeout.bulk_upload.max_rows', 1000));
             
             for ($row = 2; $row <= $maxRows; $row++) {
                 $name = $worksheet->getCell('A' . $row)->getValue();
-                $phone = $worksheet->getCell('B' . $row)->getValue();
+                $phoneCell = $worksheet->getCell('B' . $row);
+                $phoneRaw = $phoneCell->getFormattedValue();
+                if ($phoneRaw === null || trim((string) $phoneRaw) === '') {
+                    $phoneRaw = $phoneCell->getValue();
+                }
                 $place = $worksheet->getCell('C' . $row)->getValue();
                 $remarks = $worksheet->getCell('D' . $row)->getValue();
 
-                if (empty($phone)) continue;
+                $phoneParts = PhoneNumberHelper::parseBulkUploadPhone($phoneRaw);
+                $code = $phoneParts['code'];
+                $phoneNumber = $phoneParts['phone'];
 
-                // Parse phone number to extract country code and phone number using helper
-                $phoneData = get_phone_code($phone);
-                $code = $phoneData['code'];
-                $phoneNumber = $phoneData['phone'];
-                
-                // If parsing failed, use default country code
-                if (empty($code) || empty($phoneNumber)) {
-                    $code = '91'; // Default to India
-                    $phoneNumber = $phone;
+                if ($phoneNumber === '') {
+                    continue;
                 }
 
-                // Check if lead already exists (check by code, phone, and course)
-                $existingLead = Lead::where('phone', $phoneNumber)
-                                  ->where('code', $code)
-                                  ->where('course_id', $request->course_id)
-                                  ->whereNull('deleted_at')
-                                  ->first();
+                $courseId = (int) $request->course_id;
+                $duplicateKey = PhoneNumberHelper::leadDuplicateKey($code, $phoneNumber, $courseId);
+
+                if (isset($seenInUpload[$duplicateKey])) {
+                    $duplicateCount++;
+                    continue;
+                }
+
+                $existingLead = Lead::findDuplicateByPhoneAndCourse($code, $phoneNumber, $courseId);
                 if ($existingLead) {
                     $duplicateCount++;
                     continue;
                 }
+
+                $seenInUpload[$duplicateKey] = true;
 
                 // Ensure we have a valid telecaller index
                 $telecallerId = $telecallers[$telecallerIndex] ?? $telecallers[0];
@@ -3224,6 +3241,8 @@ class LeadController extends Controller
                 'success' => false,
                 'message' => 'Error processing file: ' . $e->getMessage()
             ], 500);
+        } finally {
+            optional($uploadLock)->release();
         }
     }
 
