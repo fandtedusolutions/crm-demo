@@ -63,17 +63,6 @@
         .form-check-label {
             cursor: pointer;
         }
-        .summary-section {
-            background: linear-gradient(135deg, #f8f9ff 0%, #eef2ff 100%);
-            border: 1px solid #d0d7ff;
-            border-radius: 12px;
-            padding: 25px;
-            margin-top: 30px;
-        }
-        .summary-section .section-title {
-            border-bottom-color: #c7d2fe;
-            color: #3730a3;
-        }
         .btn-submit {
             background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
             border: none;
@@ -151,7 +140,7 @@
                     <label class="question-label">Q1. Have you received your Plus Two result? <span class="required">*</span></label>
                     @foreach(['yes' => 'Yes', 'no' => 'No'] as $value => $label)
                     <div class="form-check">
-                        <input class="form-check-input sync-field" type="radio" name="received_plus_two_result" id="received_{{ $value }}" value="{{ $value }}" data-sync="result_status" data-label-map='{"yes":"Result Received","no":"Result Not Received"}' required>
+                        <input class="form-check-input" type="radio" name="received_plus_two_result" id="received_{{ $value }}" value="{{ $value }}" required>
                         <label class="form-check-label" for="received_{{ $value }}">{{ $label }}</label>
                     </div>
                     @endforeach
@@ -161,7 +150,7 @@
                     <label class="question-label">Q2. What was your result?</label>
                     @foreach(['passed' => 'Passed', 'failed' => 'Failed', 'improvement' => 'Improvement'] as $value => $label)
                     <div class="form-check">
-                        <input class="form-check-input sync-field" type="radio" name="result_outcome" id="outcome_{{ $value }}" value="{{ $value }}" data-sync="result_status" data-label="{{ $label }}">
+                        <input class="form-check-input" type="radio" name="result_outcome" id="outcome_{{ $value }}" value="{{ $value }}">
                         <label class="form-check-label" for="outcome_{{ $value }}">{{ $label }}</label>
                     </div>
                     @endforeach
@@ -171,7 +160,7 @@
                     <label class="question-label">Q3. Which stream did you complete? <span class="required">*</span></label>
                     @foreach(['science' => 'Science', 'commerce' => 'Commerce', 'humanities' => 'Humanities'] as $value => $label)
                     <div class="form-check">
-                        <input class="form-check-input sync-field" type="radio" name="stream_completed" id="stream_{{ $value }}" value="{{ $value }}" data-sync="stream" data-label="{{ $label }}" required>
+                        <input class="form-check-input" type="radio" name="stream_completed" id="stream_{{ $value }}" value="{{ $value }}" required>
                         <label class="form-check-label" for="stream_{{ $value }}">{{ $label }}</label>
                     </div>
                     @endforeach
@@ -191,7 +180,7 @@
                         'not_decided' => 'Not Decided Yet',
                     ] as $value => $label)
                     <div class="form-check">
-                        <input class="form-check-input sync-field" type="radio" name="current_plan" id="plan_{{ $value }}" value="{{ $value }}" data-sync="future_plan" data-label="{{ $label }}" required>
+                        <input class="form-check-input" type="radio" name="current_plan" id="plan_{{ $value }}" value="{{ $value }}" required>
                         <label class="form-check-label" for="plan_{{ $value }}">{{ $label }}</label>
                     </div>
                     @endforeach
@@ -201,7 +190,7 @@
                     <label class="question-label">Q5. Have you already selected a college or institution? <span class="required">*</span></label>
                     @foreach(['finalized' => 'Finalized', 'shortlisted' => 'Shortlisted', 'not_decided' => 'Not Decided'] as $value => $label)
                     <div class="form-check">
-                        <input class="form-check-input sync-field" type="radio" name="college_selection" id="college_{{ $value }}" value="{{ $value }}" data-sync="college_selected" data-label="{{ $label }}" required>
+                        <input class="form-check-input" type="radio" name="college_selection" id="college_{{ $value }}" value="{{ $value }}" required>
                         <label class="form-check-label" for="college_{{ $value }}">{{ $label }}</label>
                     </div>
                     @endforeach
@@ -209,7 +198,7 @@
 
                 <div class="question-block">
                     <label class="question-label" for="planned_course">Q6. Which course are you planning to pursue?</label>
-                    <input type="text" class="form-control sync-input" id="planned_course" name="planned_course" data-sync="course_interested">
+                    <input type="text" class="form-control" id="planned_course" name="planned_course">
                 </div>
 
                 <div class="question-block">
@@ -233,7 +222,7 @@
                     <label class="question-label">Q9. Who will be making the final decision regarding your higher studies? <span class="required">*</span></label>
                     @foreach(['self' => 'Self', 'parents' => 'Parents', 'both_together' => 'Both Together', 'guardian' => 'Guardian'] as $value => $label)
                     <div class="form-check">
-                        <input class="form-check-input sync-field" type="radio" name="decision_maker" id="decision_{{ $value }}" value="{{ $value }}" data-sync="decision_maker_summary" data-label="{{ $label }}" required>
+                        <input class="form-check-input" type="radio" name="decision_maker" id="decision_{{ $value }}" value="{{ $value }}" required>
                         <label class="form-check-label" for="decision_{{ $value }}">{{ $label }}</label>
                     </div>
                     @endforeach
@@ -245,7 +234,7 @@
                     <label class="question-label">Q10. Are you completely clear about your future career path? <span class="required">*</span></label>
                     @foreach(['yes' => 'Yes', 'somewhat' => 'Somewhat', 'no' => 'No'] as $value => $label)
                     <div class="form-check">
-                        <input class="form-check-input sync-field" type="radio" name="career_clarity_level" id="clarity_{{ $value }}" value="{{ $value }}" data-sync="career_clarity" data-label="{{ $label }}" required>
+                        <input class="form-check-input" type="radio" name="career_clarity_level" id="clarity_{{ $value }}" value="{{ $value }}" required>
                         <label class="form-check-label" for="clarity_{{ $value }}">{{ $label }}</label>
                     </div>
                     @endforeach
@@ -253,7 +242,7 @@
 
                 <div class="question-block">
                     <label class="question-label" for="biggest_challenge">Q11. What is the biggest challenge you are facing right now regarding your higher studies?</label>
-                    <textarea class="form-control sync-input" id="biggest_challenge" name="biggest_challenge" rows="3" data-sync="main_challenge"></textarea>
+                    <textarea class="form-control" id="biggest_challenge" name="biggest_challenge" rows="3"></textarea>
                 </div>
 
                 <div class="section-title">Section 5: Opportunity Qualification</div>
@@ -262,7 +251,7 @@
                     <label class="question-label">Q12. Before taking admission, would you like to receive free career guidance regarding courses, career opportunities, placements, and future scope? <span class="required">*</span></label>
                     @foreach(['yes' => 'Yes', 'maybe' => 'Maybe', 'no' => 'No'] as $value => $label)
                     <div class="form-check">
-                        <input class="form-check-input sync-field" type="radio" name="guidance_interested_level" id="guidance_{{ $value }}" value="{{ $value }}" data-sync="guidance_interested" data-label="{{ $label }}" required>
+                        <input class="form-check-input" type="radio" name="guidance_interested_level" id="guidance_{{ $value }}" value="{{ $value }}" required>
                         <label class="form-check-label" for="guidance_{{ $value }}">{{ $label }}</label>
                     </div>
                     @endforeach
@@ -283,79 +272,6 @@
                     <input type="text" class="form-control" id="best_contact_time" name="best_contact_time" placeholder="e.g. Weekdays after 4 PM">
                 </div>
 
-                <div class="summary-section">
-                    <div class="section-title">Summary Details</div>
-                    <p class="text-muted small mb-3">These fields are auto-filled from your answers above. You can edit them if needed.</p>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="result_status">Result Status</label>
-                                <input type="text" class="form-control summary-field" id="result_status" name="result_status">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="stream">Stream</label>
-                                <input type="text" class="form-control summary-field" id="stream" name="stream">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="future_plan">Future Plan</label>
-                                <input type="text" class="form-control summary-field" id="future_plan" name="future_plan">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="course_interested">Course Interested</label>
-                                <input type="text" class="form-control summary-field" id="course_interested" name="course_interested">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="college_selected">College Selected</label>
-                                <input type="text" class="form-control summary-field" id="college_selected" name="college_selected">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="decision_maker_summary">Decision Maker</label>
-                                <input type="text" class="form-control summary-field" id="decision_maker_summary" name="decision_maker_summary">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="career_clarity">Career Clarity</label>
-                                <input type="text" class="form-control summary-field" id="career_clarity" name="career_clarity">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="main_challenge">Main Challenge</label>
-                                <input type="text" class="form-control summary-field" id="main_challenge" name="main_challenge">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="guidance_interested">Guidance Interested</label>
-                                <input type="text" class="form-control summary-field" id="guidance_interested" name="guidance_interested">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="followup_date">Follow-up Date</label>
-                                <input type="date" class="form-control" id="followup_date" name="followup_date">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="question-block">
-                                <label class="question-label" for="followup_time">Follow-up Time</label>
-                                <input type="time" class="form-control" id="followup_time" name="followup_time">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="text-center mt-4">
                     <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
                         <i class="fas fa-paper-plane me-2"></i>Submit Questionnaire
@@ -369,63 +285,6 @@
     <script>
         const form = document.getElementById('questionnaireForm');
         const alertContainer = document.getElementById('alertContainer');
-        const summaryTouched = {};
-
-        document.querySelectorAll('input[name="received_plus_two_result"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                syncSummaryFromRadio(this);
-            });
-        });
-
-        document.querySelectorAll('.sync-field').forEach(field => {
-            field.addEventListener('change', function() {
-                syncSummaryFromRadio(this);
-            });
-        });
-
-        document.querySelectorAll('.sync-input').forEach(field => {
-            field.addEventListener('input', function() {
-                const target = this.dataset.sync;
-                if (!summaryTouched[target]) {
-                    document.getElementById(target).value = this.value;
-                }
-            });
-        });
-
-        document.querySelectorAll('.summary-field').forEach(field => {
-            field.addEventListener('input', function() {
-                summaryTouched[this.id] = true;
-            });
-        });
-
-        function syncSummaryFromRadio(radio) {
-            const target = radio.dataset.sync;
-            if (!target || summaryTouched[target]) {
-                return;
-            }
-
-            if (radio.name === 'received_plus_two_result' && radio.value === 'no') {
-                document.getElementById('result_status').value = 'Result Not Received';
-                return;
-            }
-
-            if (radio.name === 'received_plus_two_result' && radio.value === 'yes') {
-                const outcome = document.querySelector('input[name="result_outcome"]:checked');
-                if (outcome) {
-                    document.getElementById('result_status').value = outcome.dataset.label || '';
-                } else {
-                    document.getElementById('result_status').value = 'Result Received';
-                }
-                return;
-            }
-
-            if (radio.name === 'result_outcome' && !summaryTouched['result_status']) {
-                document.getElementById('result_status').value = radio.dataset.label || '';
-                return;
-            }
-
-            document.getElementById(target).value = radio.dataset.label || '';
-        }
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
