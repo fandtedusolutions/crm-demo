@@ -884,6 +884,41 @@
             return `<div class="edit-form"><div class="mb-2"><input type="${inputType}" class="form-control form-control-sm" value="${value}"></div><div class="btn-group"><button type="button" class="btn btn-sm btn-primary save-edit">Save</button><button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button></div></div>`;
         }
 
+        function createAdmissionBatchField(batchId, currentId) {
+            return `
+                <div class="edit-form">
+                    <div class="mb-2">
+                        <select class="form-select form-select-sm">
+                            <option value="">${batchId ? 'Loading...' : 'Select Admission Batch'}</option>
+                        </select>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-primary save-edit">Save</button>
+                        <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadAdmissionBatchesForEdit($select, batchId, currentId) {
+            if (!batchId) {
+                $select.html('<option value="">Select Admission Batch</option>');
+                return;
+            }
+
+            $.get(`/api/admission-batches/by-batch/${batchId}`).done(function(list) {
+                let options = '<option value="">Select Admission Batch</option>';
+                list.forEach(function(item) {
+                    const isSelected = (currentId && String(currentId) === String(item.id)) ? 'selected' : '';
+                    options += `<option value="${item.id}" ${isSelected}>${item.title}</option>`;
+                });
+                $select.html(options);
+                $select.focus();
+            }).fail(function() {
+                $select.html('<option value="">Error loading admission batches</option>');
+            });
+        }
+
         function createTextareaField(field, currentValue) {
             const value = currentValue === 'N/A' ? '' : currentValue;
             return `<div class="edit-form"><div class="mb-2"><textarea class="form-control form-control-sm" rows="3">${value}</textarea></div><div class="btn-group"><button type="button" class="btn btn-sm btn-primary save-edit">Save</button><button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button></div></div>`;
@@ -907,6 +942,7 @@
             const field = container.data('field');
             const id = container.data('id');
             const currentValue = container.data('current') !== undefined ? String(container.data('current')).trim() : container.find('.display-value').text().trim();
+            const currentId = container.data('current-id') !== undefined ? String(container.data('current-id')).trim() : '';
             
             if (container.hasClass('editing')) {
                 return;
@@ -919,7 +955,9 @@
 
             let editForm = '';
             
-            if (['registration_link_id', 'certificate_status', 'certificate_distribution_mode'].includes(field)) {
+            if (field === 'admission_batch_id') {
+                editForm = createAdmissionBatchField(container.data('batch-id'), currentId);
+            } else if (['registration_link_id', 'certificate_status', 'certificate_distribution_mode'].includes(field)) {
                 editForm = createSelectField(field, currentValue);
             } else if (['certificate_received_date', 'certificate_issued_date', 'all_online_result_publication_date', 'certificate_publication_date', 'online_result_publication_date'].includes(field)) {
                 editForm = createDateField(field, currentValue);
@@ -931,8 +969,12 @@
             
             container.addClass('editing');
             container.append(editForm);
-            
-            container.find('input, select, textarea').first().focus();
+
+            if (field === 'admission_batch_id') {
+                loadAdmissionBatchesForEdit(container.find('select'), container.data('batch-id'), currentId);
+            } else {
+                container.find('input, select, textarea').first().focus();
+            }
         });
 
         // Save inline edit
@@ -983,6 +1025,9 @@
                             displayValue = link ? link.title : (value || 'N/A');
                             container.data('current', value || '');
                             applyRegistrationLinkColor(container, value);
+                        } else if (field === 'admission_batch_id') {
+                            displayValue = response.value || 'N/A';
+                            container.data('current-id', value || '');
                         } else {
                             container.data('current', response.value || value);
                         }
