@@ -152,14 +152,27 @@
                 </li>
                 @endif
 
-                @if(has_permission('admin/online-teaching-faculties/index'))
-                <li class="pc-item {{ request()->routeIs('admin.online-teaching-faculties.*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.online-teaching-faculties.index') }}" class="pc-link">
+                @if(has_permission('admin/online-teaching-faculties/index') || has_permission('admin/call-analytics/index'))
+                <li class="pc-item pc-hasmenu {{ request()->routeIs('admin.online-teaching-faculties.*') || request()->routeIs('admin.call-analytics.*') ? 'pc-trigger active' : '' }}">
+                    <a href="#!" class="pc-link">
                         <span class="pc-micon">
                             <i class="ti ti-school"></i>
                         </span>
                         <span class="pc-mtext">Online Teaching Faculty</span>
+                        <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
                     </a>
+                    <ul class="pc-submenu">
+                        @if(has_permission('admin/online-teaching-faculties/index'))
+                        <li class="pc-item {{ request()->routeIs('admin.online-teaching-faculties.*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.online-teaching-faculties.index') }}" class="pc-link">Faculty List</a>
+                        </li>
+                        @endif
+                        @if(has_permission('admin/call-analytics/index'))
+                        <li class="pc-item {{ request()->routeIs('admin.call-analytics.*') ? 'active' : '' }}">
+                            <a href="{{ route('admin.call-analytics.index') }}" class="pc-link">Call Analytics</a>
+                        </li>
+                        @endif
+                    </ul>
                 </li>
                 @endif
 

@@ -30,6 +30,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\MetaLeadController;
 use App\Http\Controllers\VoxbayCallController;
 use App\Http\Controllers\OnlineTeachingFacultyController;
+use App\Http\Controllers\CallAnalyticsController;
 
 // Public routes
 Route::get('/', [AuthController::class, 'index'])->name('login');
@@ -420,6 +421,13 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/online-teaching-faculties/{id}/upload-document', [OnlineTeachingFacultyController::class, 'uploadDocument'])->name('online-teaching-faculties.upload-document');
         Route::get('/online-teaching-faculties/{id}/generate-form-link', [OnlineTeachingFacultyController::class, 'generateFormToken'])->name('online-teaching-faculties.generate-form-link');
         Route::delete('/online-teaching-faculties/{id}', [OnlineTeachingFacultyController::class, 'delete'])->name('online-teaching-faculties.delete');
+
+        // Call Analytics (Call Tracker app data)
+        Route::prefix('call-analytics')->name('call-analytics.')->group(function () {
+            Route::get('/', [CallAnalyticsController::class, 'index'])->name('index');
+            Route::get('/report', [CallAnalyticsController::class, 'report'])->name('report');
+            Route::get('/{call}', [CallAnalyticsController::class, 'show'])->name('show')->whereNumber('call');
+        });
 
         // Department Routes
         Route::get('/departments', [App\Http\Controllers\DepartmentController::class, 'index'])->name('departments.index');

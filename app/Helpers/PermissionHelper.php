@@ -142,6 +142,7 @@ class PermissionHelper
             'profile/index',
             'admin/converted-leads/index',
             'admin/online-teaching-faculties/index',
+            'admin/call-analytics/index',
             'admin/notifications/index',
             'admin/reports/course-summary',
             'admin/courses/index',
@@ -195,6 +196,7 @@ class PermissionHelper
             'admin/universities/index',
             'leads/registration-form-submitted',
             'admin/online-teaching-faculties/index',
+            'admin/call-analytics/index',
             'admin/b2b-services/index',
             'admin/departments/index',
         ];
@@ -403,6 +405,7 @@ class PermissionHelper
             'profile/index',
             'admin/converted-leads/index',
             'admin/online-teaching-faculties/index',
+            'admin/call-analytics/index',
             'admin/mentor-bosse-converted-leads/index',
             'admin/mentor-nios-converted-leads/index',
             'admin/mentor-eschool-converted-leads/index',

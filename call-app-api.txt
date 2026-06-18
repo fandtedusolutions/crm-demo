@@ -3,7 +3,6 @@
 ================================================================================
 
 Base URL (Production):  https://crm.natdemy.com/api/v1/call
-Base URL (Local):       http://localhost:8000/api/v1/call
 
 Authentication:        Bearer Token (Laravel Sanctum)
 Content-Type (JSON):     application/json

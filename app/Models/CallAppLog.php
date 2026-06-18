@@ -45,4 +45,31 @@ class CallAppLog extends Model
     {
         return $this->hasOne(CallAppRecording::class, 'call_app_log_id');
     }
+
+    public static function formatDuration(int $seconds): string
+    {
+        if ($seconds <= 0) {
+            return '0:00';
+        }
+
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $secs = $seconds % 60;
+
+        if ($hours > 0) {
+            return sprintf('%d:%02d:%02d', $hours, $minutes, $secs);
+        }
+
+        return sprintf('%d:%02d', $minutes, $secs);
+    }
+
+    public function getFormattedDurationAttribute(): string
+    {
+        return self::formatDuration((int) $this->duration_seconds);
+    }
+
+    public function getCallTypeLabelAttribute(): string
+    {
+        return ucfirst($this->call_type ?? 'unknown');
+    }
 }
