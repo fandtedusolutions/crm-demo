@@ -11,6 +11,17 @@ use App\Http\Controllers\API\RegistrationLeadsController;
 use App\Http\Controllers\API\ConvertedLeadsController;
 use App\Http\Controllers\API\InvoiceController;
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\Call_Api\AuthController as CallApiAuthController;
+use App\Http\Controllers\API\Call_Api\ProfileController as CallApiProfileController;
+
+Route::prefix('v1/call')->group(function () {
+    Route::post('auth/login', [CallApiAuthController::class, 'login']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('auth/logout', [CallApiAuthController::class, 'logout']);
+        Route::get('profile', [CallApiProfileController::class, 'index']);
+    });
+});
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
@@ -63,4 +74,6 @@ Route::prefix('v1')->group(function () {
         // Payment APIs
         Route::get('payments/invoice/{invoiceId}', [PaymentController::class, 'getInvoicePayments'])->whereNumber('invoiceId');
     });
+
+    
 });
