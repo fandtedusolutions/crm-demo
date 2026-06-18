@@ -203,6 +203,16 @@ class SettingsSeeder extends Seeder
                 'group' => 'theme',
                 'is_public' => false,
             ],
+
+            // Mobile app settings
+            [
+                'key' => 'app_maintenance',
+                'value' => '0',
+                'type' => 'number',
+                'description' => 'Mobile app maintenance mode (0 = off, 1 = on)',
+                'group' => 'app',
+                'is_public' => true,
+            ],
         ];
 
         foreach ($settings as $setting) {
