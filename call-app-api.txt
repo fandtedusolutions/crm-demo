@@ -1,0 +1,496 @@
+================================================================================
+                    CALL TRACKER APP - API DOCUMENTATION
+================================================================================
+
+Base URL (Production):  https://crm.natdemy.com/api/v1/call
+Base URL (Local):       http://localhost:8000/api/v1/call
+
+Authentication:        Bearer Token (Laravel Sanctum)
+Content-Type (JSON):     application/json
+Accept:                  application/json
+
+All endpoints except /auth/login require:
+  Authorization: Bearer {auth_token}
+
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+  1. Overview & Flow
+  2. Authentication APIs
+     2.1 Login
+     2.2 Logout
+     2.3 Profile
+  3. Sync APIs
+     3.1 Sync Call Details (Bulk)
+     3.2 Upload Call Recording
+     3.3 Sync Status
+  4. Error Responses
+  5. Flutter App Integration Guide
+  6. Endpoint Summary
+
+
+================================================================================
+1. OVERVIEW & FLOW
+================================================================================
+
+1. User logs in          -> POST /auth/login        -> receive auth_token
+2. App reads call log    -> device call log + matched recordings
+3. Sync call details     -> POST /sync/calls        -> receive server_call_id
+4. Upload recordings     -> POST /sync/recordings   -> link audio to call
+5. Check sync state      -> GET  /sync/status       -> optional
+
+Important rules:
+  - Sync call details BEFORE uploading recordings
+  - Use stable device_call_id to prevent duplicate records
+  - Each call is stored against telecaller_id (logged-in user id)
+  - Re-sending same device_call_id updates the record (not duplicated)
+
+
+================================================================================
+2. AUTHENTICATION APIs
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 LOGIN
+--------------------------------------------------------------------------------
+
+Endpoint:   POST /auth/login
+Auth:       Not required
+
+Request Headers:
+  Content-Type: application/json
+  Accept: application/json
+
+Request Body:
+{
+  "email": "telecaller@example.com",
+  "password": "your_password"
+}
+
+Field          Type      Required   Description
+-----          ----      --------   -----------
+email          string    Yes        User email address
+password       string    Yes        User password
+
+Success Response (200):
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Telecaller Name",
+    "phone": "+91 9876543210",
+    "email": "telecaller@example.com",
+    "role_id": 3,
+    "user_role": "Telecaller",
+    "is_team_lead": 0,
+    "is_senior_manager": 0,
+    "is_marketing": 0,
+    "auth_token": "1|xxxxxxxxxxxxxxxxxxxxxxxx"
+  }
+}
+
+Error Response (401):
+{
+  "success": false,
+  "message": "Invalid email or password"
+}
+
+Error Response (422):
+{
+  "success": false,
+  "message": "The email field is required."
+}
+
+
+--------------------------------------------------------------------------------
+2.2 LOGOUT
+--------------------------------------------------------------------------------
+
+Endpoint:   POST /auth/logout
+Auth:       Required (Bearer token)
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Request Body:   None
+
+Success Response (200):
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+
+Error Response (401):
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+
+
+--------------------------------------------------------------------------------
+2.3 PROFILE
+--------------------------------------------------------------------------------
+
+Endpoint:   GET /profile
+Auth:       Required (Bearer token)
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Request Body:   None
+
+Success Response (200):
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Telecaller Name",
+    "phone": "+91 9876543210",
+    "email": "telecaller@example.com",
+    "role_id": 3,
+    "user_role": "Telecaller",
+    "is_team_lead": 0,
+    "is_senior_manager": 0,
+    "is_marketing": 0,
+    "auth_token": "1|xxxxxxxxxxxxxxxxxxxxxxxx"
+  }
+}
+
+Error Response (401):
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+
+
+================================================================================
+3. SYNC APIs
+================================================================================
+
+--------------------------------------------------------------------------------
+3.1 SYNC CALL DETAILS (BULK)
+--------------------------------------------------------------------------------
+
+Endpoint:   POST /sync/calls
+Auth:       Required (Bearer token)
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Content-Type: application/json
+  Accept: application/json
+
+Request Body Example:
+{
+  "device_id": "android-abc123-unique-install-id",
+  "app_version": "1.0.0",
+  "calls": [
+    {
+      "device_call_id": "1718700000000_919876543210",
+      "phone_number": "+919876543210",
+      "contact_name": "John Doe",
+      "call_type": "incoming",
+      "duration_seconds": 125,
+      "started_at_ms": 1718700000000,
+      "started_at": "2025-06-18T10:30:00+05:30",
+      "has_recording": true,
+      "recording_duration_seconds": 120,
+      "recording_file_name": "Call recording John.amr"
+    },
+    {
+      "device_call_id": "1718700500000_918888888888",
+      "phone_number": "918888888888",
+      "contact_name": null,
+      "call_type": "missed",
+      "duration_seconds": 0,
+      "started_at_ms": 1718700500000,
+      "started_at": "2025-06-18T10:38:20+05:30",
+      "has_recording": false
+    }
+  ]
+}
+
+Root Fields:
+Field          Type      Required   Description
+-----          ----      --------   -----------
+device_id      string    Yes        Unique device/install ID (max 100 chars)
+app_version    string    No         App version e.g. "1.0.0"
+calls          array     Yes        Array of call objects (min 1 item)
+
+Call Object Fields:
+Field                        Type      Required   Description
+-----                        ----      --------   -----------
+device_call_id               string    Yes        Dedupe key: {timestamp}_{phone_digits}
+phone_number                 string    Yes        Raw number from call log
+contact_name                 string    No         Contact name if available
+call_type                    string    Yes        incoming | outgoing | missed | rejected | unknown
+duration_seconds             integer   Yes        Call duration in seconds (0 for missed)
+started_at_ms                integer   Yes        Call start time (epoch milliseconds)
+started_at                   string    No         ISO 8601 datetime
+has_recording                boolean   No         true if recording matched locally
+recording_duration_seconds   integer   No         Recording length in seconds
+recording_file_name          string    No         Original recording filename
+
+device_call_id format:
+  "{timestamp}_{digits_only_phone}"
+  Example: "1718700000000_919876543210"
+
+call_type mapping (Flutter CallLog):
+  CallType.incoming (1)  -> "incoming"
+  CallType.outgoing (2)  -> "outgoing"
+  CallType.missed   (3)  -> "missed"
+  CallType.rejected (5)  -> "rejected"
+
+Success Response (200):
+{
+  "success": true,
+  "message": "Calls synced successfully",
+  "data": {
+    "synced": 2,
+    "skipped": 0,
+    "calls": [
+      {
+        "device_call_id": "1718700000000_919876543210",
+        "server_call_id": 501,
+        "recording_upload_required": true,
+        "recording_already_uploaded": false
+      },
+      {
+        "device_call_id": "1718700500000_918888888888",
+        "server_call_id": 502,
+        "recording_upload_required": false,
+        "recording_already_uploaded": false
+      }
+    ]
+  }
+}
+
+Response fields:
+  synced                      Number of new calls inserted
+  skipped                     Number of existing calls updated/skipped
+  server_call_id              Database ID - use for recording upload
+  recording_upload_required   true = app should upload recording next
+  recording_already_uploaded    true = recording already on server
+
+
+--------------------------------------------------------------------------------
+3.2 UPLOAD CALL RECORDING
+--------------------------------------------------------------------------------
+
+Endpoint:   POST /sync/recordings
+Auth:       Required (Bearer token)
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Content-Type: multipart/form-data
+  Accept: application/json
+
+Form Fields:
+Field                Type      Required   Description
+-----                ----      --------   -----------
+device_call_id       string    Yes*       Same ID from call sync
+server_call_id       integer   Yes*       ID returned from call sync
+recording            file      Yes        Audio file
+duration_seconds     integer   No         Recording duration in seconds
+recorded_at_ms       integer   No         Recording created time (epoch ms)
+file_size_bytes      integer   No         File size in bytes
+original_file_name   string    No         Original filename
+
+* Send device_call_id OR server_call_id (both is fine)
+
+Allowed file types:  amr, m4a, mp3, wav, 3gp
+Max file size:       25 MB (25600 KB)
+
+cURL Example:
+curl -X POST "https://crm.natdemy.com/api/v1/call/sync/recordings" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "device_call_id=1718700000000_919876543210" \
+  -F "server_call_id=501" \
+  -F "duration_seconds=120" \
+  -F "recorded_at_ms=1718700120000" \
+  -F "original_file_name=call_recording.amr" \
+  -F "recording=@/path/to/recording.amr"
+
+Success Response (200):
+{
+  "success": true,
+  "message": "Recording uploaded successfully",
+  "data": {
+    "server_call_id": 501,
+    "recording_id": 88,
+    "recording_url": "https://crm.natdemy.com/storage/call-recordings/1/501/recording.amr",
+    "duration_seconds": 120,
+    "file_size_bytes": 524288
+  }
+}
+
+Error Response (404):
+{
+  "success": false,
+  "message": "Call record not found"
+}
+
+Note: Re-uploading replaces the existing recording file for that call.
+
+
+--------------------------------------------------------------------------------
+3.3 SYNC STATUS
+--------------------------------------------------------------------------------
+
+Endpoint:   GET /sync/status
+Auth:       Required (Bearer token)
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Query Parameters:
+Parameter    Type      Required   Description
+---------    ----      --------   -----------
+since_ms     integer   No         Filter calls from this epoch ms onwards
+
+Example:
+  GET /sync/status?since_ms=1718700000000
+
+Success Response (200):
+{
+  "success": true,
+  "data": {
+    "last_synced_at": "2025-06-18T11:00:00+05:30",
+    "uploaded_device_call_ids": [
+      "1718700000000_919876543210"
+    ],
+    "pending_recordings": [
+      "1718701000000_919999999999"
+    ]
+  }
+}
+
+Response fields:
+  last_synced_at             Last time any call was synced/updated
+  uploaded_device_call_ids   Calls with recording already uploaded
+  pending_recordings         Calls with has_recording=true but no upload yet
+
+
+================================================================================
+4. ERROR RESPONSES
+================================================================================
+
+HTTP Status   When
+-----------   ----
+200           Success
+401           Missing/invalid token or wrong login credentials
+404           Call record not found (recording upload)
+422           Validation failed
+
+Validation error format:
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "calls.0.phone_number": ["The phone number field is required."]
+  }
+}
+
+Unauthorized format:
+{
+  "success": false,
+  "message": "Unauthorized"
+}
+
+
+================================================================================
+5. FLUTTER APP INTEGRATION GUIDE
+================================================================================
+
+STEP 1 - Login and save token
+  POST /auth/login
+  Save data.auth_token securely (SharedPreferences / secure storage)
+
+STEP 2 - Build call payload from device log
+  For each CallLogEntry:
+    device_call_id = "${entry.timestamp}_${phoneDigitsOnly(entry.number)}"
+    Map callType to string: incoming/outgoing/missed/rejected
+
+STEP 3 - Sync calls (batch)
+  POST /sync/calls
+  Headers: Authorization: Bearer {token}
+  Body: { device_id, app_version, calls: [...] }
+
+STEP 4 - Upload recordings
+  For each call in response where recording_upload_required == true:
+    POST /sync/recordings (multipart)
+    Copy content:// URI to temp file before upload on Android
+
+STEP 5 - Optional status check
+  GET /sync/status?since_ms={lastSyncTimestamp}
+
+Recommended sync timing:
+  - After login          -> sync all calls since install
+  - After loadLogs()     -> push only new calls
+  - After call sync      -> upload pending recordings
+  - Background (3 min)   -> retry failed syncs/uploads
+  - App resume           -> retry pending uploads
+
+
+================================================================================
+6. ENDPOINT SUMMARY
+================================================================================
+
+  #   Purpose              Method   Endpoint
+  --  -------------------  -------  ---------------------
+  1   Login                POST     /auth/login
+  2   Logout               POST     /auth/logout
+  3   Profile              GET      /profile
+  4   Sync call list       POST     /sync/calls
+  5   Upload recording     POST     /sync/recordings
+  6   Check sync status    GET      /sync/status
+
+Full URLs (Production):
+  https://crm.natdemy.com/api/v1/call/auth/login
+  https://crm.natdemy.com/api/v1/call/auth/logout
+  https://crm.natdemy.com/api/v1/call/profile
+  https://crm.natdemy.com/api/v1/call/sync/calls
+  https://crm.natdemy.com/api/v1/call/sync/recordings
+  https://crm.natdemy.com/api/v1/call/sync/status
+
+
+================================================================================
+DATABASE TABLES (SERVER)
+================================================================================
+
+call_app_logs
+  - id                    (returned as server_call_id)
+  - telecaller_id         (logged-in user id)
+  - device_id
+  - device_call_id
+  - phone_number
+  - contact_name
+  - call_type
+  - duration_seconds
+  - started_at_ms
+  - started_at
+  - has_recording
+  - recording_uploaded
+  - recording_duration_seconds
+  - recording_file_name
+  - app_version
+
+call_app_recordings
+  - id                    (returned as recording_id)
+  - call_app_log_id
+  - telecaller_id
+  - file_path
+  - file_name
+  - mime_type
+  - file_size_bytes
+  - duration_seconds
+  - recorded_at_ms
+
+
+================================================================================
+                              END OF DOCUMENT
+================================================================================

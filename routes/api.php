@@ -13,16 +13,23 @@ use App\Http\Controllers\API\InvoiceController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Call_Api\AuthController as CallApiAuthController;
 use App\Http\Controllers\API\Call_Api\ProfileController as CallApiProfileController;
+use App\Http\Controllers\API\Call_Api\CallSyncController as CallApiSyncController;
 
+//Call App API Routes
 Route::prefix('v1/call')->group(function () {
     Route::post('auth/login', [CallApiAuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [CallApiAuthController::class, 'logout']);
         Route::get('profile', [CallApiProfileController::class, 'index']);
+
+        Route::post('sync/calls', [CallApiSyncController::class, 'syncCalls']);
+        Route::post('sync/recordings', [CallApiSyncController::class, 'uploadRecording']);
+        Route::get('sync/status', [CallApiSyncController::class, 'status']);
     });
 });
 
+// CRM API Routes
 Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
 
