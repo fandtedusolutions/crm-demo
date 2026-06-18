@@ -248,6 +248,7 @@ class PermissionHelper
             'profile/index',
             'admin/converted-leads/index',
             'admin/post-sales-converted-leads/index',
+            'admin/call-analytics/index',
             'admin/payments/list',
         ];
 
@@ -302,6 +303,7 @@ class PermissionHelper
             'admin/post-sales-converted-leads/index',
             'admin/marketing/d2d-form', // D2D Form access
             'admin/marketing/marketing-leads', // Marketing Leads listing
+            'admin/call-analytics/index',
             'profile/index',
             'leads/pullback',
         ];

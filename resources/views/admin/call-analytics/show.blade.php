@@ -101,11 +101,11 @@
                         <label class="text-muted small">MIME Type</label>
                         <div>{{ $call->recording->mime_type }}</div>
                     </div>
-                    <audio controls class="w-100 mb-3">
+                    <audio controls preload="metadata" class="w-100 mb-3">
                         <source src="{{ $call->recording->file_url }}" type="{{ $call->recording->mime_type }}">
                         Your browser does not support the audio element.
                     </audio>
-                    <a href="{{ $call->recording->file_url }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                    <a href="{{ route('admin.call-analytics.recording.download', $call->id) }}" class="btn btn-outline-primary btn-sm w-100">
                         <i class="ti ti-download"></i> Download Recording
                     </a>
                 @elseif($call->has_recording)

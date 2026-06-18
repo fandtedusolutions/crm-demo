@@ -51,7 +51,7 @@
     #callAnalyticsTable th:nth-child(6),  #callAnalyticsTable td:nth-child(6)  { min-width: 90px; }
     #callAnalyticsTable th:nth-child(7),  #callAnalyticsTable td:nth-child(7)  { min-width: 80px; }
     #callAnalyticsTable th:nth-child(8),  #callAnalyticsTable td:nth-child(8)  { min-width: 110px; }
-    #callAnalyticsTable th:nth-child(9),  #callAnalyticsTable td:nth-child(9)  { min-width: 110px; }
+    #callAnalyticsTable th:nth-child(9),  #callAnalyticsTable td:nth-child(9)  { min-width: 280px; }
     #callAnalyticsTable th:nth-child(10), #callAnalyticsTable td:nth-child(10) { min-width: 180px; }
     #callAnalyticsTable th:nth-child(11), #callAnalyticsTable td:nth-child(11) { min-width: 80px; }
 
@@ -253,14 +253,7 @@
                                         <small class="text-muted">{{ $call->started_at?->format('h:i A') }}</small>
                                     </td>
                                     <td>
-                                        @if($call->recording_uploaded && $call->recording)
-                                            <span class="badge bg-success">Uploaded</span>
-                                            <a href="{{ $call->recording->file_url }}" target="_blank" class="btn btn-link btn-sm p-0 ms-1">Play</a>
-                                        @elseif($call->has_recording)
-                                            <span class="badge bg-warning text-dark">Pending</span>
-                                        @else
-                                            <span class="badge bg-light text-dark border">None</span>
-                                        @endif
+                                        @include('admin.call-analytics.partials.recording-cell', ['call' => $call])
                                     </td>
                                     <td><small title="{{ $call->device_id }}">{{ \Illuminate\Support\Str::limit($call->device_id, 24) }}</small></td>
                                     <td>{{ $call->app_version ?: '-' }}</td>
@@ -287,6 +280,44 @@
 
 @push('scripts')
 <script>
+    function pauseOtherRecordings(activeId) {
+        document.querySelectorAll('.call-recording-player').forEach(function (player) {
+            if (player.id !== activeId) {
+                player.style.display = 'none';
+                const audio = player.querySelector('audio');
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+            }
+        });
+    }
+
+    $(document).on('click', '.js-toggle-recording', function () {
+        const targetId = $(this).data('target');
+        const player = document.getElementById(targetId);
+        if (!player) {
+            return;
+        }
+
+        const isHidden = player.style.display === 'none' || player.style.display === '';
+        pauseOtherRecordings(targetId);
+
+        if (isHidden) {
+            player.style.display = 'block';
+            const audio = player.querySelector('audio');
+            if (audio) {
+                audio.play().catch(function () {});
+            }
+        } else {
+            player.style.display = 'none';
+            const audio = player.querySelector('audio');
+            if (audio) {
+                audio.pause();
+            }
+        }
+    });
+
     $(function () {
         if ($.fn.DataTable && $('#callAnalyticsTable tbody tr').length > 0 && !$('#callAnalyticsTable tbody tr td[colspan]').length) {
             $('#callAnalyticsTable').DataTable({

@@ -8,12 +8,15 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class CallAnalyticsController extends Controller
 {
     private function canAccessModule(): bool
     {
         return RoleHelper::is_admin_or_super_admin()
+            || RoleHelper::is_post_sales()
+            || RoleHelper::is_general_manager()
             || RoleHelper::is_admission_counsellor()
             || RoleHelper::is_hod()
             || RoleHelper::is_academic_assistant();
@@ -166,5 +169,21 @@ class CallAnalyticsController extends Controller
         $call->load(['telecaller', 'recording']);
 
         return view('admin.call-analytics.show', compact('call'));
+    }
+
+    public function downloadRecording(CallAppLog $call)
+    {
+        $this->denyUnlessAllowed();
+
+        $recording = $call->recording;
+
+        if (!$recording || !Storage::disk('public')->exists($recording->file_path)) {
+            abort(404, 'Recording not found.');
+        }
+
+        return Storage::disk('public')->download(
+            $recording->file_path,
+            $recording->file_name ?: basename($recording->file_path)
+        );
     }
 }
