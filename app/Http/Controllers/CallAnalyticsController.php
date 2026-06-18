@@ -33,6 +33,7 @@ class CallAnalyticsController extends Controller
             'end_date' => $request->get('end_date', Carbon::now()->format('Y-m-d')),
             'telecaller_id' => $request->get('telecaller_id'),
             'call_type' => $request->get('call_type'),
+            'search' => $request->get('search'),
         ];
     }
 
@@ -49,6 +50,14 @@ class CallAnalyticsController extends Controller
 
         if (!empty($filters['call_type'])) {
             $query->where('call_type', $filters['call_type']);
+        }
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('phone_number', 'like', '%' . $search . '%')
+                    ->orWhere('contact_name', 'like', '%' . $search . '%');
+            });
         }
 
         return $query;

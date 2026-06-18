@@ -4,6 +4,39 @@
 
 @push('styles')
 <style>
+    .card-body .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #callAnalyticsReportTable {
+        width: max-content !important;
+        min-width: 100%;
+        margin-bottom: 0;
+        border-collapse: collapse;
+    }
+
+    #callAnalyticsReportTable thead th {
+        background: #f8f9fa;
+        font-weight: 600;
+        font-size: 12px;
+        padding: 10px 8px;
+        vertical-align: middle;
+        white-space: nowrap;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    #callAnalyticsReportTable tbody td {
+        font-size: 12px;
+        padding: 8px;
+        vertical-align: middle;
+        border-bottom: 1px solid #eee;
+    }
+
+    #callAnalyticsReportTable tbody tr:hover {
+        background: #f8f9ff;
+    }
+
     @media print {
         .no-print { display: none !important; }
     }
@@ -87,7 +120,7 @@
                 </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle" id="callAnalyticsReportTable">
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
