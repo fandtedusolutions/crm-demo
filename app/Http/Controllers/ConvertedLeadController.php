@@ -4033,6 +4033,7 @@ class ConvertedLeadController extends Controller
             'certificate_publication_date' => 'nullable|date',
             'certificate_distribution_mode' => 'nullable|string|in:In Person,Courier',
             'courier_tracking_number' => 'nullable|string|max:255',
+            'call_time' => 'nullable|date_format:H:i',
             // E-School and Eduthanzeel specific fields
             'continuing_studies' => 'nullable|string|in:yes,no',
             'reason' => 'nullable|string|max:1000',
@@ -4197,7 +4198,7 @@ class ConvertedLeadController extends Controller
         $studentDetailFields = ['reg_fee', 'exam_fee', 'enroll_no', 'internship_id', 'id_card', 'tma', 'registration_number', 'enrollment_number', 'registration_link_id', 'certificate_status', 'certificate_received_date', 'certificate_issued_date', 'remarks', 'continuing_studies', 'reason', 'application_number', 'board_registration_number', 'st', 'phy', 'che', 'bio', 'app', 'group', 'interview', 'howmany_interview', 'call_status', 'class_information', 'orientation_class_status', 'class_starting_date', 'class_ending_date', 'whatsapp_group_status', 'class_time', 'class_status', 'complete_cancel_date', 'teacher_id', 'screening'];
         
         // Handle fields that are in ConvertedStudentMentorDetail
-        $mentorDetailFields = ['all_online_result_publication_date', 'online_result_publication_date', 'certificate_publication_date', 'certificate_distribution_mode', 'courier_tracking_number'];
+        $mentorDetailFields = ['all_online_result_publication_date', 'online_result_publication_date', 'certificate_publication_date', 'certificate_distribution_mode', 'courier_tracking_number', 'call_time'];
         
         if (in_array($field, $leadDetailFields)) {
             // Update in LeadDetail
@@ -4355,6 +4356,16 @@ class ConvertedLeadController extends Controller
             $updatedValue = \Carbon\Carbon::parse($updatedValue)->format('d-m-Y');
         } elseif ($field === 'class_time' && $updatedValue) {
             $updatedValue = \Carbon\Carbon::parse($updatedValue)->format('h:i A');
+        } elseif ($field === 'call_time' && $updatedValue) {
+            try {
+                $updatedValue = \Carbon\Carbon::createFromFormat('H:i:s', $updatedValue)->format('h:i A');
+            } catch (\Throwable $e) {
+                try {
+                    $updatedValue = \Carbon\Carbon::createFromFormat('H:i', $updatedValue)->format('h:i A');
+                } catch (\Throwable $e2) {
+                    $updatedValue = \Carbon\Carbon::parse($updatedValue)->format('h:i A');
+                }
+            }
         } elseif ($field === 'teacher_id' && $updatedValue) {
             $teacher = \App\Models\User::find($updatedValue);
             $updatedValue = $teacher ? $teacher->name : $updatedValue;
