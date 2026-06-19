@@ -99,6 +99,7 @@ class CallSyncController extends Controller
             $results[] = [
                 'device_call_id' => $call->device_call_id,
                 'server_call_id' => $call->id,
+                'status' => $call->wasRecentlyCreated ? 'created' : 'skipped',
                 'recording_upload_required' => $call->has_recording && !$call->recording_uploaded,
                 'recording_already_uploaded' => (bool) $call->recording_uploaded,
             ];
@@ -218,10 +219,76 @@ class CallSyncController extends Controller
             'message' => 'Recording uploaded successfully',
             'data' => [
                 'server_call_id' => $call->id,
+                'device_call_id' => $call->device_call_id,
                 'recording_id' => $recording->id,
                 'recording_url' => Storage::disk('public')->url($path),
                 'duration_seconds' => $recording->duration_seconds,
                 'file_size_bytes' => $recording->file_size_bytes,
+                'recording_uploaded' => true,
+            ],
+        ]);
+    }
+
+    /**
+     * Check recording upload status for a batch of device_call_ids.
+     */
+    public function recordingStatus(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'device_call_ids' => 'required|array|min:1|max:100',
+                'device_call_ids.*' => 'required|string|max:120',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+
+        $telecallerId = $request->user()->id;
+        $ids = array_values(array_unique($validated['device_call_ids']));
+
+        $calls = CallAppLog::where('telecaller_id', $telecallerId)
+            ->whereIn('device_call_id', $ids)
+            ->with('recording')
+            ->get()
+            ->keyBy('device_call_id');
+
+        $recordings = [];
+        $notFound = [];
+
+        foreach ($ids as $deviceCallId) {
+            $call = $calls->get($deviceCallId);
+
+            if (!$call) {
+                $notFound[] = $deviceCallId;
+                continue;
+            }
+
+            $uploaded = (bool) $call->recording_uploaded;
+            $hasRecording = (bool) $call->has_recording;
+            $recording = $call->recording;
+
+            $recordings[] = [
+                'device_call_id' => $call->device_call_id,
+                'server_call_id' => $call->id,
+                'has_recording' => $hasRecording,
+                'recording_uploaded' => $uploaded,
+                'upload_required' => $hasRecording && !$uploaded,
+                'recording_url' => $recording
+                    ? Storage::disk('public')->url($recording->file_path)
+                    : null,
+                'recording_id' => $recording?->id,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'recordings' => $recordings,
+                'not_found' => $notFound,
             ],
         ]);
     }

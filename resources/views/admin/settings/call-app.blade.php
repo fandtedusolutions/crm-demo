@@ -91,7 +91,7 @@
                 <code class="d-block small mb-3">GET /api/v1/call/app/version?app_version=1.0.0</code>
                 <pre class="bg-light p-3 rounded small mb-0" id="apiPreview">{{ json_encode([
                     'success' => true,
-                    'data' => \App\Services\CallAppSettingService::buildApiPayload('1.0.0'),
+                    'data' => $apiPreview,
                 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
             </div>
         </div>

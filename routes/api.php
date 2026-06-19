@@ -29,6 +29,7 @@ Route::prefix('v1/call')->group(function () {
 
         Route::post('sync/calls', [CallApiSyncController::class, 'syncCalls']);
         Route::post('sync/recordings', [CallApiSyncController::class, 'uploadRecording']);
+        Route::post('sync/recordings/status', [CallApiSyncController::class, 'recordingStatus']);
         Route::get('sync/status', [CallApiSyncController::class, 'status']);
     });
 });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Helpers\RoleHelper;
 use App\Services\CallAppSettingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,27 +13,44 @@ class CallAppSettingController extends Controller
 {
     public function index()
     {
-        if (!has_permission('admin/call-app/settings')) {
+        if (!RoleHelper::is_admin_or_super_admin()) {
             abort(403, 'Access denied.');
         }
 
         $settings = CallAppSettingService::getSettings();
+        $apiPreview = CallAppSettingService::buildApiPayload('1.0.0');
 
-        return view('admin.settings.call-app', compact('settings'));
+        return view('admin.settings.call-app', compact('settings', 'apiPreview'));
     }
 
     public function update(Request $request)
     {
-        if (!has_permission('admin/call-app/settings')) {
+        if (!RoleHelper::is_admin_or_super_admin()) {
             return response()->json(['success' => false, 'message' => 'Access denied.'], 403);
         }
+
+        $request->merge([
+            'download_url' => $request->input('download_url') ?: null,
+        ]);
 
         $validator = Validator::make($request->all(), [
             'app_version' => 'required|string|max:20',
             'force_update' => 'nullable|boolean',
             'download_url' => 'nullable|url|max:500',
-            'apk_file' => 'nullable|file|mimes:apk|max:102400',
+            'apk_file' => 'nullable|file|max:102400',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            $file = $request->file('apk_file');
+            if (!$file) {
+                return;
+            }
+
+            $extension = strtolower($file->getClientOriginalExtension());
+            if ($extension !== 'apk') {
+                $validator->errors()->add('apk_file', 'The APK file must have a .apk extension.');
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
@@ -93,7 +111,7 @@ class CallAppSettingController extends Controller
 
     public function removeApk()
     {
-        if (!has_permission('admin/call-app/settings')) {
+        if (!RoleHelper::is_admin_or_super_admin()) {
             return response()->json(['success' => false, 'message' => 'Access denied.'], 403);
         }
 

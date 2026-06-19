@@ -100,7 +100,6 @@ class PermissionHelper
         $permissions = [
             'admin/settings/index',
             'admin/website/settings',
-            'admin/call-app/settings',
             // Advanced Reports - only lead-stage-movement is allowed
             'admin/reports/lead-efficiency',
             'admin/reports/lead-aging',

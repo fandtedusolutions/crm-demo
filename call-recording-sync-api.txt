@@ -1,0 +1,523 @@
+================================================================================
+              CALL TRACKER APP - RECORDING SYNC API DOCUMENTATION
+================================================================================
+
+Base URL (Production):  https://crm.natdemy.com/api/v1/call
+
+Authentication:        Bearer Token (Laravel Sanctum)
+Content-Type (JSON):     application/json
+Accept:                  application/json
+
+All endpoints in this document require:
+  Authorization: Bearer {auth_token}
+
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+  1. Overview & Sync Flow
+  2. Upload Call Recording          POST /sync/recordings
+  3. Check Recording Upload Status  POST /sync/recordings/status  (NEW)
+  4. Sync Call Details (Bulk)       POST /sync/calls
+  5. Sync Status (Optional)         GET  /sync/status
+  6. Database Columns
+  7. Flutter App Integration
+  8. Local Storage Keys
+  9. Testing Checklist
+  10. Endpoint Summary
+
+
+================================================================================
+1. OVERVIEW & SYNC FLOW
+================================================================================
+
+Call metadata and recording files sync at different times:
+
+  - Call details may sync in BACKGROUND when the app is closed
+  - Recording file may appear on the phone AFTER the call sync (dialer saves it later)
+  - App opening must retry recordings for calls already marked as synced
+
+The app tracks two local lists:
+
+  synced_call_ids       -> call metadata pushed to POST /sync/calls
+  synced_recording_ids  -> audio file pushed to POST /sync/recordings
+
+When app opens:
+
+  Step 1 - syncAll()
+    a. POST /sync/calls for calls NOT in synced_call_ids
+    b. Upload recordings returned with recording_upload_required=true
+    c. Mark synced_call_ids and synced_recording_ids on success
+
+  Step 2 - syncPendingRecordings()
+    a. Find calls where:
+         - local recording exists (matched on device)
+         - device_call_id IN synced_call_ids
+         - device_call_id NOT IN synced_recording_ids
+    b. POST /sync/recordings/status with those device_call_ids
+    c. For each where recording_uploaded=false:
+         POST /sync/recordings (multipart upload)
+    d. Mark synced_recording_ids on success
+
+Background service (Android, app closed):
+
+  Same two-step flow after every call log change and every 3 minutes.
+
+Important rules:
+  - Sync call details BEFORE uploading recordings
+  - Use stable device_call_id to prevent duplicate records
+  - Each call is stored against telecaller_id (logged-in user id)
+  - Re-sending same device_call_id updates the record (not duplicated)
+  - One recording per call (re-upload replaces existing file for same device_call_id)
+
+
+================================================================================
+2. UPLOAD CALL RECORDING
+================================================================================
+
+Endpoint:     POST /sync/recordings
+Auth:         Required (Bearer token)
+Content-Type: multipart/form-data
+
+Form Fields:
+Field                Type      Required   Description
+-----                ----      --------   -----------
+device_call_id       string    Yes*       Same ID from call sync: {timestamp}_{phone_digits}
+server_call_id       integer   Yes*       Returned from POST /sync/calls
+recording            file      Yes        Audio file (.amr, .m4a, .mp3, .wav, .3gp)
+duration_seconds     integer   No         Recording duration in seconds
+recorded_at_ms       integer   No         When recording file was created (epoch ms)
+file_size_bytes      integer   No         File size in bytes
+original_file_name   string    No         e.g. "Call recording John.amr"
+
+* Send device_call_id OR server_call_id (both is fine)
+
+Recommended limits:
+  Max file size:  25 MB (25600 KB)
+  Allowed MIME:   audio/amr, audio/mpeg, audio/mp4, audio/x-m4a, audio/wav, audio/3gpp
+  Allowed ext:    amr, m4a, mp3, wav, 3gp
+
+cURL Example:
+
+curl -X POST "https://crm.natdemy.com/api/v1/call/sync/recordings" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "device_call_id=1718700000000_919876543210" \
+  -F "server_call_id=501" \
+  -F "duration_seconds=120" \
+  -F "recorded_at_ms=1718700120000" \
+  -F "file_size_bytes=524288" \
+  -F "original_file_name=call_recording.amr" \
+  -F "recording=@/path/to/recording.amr"
+
+Success Response (200):
+
+{
+  "success": true,
+  "message": "Recording uploaded successfully",
+  "data": {
+    "server_call_id": 501,
+    "device_call_id": "1718700000000_919876543210",
+    "recording_id": 88,
+    "recording_url": "https://crm.natdemy.com/storage/call-recordings/1/501/recording.amr",
+    "duration_seconds": 120,
+    "file_size_bytes": 524288,
+    "recording_uploaded": true
+  }
+}
+
+On success the server runs:
+  UPDATE call_app_logs SET recording_uploaded = 1, has_recording = 1 WHERE id = ?
+
+Error Responses:
+  401  Unauthorized
+  404  Call record not found for this user/device_call_id
+  422  Validation failed (missing file, file too large, invalid mime)
+  413  File too large
+
+
+================================================================================
+3. CHECK RECORDING UPLOAD STATUS (NEW)
+================================================================================
+
+Endpoint:     POST /sync/recordings/status
+Auth:         Required (Bearer token)
+Content-Type: application/json
+
+Purpose:
+  App sends a batch of device_call_ids and server returns whether each
+  recording is already on the server. App uses this before uploading to
+  avoid duplicate uploads and to detect recordings synced from another device.
+
+Request Body:
+
+{
+  "device_call_ids": [
+    "1718700000000_919876543210",
+    "1718700500000_918888888888"
+  ]
+}
+
+Request Fields:
+Field              Type     Required   Description
+-----              ----     --------   -----------
+device_call_ids    array    Yes        List of device_call_id strings (max 100 per request)
+
+cURL Example:
+
+curl -X POST "https://crm.natdemy.com/api/v1/call/sync/recordings/status" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"device_call_ids":["1718700000000_919876543210","1718700500000_918888888888"]}'
+
+Success Response (200):
+
+{
+  "success": true,
+  "data": {
+    "recordings": [
+      {
+        "device_call_id": "1718700000000_919876543210",
+        "server_call_id": 501,
+        "has_recording": true,
+        "recording_uploaded": true,
+        "upload_required": false,
+        "recording_url": "https://crm.natdemy.com/storage/call-recordings/1/501/recording.amr",
+        "recording_id": 88
+      },
+      {
+        "device_call_id": "1718700500000_918888888888",
+        "server_call_id": 502,
+        "has_recording": true,
+        "recording_uploaded": false,
+        "upload_required": true,
+        "recording_url": null,
+        "recording_id": null
+      }
+    ],
+    "not_found": []
+  }
+}
+
+Response Fields (per recording item):
+Field                Type      Description
+-----                ----      -----------
+device_call_id       string    Device dedupe key from app
+server_call_id       int       call_app_logs.id on server
+has_recording        boolean   Call marked as having a recording locally
+recording_uploaded   boolean   true when audio file exists on server
+upload_required      boolean   true when has_recording AND NOT recording_uploaded
+recording_url        string    Public URL if uploaded, else null
+recording_id         int       call_app_recordings.id if uploaded, else null
+
+not_found array:
+  device_call_ids that do not exist for this user (call never synced)
+
+Error Responses:
+  401  Unauthorized
+  422  Validation failed (empty array, too many ids)
+
+
+================================================================================
+4. SYNC CALL DETAILS (BULK)
+================================================================================
+
+Endpoint:     POST /sync/calls
+Auth:         Required (Bearer token)
+Content-Type: application/json
+
+Request Body Example:
+
+{
+  "device_id": "android-abc123-unique-install-id",
+  "app_version": "1.0.0",
+  "calls": [
+    {
+      "device_call_id": "1718700000000_919876543210",
+      "phone_number": "+919876543210",
+      "contact_name": "John Doe",
+      "call_type": "incoming",
+      "duration_seconds": 125,
+      "started_at_ms": 1718700000000,
+      "started_at": "2025-06-18T10:30:00+05:30",
+      "end_at_ms": 1718700125000,
+      "ended_at": "2025-06-18T10:32:05+05:30",
+      "has_recording": true,
+      "recording_duration_seconds": 120,
+      "recording_file_name": "Call recording John.amr"
+    }
+  ]
+}
+
+device_call_id format:
+  "{timestamp}_{digits_only_phone}"
+  Example: "1718700000000_919876543210"
+
+call_type values:
+  incoming | outgoing | missed | rejected | not_picked | unknown
+
+Success Response (200):
+
+{
+  "success": true,
+  "message": "Calls synced successfully",
+  "data": {
+    "synced": 1,
+    "skipped": 0,
+    "calls": [
+      {
+        "device_call_id": "1718700000000_919876543210",
+        "server_call_id": 501,
+        "status": "created",
+        "recording_upload_required": true,
+        "recording_already_uploaded": false
+      }
+    ]
+  }
+}
+
+Per-call response fields:
+Field                        Type      Description
+-----                        ----      -----------
+device_call_id               string    Device dedupe key
+server_call_id               int       call_app_logs.id - use for recording upload
+status                       string    "created" (new) or "skipped" (already existed)
+recording_upload_required    boolean   has_recording=true AND recording_uploaded=false
+recording_already_uploaded   boolean   recording_uploaded=true on server
+
+Rules:
+  recording_upload_required = has_recording == true AND recording_uploaded == false
+  recording_already_uploaded = recording_uploaded == true
+
+
+================================================================================
+5. SYNC STATUS (OPTIONAL)
+================================================================================
+
+Endpoint:  GET /sync/status
+Auth:      Required (Bearer token)
+
+Query Parameters:
+  since_ms   (integer, optional)  Filter calls from this epoch ms onwards
+
+Example:
+  GET /sync/status?since_ms=1718700000000
+
+Success Response (200):
+
+{
+  "success": true,
+  "data": {
+    "last_synced_at": "2025-06-18T11:00:00+05:30",
+    "uploaded_device_call_ids": [
+      "1718700000000_919876543210"
+    ],
+    "pending_recordings": [
+      "1718701000000_919999999999"
+    ]
+  }
+}
+
+
+================================================================================
+6. DATABASE COLUMNS (call_app_logs)
+================================================================================
+
+  has_recording         TINYINT(1) DEFAULT 0   App says a recording exists locally
+  recording_uploaded    TINYINT(1) DEFAULT 0   Audio file stored on server
+
+When POST /sync/recordings succeeds:
+  UPDATE call_app_logs SET recording_uploaded = 1, has_recording = 1 WHERE id = ?
+
+Related table: call_app_recordings
+  - id                 (returned as recording_id)
+  - call_app_log_id    (FK to call_app_logs.id)
+  - telecaller_id
+  - file_path          (stored under storage/app/public/call-recordings/{telecaller_id}/{call_id}/)
+  - file_name
+  - mime_type
+  - file_size_bytes
+  - duration_seconds
+  - recorded_at_ms
+
+
+================================================================================
+7. FLUTTER APP INTEGRATION
+================================================================================
+
+On app open / refresh / resume (Dashboard _loadLogs):
+
+  STEP 1 - syncAll()
+    POST /sync/calls for calls NOT in local synced_call_ids
+    Upload recordings where recording_upload_required=true
+    Mark synced_call_ids and synced_recording_ids on success
+
+  STEP 2 - syncPendingRecordings()
+    Find calls with local recording, synced call metadata, but not synced recording
+    POST /sync/recordings/status with those device_call_ids
+    For each item where recording_uploaded=false:
+      POST /sync/recordings (multipart)
+    Mark synced_recording_ids on success
+
+Recording upload tips (Android):
+  - Copy content:// URI to temp file before multipart upload
+  - Match recording to call using device_call_id
+
+Recommended sync timing:
+  - After login          -> sync all calls since install
+  - After loadLogs()     -> push only new calls
+  - After call sync      -> upload pending recordings
+  - Background (3 min)   -> retry failed syncs/uploads
+  - App resume           -> retry pending uploads via syncPendingRecordings()
+
+
+================================================================================
+8. LOCAL STORAGE KEYS (Flutter SharedPreferences)
+================================================================================
+
+  synced_call_ids        JSON string array  e.g. ["1718700000000_919876543210"]
+  synced_recording_ids   JSON string array  e.g. ["1718700000000_919876543210"]
+
+Native background service reads/writes same keys via FlutterPrefsHelper.
+
+
+================================================================================
+9. TESTING CHECKLIST
+================================================================================
+
+  1. Make a call with recording enabled on phone
+  2. Verify POST /sync/calls creates call with has_recording=true
+  3. Verify POST /sync/recordings uploads file
+  4. Verify POST /sync/recordings/status returns recording_uploaded=true
+  5. Simulate late recording:
+     - Sync call in background before recording file appears
+     - Open app -> syncPendingRecordings should upload the file
+  6. Re-open app -> status API returns uploaded=true, no duplicate upload
+
+
+================================================================================
+10. ENDPOINT SUMMARY
+================================================================================
+
+  Action                         Method   Endpoint
+  -----------------------------  -------  ---------------------------
+  Push call metadata             POST     /sync/calls
+  Upload recording file          POST     /sync/recordings
+  Check recording upload status  POST     /sync/recordings/status
+  Check sync state (optional)    GET      /sync/status
+
+Full URLs (Production):
+  https://crm.natdemy.com/api/v1/call/sync/calls
+  https://crm.natdemy.com/api/v1/call/sync/recordings
+  https://crm.natdemy.com/api/v1/call/sync/recordings/status
+  https://crm.natdemy.com/api/v1/call/sync/status
+
+
+================================================================================
+11. APP VERSION & FORCE UPDATE API
+================================================================================
+
+Reads from settings table (group: call_app). No authentication required.
+Call on app launch before or after login.
+
+Endpoint:  GET or POST /app/version
+Auth:      None
+
+Query / body parameter:
+  app_version   (string, required)  Installed app version, e.g. "1.0.0"
+
+Example (GET):
+  GET /app/version?app_version=1.0.0
+
+Example (POST):
+  POST /app/version
+  Content-Type: application/json
+
+  {
+    "app_version": "1.0.0"
+  }
+
+Success Response (200):
+
+{
+  "success": true,
+  "data": {
+    "latest_version": "1.0.1",
+    "app_version": "1.0.0",
+    "update_required": true,
+    "force_update": false,
+    "download_url": "https://crm.natdemy.com/storage/call-app/call-tracker-1.0.1.apk"
+  }
+}
+
+Response fields:
+  latest_version    From settings.call_app_version
+  app_version       Version sent by the app
+  update_required   true when installed version is older than latest_version
+  force_update      true when settings.call_app_force_update = 1
+  download_url      APK path (call_app_apk_path) if uploaded, else call_app_download_url
+
+App logic:
+  1. On launch, call /app/version with installed version.
+  2. If update_required is false -> continue normally.
+  3. If update_required is true and force_update is true -> block app until updated.
+  4. If update_required is true and force_update is false -> show optional update dialog.
+  5. Open download_url when user taps Update.
+
+Admin UI:
+  CRM Admin -> Settings -> Call App Settings
+  - App Version: latest version string (semver, e.g. 1.0.1)
+  - Force Update: toggle mandatory update
+  - App Download Link: optional external URL
+  - Upload APK: optional; hosted file used as download_url when present
+
+
+================================================================================
+12. SETTINGS TABLE SEEDING (call_app group)
+================================================================================
+
+These rows must exist in the settings table for /app/version to work.
+
+Settings keys:
+Key                      Type      Default   Description
+---                      ----      -------   -----------
+call_app_version         text      1.0.0     Latest Call Tracker app version
+call_app_force_update    boolean   0         Force users to update (1 = block app)
+call_app_download_url    text      (empty)   External download URL (Play Store etc.)
+call_app_apk_path        file      (empty)   Uploaded APK path under storage/app/public
+
+Option A - Run full settings seeder:
+
+  php artisan db:seed --class=SettingsSeeder
+
+Option B - Run call-app-only migration (inserts if missing):
+
+  php artisan migrate --path=database/migrations/2026_06_19_105156_seed_call_app_settings.php
+
+Option C - Manual SQL (MySQL):
+
+INSERT INTO settings (`key`, `value`, `type`, `description`, `group`, `is_public`, `created_at`, `updated_at`)
+VALUES
+  ('call_app_version', '1.0.0', 'text', 'Latest Call Tracker app version', 'call_app', 0, NOW(), NOW()),
+  ('call_app_force_update', '0', 'boolean', 'Force users to update the Call Tracker app', 'call_app', 0, NOW(), NOW()),
+  ('call_app_download_url', '', 'text', 'External Call Tracker app download URL', 'call_app', 0, NOW(), NOW()),
+  ('call_app_apk_path', '', 'file', 'Uploaded Call Tracker APK file path', 'call_app', 0, NOW(), NOW())
+ON DUPLICATE KEY UPDATE updated_at = NOW();
+
+Enable force update (example):
+
+  UPDATE settings SET value = '1' WHERE `key` = 'call_app_force_update';
+
+Set latest version (example):
+
+  UPDATE settings SET value = '1.0.1' WHERE `key` = 'call_app_version';
+
+Force update + version bump together:
+
+  UPDATE settings SET value = '1.0.1' WHERE `key` = 'call_app_version';
+  UPDATE settings SET value = '1' WHERE `key` = 'call_app_force_update';
+
+
+================================================================================
+                              END OF DOCUMENT
+================================================================================
