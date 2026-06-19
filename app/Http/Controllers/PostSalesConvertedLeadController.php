@@ -735,9 +735,8 @@ class PostSalesConvertedLeadController extends Controller
 
             // Create invoice if postpone amount exists
             if ($postponeAmount > 0) {
-                $invoiceNumber = $this->generateInvoiceNumber();
                 Invoice::create([
-                    'invoice_number' => $invoiceNumber,
+                    'invoice_number' => Invoice::generateNextInvoiceNumber(),
                     'invoice_type' => 'batch_postpond',
                     'batch_id' => $newBatch->id,
                     'student_id' => $convertedLead->id,
@@ -778,30 +777,6 @@ class PostSalesConvertedLeadController extends Controller
                 'message' => 'An error occurred while processing the postponed batch. Please try again.'
             ], 500);
         }
-    }
-
-    /**
-     * Generate unique invoice number
-     */
-    private function generateInvoiceNumber()
-    {
-        $prefix = 'INV';
-        $year = now()->year;
-        $month = now()->format('m');
-        
-        // Get the last invoice number for this month
-        $lastInvoice = Invoice::where('invoice_number', 'like', $prefix . $year . $month . '%')
-            ->orderBy('invoice_number', 'desc')
-            ->first();
-        
-        if ($lastInvoice) {
-            $lastNumber = (int) substr($lastInvoice->invoice_number, -4);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
-        }
-        
-        return $prefix . $year . $month . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
     }
 
     /**

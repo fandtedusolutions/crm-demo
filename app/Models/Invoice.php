@@ -210,6 +210,25 @@ class Invoice extends Model
         return $query->where('student_id', $studentId);
     }
 
+    /**
+     * Next invoice number for the current month (INV + YYYYMM + 4-digit sequence).
+     * Includes soft-deleted rows because invoice_number remains unique in the database.
+     */
+    public static function generateNextInvoiceNumber(): string
+    {
+        $prefix = 'INV';
+        $year = now()->year;
+        $month = now()->format('m');
+        $pattern = $prefix . $year . $month;
+
+        $lastSequence = (int) static::withTrashed()
+            ->where('invoice_number', 'like', $pattern . '%')
+            ->selectRaw('MAX(CAST(SUBSTRING(invoice_number, -4) AS UNSIGNED)) as seq')
+            ->value('seq');
+
+        return $pattern . str_pad($lastSequence + 1, 4, '0', STR_PAD_LEFT);
+    }
+
     // Methods
     public function updateStatus()
     {

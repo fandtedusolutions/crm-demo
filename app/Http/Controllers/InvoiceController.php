@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 
 class InvoiceController extends Controller
 {
@@ -229,11 +230,7 @@ class InvoiceController extends Controller
                 );
             }
 
-            // Generate invoice number
-            $invoiceNumber = $this->generateInvoiceNumber();
-            
             $invoiceData = [
-                'invoice_number' => $invoiceNumber,
                 'invoice_type' => $request->invoice_type,
                 'student_id' => $studentId,
                 'total_amount' => $request->total_amount,
@@ -268,7 +265,7 @@ class InvoiceController extends Controller
                 $invoiceData['total_amount'] = $request->fine_amount;
             }
             
-            $invoice = Invoice::create($invoiceData);
+            $invoice = $this->createInvoiceWithUniqueNumber($invoiceData);
 
             // Handle batch transfer for batch_change invoices
             if ($request->invoice_type === 'batch_change' && $request->batch_id) {
@@ -491,11 +488,7 @@ class InvoiceController extends Controller
                 }
             }
             
-            // Generate invoice number
-            $invoiceNumber = $this->generateInvoiceNumber();
-            
-            $invoice = Invoice::create([
-                'invoice_number' => $invoiceNumber,
+            $invoice = $this->createInvoiceWithUniqueNumber([
                 'invoice_type' => 'course',
                 'course_id' => $courseId,
                 'batch_id' => $batchId,
@@ -518,27 +511,35 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Generate unique invoice number
+     * Create an invoice, retrying when the generated number collides (e.g. concurrent requests).
      */
-    private function generateInvoiceNumber()
+    private function createInvoiceWithUniqueNumber(array $invoiceData): Invoice
     {
-        $prefix = 'INV';
-        $year = now()->year;
-        $month = now()->format('m');
-        
-        // Get the last invoice number for this month
-        $lastInvoice = Invoice::where('invoice_number', 'like', $prefix . $year . $month . '%')
-            ->orderBy('invoice_number', 'desc')
-            ->first();
-        
-        if ($lastInvoice) {
-            $lastNumber = (int) substr($lastInvoice->invoice_number, -4);
-            $newNumber = $lastNumber + 1;
-        } else {
-            $newNumber = 1;
+        $maxAttempts = 5;
+        $lastException = null;
+
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            $invoiceData['invoice_number'] = Invoice::generateNextInvoiceNumber();
+
+            try {
+                return Invoice::create($invoiceData);
+            } catch (QueryException $e) {
+                if (! $this->isDuplicateInvoiceNumberException($e)) {
+                    throw $e;
+                }
+                $lastException = $e;
+            }
         }
-        
-        return $prefix . $year . $month . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+
+        throw $lastException ?? new \RuntimeException('Unable to generate a unique invoice number.');
+    }
+
+    private function isDuplicateInvoiceNumberException(QueryException $e): bool
+    {
+        $errorCode = (int) ($e->errorInfo[1] ?? 0);
+
+        return $errorCode === 1062
+            && str_contains($e->getMessage(), 'invoices_invoice_number_unique');
     }
 
     /**
@@ -613,8 +614,8 @@ class InvoiceController extends Controller
             $convertedLead->update(['batch_id' => $batchId]);
 
             // Update lead_details table via the lead relationship
-            if ($convertedLead->lead && $convertedLead->lead->leadDetails) {
-                $convertedLead->lead->leadDetails->update(['batch_id' => $batchId]);
+            if ($convertedLead->lead && $convertedLead->lead->studentDetails) {
+                $convertedLead->lead->studentDetails->update(['batch_id' => $batchId]);
             }
 
             DB::commit();
