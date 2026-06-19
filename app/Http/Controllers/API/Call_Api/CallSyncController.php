@@ -26,10 +26,13 @@ class CallSyncController extends Controller
                 'calls.*.device_call_id' => 'required|string|max:120',
                 'calls.*.phone_number' => 'required|string|max:30',
                 'calls.*.contact_name' => 'nullable|string|max:150',
-                'calls.*.call_type' => 'required|in:incoming,outgoing,missed,rejected,unknown',
+                'calls.*.call_type' => 'required|in:incoming,outgoing,missed,rejected,not_picked,unknown',
                 'calls.*.duration_seconds' => 'required|integer|min:0',
+                'calls.*.remarks' => 'nullable|string|max:255',
                 'calls.*.started_at_ms' => 'required|integer',
                 'calls.*.started_at' => 'nullable|date',
+                'calls.*.end_at_ms' => 'nullable|integer',
+                'calls.*.ended_at' => 'nullable|date',
                 'calls.*.has_recording' => 'nullable|boolean',
                 'calls.*.recording_duration_seconds' => 'nullable|integer|min:0',
                 'calls.*.recording_file_name' => 'nullable|string|max:255',
@@ -52,6 +55,22 @@ class CallSyncController extends Controller
                 ? Carbon::parse($item['started_at'])
                 : Carbon::createFromTimestampMs($item['started_at_ms']);
 
+            $endAtMs = $item['end_at_ms'] ?? null;
+            if ($endAtMs === null && !empty($item['duration_seconds'])) {
+                $endAtMs = $item['started_at_ms'] + ((int) $item['duration_seconds'] * 1000);
+            }
+
+            $endedAt = isset($item['ended_at'])
+                ? Carbon::parse($item['ended_at'])
+                : ($endAtMs ? Carbon::createFromTimestampMs($endAtMs) : null);
+
+            $remarks = $item['remarks'] ?? null;
+            if ($remarks === null && $item['call_type'] === 'not_picked') {
+                $remarks = 'Not Picked';
+            } elseif ($remarks === null && $item['call_type'] === 'outgoing' && (int) $item['duration_seconds'] === 0) {
+                $remarks = 'Not Picked';
+            }
+
             $call = CallAppLog::updateOrCreate(
                 [
                     'telecaller_id' => $telecallerId,
@@ -62,9 +81,12 @@ class CallSyncController extends Controller
                     'phone_number' => $item['phone_number'],
                     'contact_name' => $item['contact_name'] ?? null,
                     'call_type' => $item['call_type'],
+                    'remarks' => $remarks,
                     'duration_seconds' => $item['duration_seconds'],
                     'started_at_ms' => $item['started_at_ms'],
                     'started_at' => $startedAt,
+                    'end_at_ms' => $endAtMs,
+                    'ended_at' => $endedAt,
                     'has_recording' => (bool) ($item['has_recording'] ?? false),
                     'recording_duration_seconds' => $item['recording_duration_seconds'] ?? null,
                     'recording_file_name' => $item['recording_file_name'] ?? null,

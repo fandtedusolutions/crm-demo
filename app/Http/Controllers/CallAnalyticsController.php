@@ -66,6 +66,13 @@ class CallAnalyticsController extends Controller
         return $query;
     }
 
+    private function countConnectedCalls($query): int
+    {
+        return (int) (clone $query)
+            ->select(DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_count"))
+            ->value('connected_count');
+    }
+
     private function getTelecallers()
     {
         $activeIds = CallAppLog::query()->distinct()->pluck('telecaller_id');
@@ -94,6 +101,7 @@ class CallAnalyticsController extends Controller
         $statsQuery = clone $baseQuery;
         $stats = [
             'total_calls' => (clone $statsQuery)->count(),
+            'connected_calls' => $this->countConnectedCalls($statsQuery),
             'total_duration_seconds' => (int) (clone $statsQuery)->sum('duration_seconds'),
             'with_recording' => (clone $statsQuery)->where('has_recording', true)->count(),
             'recordings_uploaded' => (clone $statsQuery)->where('recording_uploaded', true)->count(),
@@ -122,12 +130,14 @@ class CallAnalyticsController extends Controller
         $query = CallAppLog::query();
         $this->applyFilters($query, $filters);
 
-        $rows = $query
+        $rows = (clone $query)
             ->select([
                 'telecaller_id',
                 DB::raw('COUNT(*) as total_calls'),
+                DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_calls"),
                 DB::raw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls"),
                 DB::raw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls"),
+                DB::raw("SUM(CASE WHEN call_type = 'not_picked' OR remarks = 'Not Picked' THEN 1 ELSE 0 END) as not_picked_calls"),
                 DB::raw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls"),
                 DB::raw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls"),
                 DB::raw('SUM(duration_seconds) as total_duration_seconds'),
@@ -144,8 +154,10 @@ class CallAnalyticsController extends Controller
 
         $grandTotals = [
             'total_calls' => $rows->sum('total_calls'),
+            'connected_calls' => $this->countConnectedCalls($query),
             'incoming_calls' => $rows->sum('incoming_calls'),
             'outgoing_calls' => $rows->sum('outgoing_calls'),
+            'not_picked_calls' => $rows->sum('not_picked_calls'),
             'missed_calls' => $rows->sum('missed_calls'),
             'rejected_calls' => $rows->sum('rejected_calls'),
             'total_duration_seconds' => (int) $rows->sum('total_duration_seconds'),

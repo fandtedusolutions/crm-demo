@@ -195,6 +195,8 @@ Request Body Example:
       "duration_seconds": 125,
       "started_at_ms": 1718700000000,
       "started_at": "2025-06-18T10:30:00+05:30",
+      "end_at_ms": 1718700125000,
+      "ended_at": "2025-06-18T10:32:05+05:30",
       "has_recording": true,
       "recording_duration_seconds": 120,
       "recording_file_name": "Call recording John.amr"
@@ -203,10 +205,13 @@ Request Body Example:
       "device_call_id": "1718700500000_918888888888",
       "phone_number": "918888888888",
       "contact_name": null,
-      "call_type": "missed",
+      "call_type": "not_picked",
+      "remarks": "Not Picked",
       "duration_seconds": 0,
       "started_at_ms": 1718700500000,
       "started_at": "2025-06-18T10:38:20+05:30",
+      "end_at_ms": 1718700500000,
+      "ended_at": "2025-06-18T10:38:20+05:30",
       "has_recording": false
     }
   ]
@@ -225,10 +230,13 @@ Field                        Type      Required   Description
 device_call_id               string    Yes        Dedupe key: {timestamp}_{phone_digits}
 phone_number                 string    Yes        Raw number from call log
 contact_name                 string    No         Contact name if available
-call_type                    string    Yes        incoming | outgoing | missed | rejected | unknown
-duration_seconds             integer   Yes        Call duration in seconds (0 for missed)
+call_type                    string    Yes        incoming | outgoing | missed | rejected | not_picked | unknown
+duration_seconds             integer   Yes        Call duration in seconds (0 for missed/not_picked)
+remarks                      string    No         Optional note. Auto-set to "Not Picked" when call_type is not_picked
 started_at_ms                integer   Yes        Call start time (epoch milliseconds)
-started_at                   string    No         ISO 8601 datetime
+started_at                   string    No         ISO 8601 call start datetime
+end_at_ms                    integer   No         Call end time (epoch milliseconds)
+ended_at                     string    No         ISO 8601 call end datetime
 has_recording                boolean   No         true if recording matched locally
 recording_duration_seconds   integer   No         Recording length in seconds
 recording_file_name          string    No         Original recording filename
@@ -242,6 +250,18 @@ call_type mapping (Flutter CallLog):
   CallType.outgoing (2)  -> "outgoing"
   CallType.missed   (3)  -> "missed"
   CallType.rejected (5)  -> "rejected"
+  Outgoing not answered  -> "not_picked"  (send from app when callee did not pick up)
+
+End time rules:
+  - Send end_at_ms and ended_at when available from the device/app
+  - If end_at_ms is omitted, server calculates:
+      end_at_ms = started_at_ms + (duration_seconds * 1000)
+  - If ended_at is omitted but end_at_ms is sent, server derives ended_at from end_at_ms
+
+not_picked rules:
+  - App should POST call_type = "not_picked" for outgoing calls with no answer
+  - remarks is optional; server auto-fills "Not Picked" if omitted
+  - duration_seconds should be 0 for not_picked calls
 
 Success Response (200):
 {
@@ -412,7 +432,11 @@ STEP 1 - Login and save token
 STEP 2 - Build call payload from device log
   For each CallLogEntry:
     device_call_id = "${entry.timestamp}_${phoneDigitsOnly(entry.number)}"
-    Map callType to string: incoming/outgoing/missed/rejected
+    Map callType to string: incoming / outgoing / missed / rejected / not_picked
+    Set started_at_ms from call start timestamp
+    Set end_at_ms from call end timestamp (or started_at_ms + duration_seconds * 1000)
+    Set ended_at as ISO string if available
+    For outgoing with 0 duration and no answer -> call_type = "not_picked"
 
 STEP 3 - Sync calls (batch)
   POST /sync/calls
@@ -468,10 +492,13 @@ call_app_logs
   - device_call_id
   - phone_number
   - contact_name
-  - call_type
+  - call_type             incoming | outgoing | missed | rejected | not_picked | unknown
+  - remarks               nullable, e.g. "Not Picked"
   - duration_seconds
   - started_at_ms
   - started_at
+  - end_at_ms
+  - ended_at
   - has_recording
   - recording_uploaded
   - recording_duration_seconds

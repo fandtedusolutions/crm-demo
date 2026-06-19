@@ -17,9 +17,12 @@ class CallAppLog extends Model
         'phone_number',
         'contact_name',
         'call_type',
+        'remarks',
         'duration_seconds',
         'started_at_ms',
         'started_at',
+        'end_at_ms',
+        'ended_at',
         'has_recording',
         'recording_uploaded',
         'recording_duration_seconds',
@@ -29,11 +32,13 @@ class CallAppLog extends Model
 
     protected $casts = [
         'started_at' => 'datetime',
+        'ended_at' => 'datetime',
         'has_recording' => 'boolean',
         'recording_uploaded' => 'boolean',
         'duration_seconds' => 'integer',
         'recording_duration_seconds' => 'integer',
         'started_at_ms' => 'integer',
+        'end_at_ms' => 'integer',
     ];
 
     public function telecaller(): BelongsTo
@@ -70,6 +75,9 @@ class CallAppLog extends Model
 
     public function getCallTypeLabelAttribute(): string
     {
-        return ucfirst($this->call_type ?? 'unknown');
+        return match ($this->call_type) {
+            'not_picked' => 'Not Picked',
+            default => ucfirst(str_replace('_', ' ', $this->call_type ?? 'unknown')),
+        };
     }
 }

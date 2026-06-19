@@ -126,8 +126,10 @@
                                 <th>#</th>
                                 <th>Telecaller</th>
                                 <th class="text-center">Total Calls</th>
+                                <th class="text-center">Connected Calls</th>
                                 <th class="text-center">Incoming</th>
                                 <th class="text-center">Outgoing</th>
+                                <th class="text-center">Not Picked</th>
                                 <th class="text-center">Missed</th>
                                 <th class="text-center">Rejected</th>
                                 <th class="text-center">Talk Time</th>
@@ -146,8 +148,10 @@
                                         <small class="text-muted">{{ $telecaller?->email }}</small>
                                     </td>
                                     <td class="text-center fw-semibold">{{ number_format($row->total_calls) }}</td>
+                                    <td class="text-center fw-semibold text-primary">{{ number_format($row->connected_calls) }}</td>
                                     <td class="text-center">{{ number_format($row->incoming_calls) }}</td>
                                     <td class="text-center">{{ number_format($row->outgoing_calls) }}</td>
+                                    <td class="text-center">{{ number_format($row->not_picked_calls) }}</td>
                                     <td class="text-center">{{ number_format($row->missed_calls) }}</td>
                                     <td class="text-center">{{ number_format($row->rejected_calls) }}</td>
                                     <td class="text-center">{{ \App\Models\CallAppLog::formatDuration((int) $row->total_duration_seconds) }}</td>
@@ -162,7 +166,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="11" class="text-center text-muted py-4">No report data found for the selected filters.</td>
+                                    <td colspan="13" class="text-center text-muted py-4">No report data found for the selected filters.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -171,8 +175,10 @@
                             <tr>
                                 <td colspan="2">Grand Total</td>
                                 <td class="text-center">{{ number_format($grandTotals['total_calls']) }}</td>
+                                <td class="text-center text-primary">{{ number_format($grandTotals['connected_calls']) }}</td>
                                 <td class="text-center">{{ number_format($grandTotals['incoming_calls']) }}</td>
                                 <td class="text-center">{{ number_format($grandTotals['outgoing_calls']) }}</td>
+                                <td class="text-center">{{ number_format($grandTotals['not_picked_calls']) }}</td>
                                 <td class="text-center">{{ number_format($grandTotals['missed_calls']) }}</td>
                                 <td class="text-center">{{ number_format($grandTotals['rejected_calls']) }}</td>
                                 <td class="text-center">{{ \App\Models\CallAppLog::formatDuration($grandTotals['total_duration_seconds']) }}</td>

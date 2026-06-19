@@ -49,11 +49,13 @@
     #callAnalyticsTable th:nth-child(4),  #callAnalyticsTable td:nth-child(4)  { min-width: 130px; }
     #callAnalyticsTable th:nth-child(5),  #callAnalyticsTable td:nth-child(5)  { min-width: 120px; }
     #callAnalyticsTable th:nth-child(6),  #callAnalyticsTable td:nth-child(6)  { min-width: 90px; }
-    #callAnalyticsTable th:nth-child(7),  #callAnalyticsTable td:nth-child(7)  { min-width: 80px; }
-    #callAnalyticsTable th:nth-child(8),  #callAnalyticsTable td:nth-child(8)  { min-width: 110px; }
-    #callAnalyticsTable th:nth-child(9),  #callAnalyticsTable td:nth-child(9)  { min-width: 280px; }
-    #callAnalyticsTable th:nth-child(10), #callAnalyticsTable td:nth-child(10) { min-width: 180px; }
-    #callAnalyticsTable th:nth-child(11), #callAnalyticsTable td:nth-child(11) { min-width: 80px; }
+    #callAnalyticsTable th:nth-child(7),  #callAnalyticsTable td:nth-child(7)  { min-width: 110px; }
+    #callAnalyticsTable th:nth-child(8),  #callAnalyticsTable td:nth-child(8)  { min-width: 80px; }
+    #callAnalyticsTable th:nth-child(9),  #callAnalyticsTable td:nth-child(9)  { min-width: 110px; }
+    #callAnalyticsTable th:nth-child(10), #callAnalyticsTable td:nth-child(10) { min-width: 110px; }
+    #callAnalyticsTable th:nth-child(11), #callAnalyticsTable td:nth-child(11) { min-width: 280px; }
+    #callAnalyticsTable th:nth-child(12), #callAnalyticsTable td:nth-child(12) { min-width: 180px; }
+    #callAnalyticsTable th:nth-child(13), #callAnalyticsTable td:nth-child(13) { min-width: 80px; }
 
     .call-type-badge {
         font-size: 11px;
@@ -100,15 +102,25 @@
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-4 col-xl">
         <div class="card call-stat-card">
             <div class="card-body">
                 <h6 class="text-muted mb-1">Total Calls</h6>
                 <h3 class="mb-0">{{ number_format($stats['total_calls']) }}</h3>
+                <small class="text-muted">All call attempts</small>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-4 col-xl">
+        <div class="card call-stat-card border-primary">
+            <div class="card-body">
+                <h6 class="text-muted mb-1">Connected Calls</h6>
+                <h3 class="mb-0 text-primary">{{ number_format($stats['connected_calls']) }}</h3>
+                <small class="text-muted">Unique contacts called</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
         <div class="card call-stat-card">
             <div class="card-body">
                 <h6 class="text-muted mb-1">Total Talk Time</h6>
@@ -116,7 +128,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-4 col-xl">
         <div class="card call-stat-card">
             <div class="card-body">
                 <h6 class="text-muted mb-1">With Recording</h6>
@@ -124,7 +136,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-4 col-xl">
         <div class="card call-stat-card">
             <div class="card-body">
                 <h6 class="text-muted mb-1">Uploaded Recordings</h6>
@@ -179,8 +191,8 @@
                                     <label class="form-label fw-semibold">Call Type</label>
                                     <select name="call_type" class="form-select form-select-sm">
                                         <option value="">All Types</option>
-                                        @foreach(['incoming', 'outgoing', 'missed', 'rejected', 'unknown'] as $type)
-                                            <option value="{{ $type }}" {{ $filters['call_type'] === $type ? 'selected' : '' }}>{{ ucfirst($type) }}</option>
+                                        @foreach(['incoming', 'outgoing', 'not_picked', 'missed', 'rejected', 'unknown'] as $type)
+                                            <option value="{{ $type }}" {{ $filters['call_type'] === $type ? 'selected' : '' }}>{{ $type === 'not_picked' ? 'Not Picked' : ucfirst($type) }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -213,8 +225,10 @@
                                 <th>Phone</th>
                                 <th>Contact</th>
                                 <th>Type</th>
+                                <th>Remarks</th>
                                 <th>Duration</th>
                                 <th>Call Date/Time</th>
+                                <th>End Date/Time</th>
                                 <th>Recording</th>
                                 <th>Device ID</th>
                                 <th>App Ver.</th>
@@ -240,6 +254,7 @@
                                             $badgeClass = match($call->call_type) {
                                                 'incoming' => 'bg-success',
                                                 'outgoing' => 'bg-primary',
+                                                'not_picked' => 'bg-info text-dark',
                                                 'missed' => 'bg-warning text-dark',
                                                 'rejected' => 'bg-danger',
                                                 default => 'bg-secondary',
@@ -247,10 +262,25 @@
                                         @endphp
                                         <span class="badge call-type-badge {{ $badgeClass }}">{{ $call->call_type_label }}</span>
                                     </td>
+                                    <td>
+                                        @if($call->remarks)
+                                            <span class="badge bg-warning text-dark">{{ $call->remarks }}</span>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
                                     <td>{{ $call->formatted_duration }}</td>
                                     <td data-order="{{ $call->started_at_ms }}">
                                         <div>{{ $call->started_at?->format('d-m-Y') }}</div>
                                         <small class="text-muted">{{ $call->started_at?->format('h:i A') }}</small>
+                                    </td>
+                                    <td data-order="{{ $call->end_at_ms ?? 0 }}">
+                                        @if($call->ended_at)
+                                            <div>{{ $call->ended_at->format('d-m-Y') }}</div>
+                                            <small class="text-muted">{{ $call->ended_at->format('h:i A') }}</small>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
                                     </td>
                                     <td>
                                         @include('admin.call-analytics.partials.recording-cell', ['call' => $call])
@@ -260,7 +290,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="11" class="text-center text-muted py-4">No call logs found for the selected filters.</td>
+                                    <td colspan="13" class="text-center text-muted py-4">No call logs found for the selected filters.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -325,9 +355,9 @@
                 searching: false,
                 ordering: true,
                 info: false,
-                order: [[7, 'desc']],
+                order: [[8, 'desc']],
                 columnDefs: [
-                    { orderable: false, targets: [0, 1, 8] }
+                    { orderable: false, targets: [0, 1, 10] }
                 ]
             });
         }

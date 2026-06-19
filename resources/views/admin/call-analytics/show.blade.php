@@ -50,12 +50,26 @@
                         <div><span class="badge bg-primary">{{ $call->call_type_label }}</span></div>
                     </div>
                     <div class="col-md-6">
+                        <label class="text-muted small">Remarks</label>
+                        <div>
+                            @if($call->remarks)
+                                <span class="badge bg-warning text-dark">{{ $call->remarks }}</span>
+                            @else
+                                -
+                            @endif
+                        </div>
+                    </div>
+                    <div class="col-md-6">
                         <label class="text-muted small">Duration</label>
                         <div>{{ $call->formatted_duration }}</div>
                     </div>
                     <div class="col-md-6">
                         <label class="text-muted small">Call Date/Time</label>
                         <div>{{ $call->started_at?->format('d-m-Y h:i A') }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">End Date/Time</label>
+                        <div>{{ $call->ended_at?->format('d-m-Y h:i A') ?: '-' }}</div>
                     </div>
                     <div class="col-md-6">
                         <label class="text-muted small">Device Call ID</label>
