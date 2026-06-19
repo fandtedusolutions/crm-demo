@@ -711,6 +711,11 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/call-app-settings', [App\Http\Controllers\CallAppSettingController::class, 'update'])->name('call-app.settings.update');
         Route::post('/call-app-settings/remove-apk', [App\Http\Controllers\CallAppSettingController::class, 'removeApk'])->name('call-app.settings.remove-apk');
 
+        // CRM App Settings
+        Route::get('/crm-app-settings', [App\Http\Controllers\CrmAppSettingController::class, 'index'])->name('crm-app.settings');
+        Route::post('/crm-app-settings', [App\Http\Controllers\CrmAppSettingController::class, 'update'])->name('crm-app.settings.update');
+        Route::post('/crm-app-settings/remove-apk', [App\Http\Controllers\CrmAppSettingController::class, 'removeApk'])->name('crm-app.settings.remove-apk');
+
         // Reports routes
         Route::get('/reports/leads', [App\Http\Controllers\LeadReportController::class, 'index'])->name('reports.leads');
         Route::get('/reports/lead-status', [App\Http\Controllers\LeadReportController::class, 'leadStatusReport'])->name('reports.lead-status');

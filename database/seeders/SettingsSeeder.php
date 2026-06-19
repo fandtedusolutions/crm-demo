@@ -247,6 +247,40 @@ class SettingsSeeder extends Seeder
                 'group' => 'call_app',
                 'is_public' => false,
             ],
+
+            // CRM mobile app settings (version, force update, download)
+            [
+                'key' => 'crm_app_version',
+                'value' => '1.0.0',
+                'type' => 'text',
+                'description' => 'Latest CRM mobile app version',
+                'group' => 'crm_app',
+                'is_public' => false,
+            ],
+            [
+                'key' => 'crm_app_force_update',
+                'value' => '0',
+                'type' => 'boolean',
+                'description' => 'Force users to update the CRM mobile app',
+                'group' => 'crm_app',
+                'is_public' => false,
+            ],
+            [
+                'key' => 'crm_app_download_url',
+                'value' => '',
+                'type' => 'text',
+                'description' => 'External CRM mobile app download URL',
+                'group' => 'crm_app',
+                'is_public' => false,
+            ],
+            [
+                'key' => 'crm_app_apk_path',
+                'value' => '',
+                'type' => 'file',
+                'description' => 'Uploaded CRM mobile app APK file path',
+                'group' => 'crm_app',
+                'is_public' => false,
+            ],
         ];
 
         foreach ($settings as $setting) {

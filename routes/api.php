@@ -15,6 +15,7 @@ use App\Http\Controllers\API\Call_Api\AuthController as CallApiAuthController;
 use App\Http\Controllers\API\Call_Api\ProfileController as CallApiProfileController;
 use App\Http\Controllers\API\Call_Api\CallSyncController as CallApiSyncController;
 use App\Http\Controllers\API\Call_Api\AppVersionController as CallApiAppVersionController;
+use App\Http\Controllers\API\AppVersionController as CrmAppVersionController;
 
 //Call App API Routes
 Route::prefix('v1/call')->group(function () {
@@ -36,6 +37,9 @@ Route::prefix('v1/call')->group(function () {
 
 // CRM API Routes
 Route::prefix('v1')->group(function () {
+    Route::get('app/version', [CrmAppVersionController::class, 'check']);
+    Route::post('app/version', [CrmAppVersionController::class, 'check']);
+
     Route::post('auth/login', [AuthController::class, 'login']);
 
     // Protected routes
