@@ -37,6 +37,7 @@ class CallAnalyticsController extends Controller
             'telecaller_id' => $request->get('telecaller_id'),
             'call_type' => $request->get('call_type'),
             'search' => $request->get('search'),
+            'metric' => $request->get('metric'),
         ];
     }
 
@@ -64,6 +65,108 @@ class CallAnalyticsController extends Controller
         }
 
         return $query;
+    }
+
+    private function applyMetricFilter($query, ?string $metric)
+    {
+        if (empty($metric) || $metric === 'connected' || $metric === 'total') {
+            return $query;
+        }
+
+        switch ($metric) {
+            case 'incoming':
+                $query->where('call_type', 'incoming');
+                break;
+            case 'outgoing':
+                $query->where('call_type', 'outgoing');
+                break;
+            case 'not_picked':
+                $query->where(function ($q) {
+                    $q->where('call_type', 'not_picked')
+                        ->orWhere('remarks', 'Not Picked');
+                });
+                break;
+            case 'missed':
+                $query->where('call_type', 'missed');
+                break;
+            case 'rejected':
+                $query->where('call_type', 'rejected');
+                break;
+        }
+
+        return $query;
+    }
+
+    private function getMetricLabel(?string $metric): string
+    {
+        return match ($metric) {
+            'connected' => 'Connected Contacts',
+            'incoming' => 'Incoming Calls',
+            'outgoing' => 'Outgoing Calls',
+            'not_picked' => 'Not Picked Calls',
+            'missed' => 'Missed Calls',
+            'rejected' => 'Rejected Calls',
+            'total' => 'All Calls',
+            default => 'Call Details',
+        };
+    }
+
+    private function getConnectedContacts($query, int $perPage = 25)
+    {
+        return (clone $query)
+            ->select([
+                DB::raw("REGEXP_REPLACE(phone_number, '[^0-9]', '') as normalized_phone"),
+                DB::raw('MAX(phone_number) as phone_number'),
+                DB::raw('MAX(contact_name) as contact_name'),
+                DB::raw('COUNT(*) as call_count'),
+                DB::raw('MAX(started_at) as last_called_at'),
+                DB::raw('SUM(duration_seconds) as total_duration_seconds'),
+                DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(telecaller_id ORDER BY started_at_ms DESC), ",", 1) as last_telecaller_id'),
+            ])
+            ->groupBy(DB::raw("REGEXP_REPLACE(phone_number, '[^0-9]', '')"))
+            ->orderByDesc('last_called_at')
+            ->paginate($perPage)
+            ->withQueryString();
+    }
+
+    private function getReportDetail(Request $request, array $filters): ?array
+    {
+        $metric = $filters['metric'] ?? null;
+        if (empty($metric)) {
+            return null;
+        }
+
+        $detailQuery = CallAppLog::query();
+        $this->applyFilters($detailQuery, $filters);
+
+        if ($metric === 'connected') {
+            $contacts = $this->getConnectedContacts($detailQuery);
+            $telecallerIds = $contacts->getCollection()
+                ->pluck('last_telecaller_id')
+                ->filter()
+                ->unique();
+            $telecallerNames = User::whereIn('id', $telecallerIds)
+                ->pluck('name', 'id');
+
+            return [
+                'type' => 'contacts',
+                'label' => $this->getMetricLabel($metric),
+                'records' => $contacts,
+                'telecaller_names' => $telecallerNames,
+            ];
+        }
+
+        $this->applyMetricFilter($detailQuery, $metric);
+
+        return [
+            'type' => 'calls',
+            'label' => $this->getMetricLabel($metric),
+            'records' => $detailQuery
+                ->with(['telecaller', 'recording'])
+                ->orderByDesc('started_at_ms')
+                ->paginate(25)
+                ->withQueryString(),
+        ];
     }
 
     private function countConnectedCalls($query): int
@@ -165,12 +268,19 @@ class CallAnalyticsController extends Controller
             'recordings_uploaded' => $rows->sum('recordings_uploaded'),
         ];
 
+        $detail = $this->getReportDetail($request, $filters);
+        $activeTelecaller = !empty($filters['telecaller_id'])
+            ? $telecallerMap->get((int) $filters['telecaller_id']) ?? User::find($filters['telecaller_id'])
+            : null;
+
         return view('admin.call-analytics.report', compact(
             'rows',
             'telecallerMap',
             'telecallers',
             'filters',
-            'grandTotals'
+            'grandTotals',
+            'detail',
+            'activeTelecaller'
         ));
     }
 

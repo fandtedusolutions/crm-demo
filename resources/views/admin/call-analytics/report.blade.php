@@ -37,6 +37,27 @@
         background: #f8f9ff;
     }
 
+    .report-metric-link {
+        color: inherit;
+        text-decoration: none;
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 4px;
+        transition: background-color .15s ease;
+    }
+
+    .report-metric-link:hover {
+        background: rgba(13, 110, 253, 0.12);
+        color: #0d6efd;
+        text-decoration: underline;
+    }
+
+    .report-metric-link.is-active {
+        background: rgba(13, 110, 253, 0.18);
+        color: #0d6efd;
+        font-weight: 700;
+    }
+
     @media print {
         .no-print { display: none !important; }
     }
@@ -44,6 +65,22 @@
 @endpush
 
 @section('content')
+@php
+    $reportMetricUrl = function (string $metric, ?int $telecallerId = null) use ($filters) {
+        $params = array_merge(
+            request()->only(['start_date', 'end_date', 'user_id', 'user_name', 'role_id', 'role_title']),
+            array_filter([
+                'telecaller_id' => $telecallerId ?? ($filters['telecaller_id'] ?? null),
+                'metric' => $metric,
+            ], fn ($value) => $value !== null && $value !== '')
+        );
+
+        return route('admin.call-analytics.report', $params);
+    };
+
+    $isActiveMetric = fn (string $metric, ?int $telecallerId = null) => ($filters['metric'] ?? null) === $metric
+        && (string) ($filters['telecaller_id'] ?? '') === (string) ($telecallerId ?? $filters['telecaller_id'] ?? '');
+@endphp
 <div class="page-header">
     <div class="page-block">
         <div class="row align-items-center">
@@ -147,13 +184,48 @@
                                         <div class="fw-semibold">{{ $telecaller?->name ?? 'Unknown' }}</div>
                                         <small class="text-muted">{{ $telecaller?->email }}</small>
                                     </td>
-                                    <td class="text-center fw-semibold">{{ number_format($row->total_calls) }}</td>
-                                    <td class="text-center fw-semibold text-primary">{{ number_format($row->connected_calls) }}</td>
-                                    <td class="text-center">{{ number_format($row->incoming_calls) }}</td>
-                                    <td class="text-center">{{ number_format($row->outgoing_calls) }}</td>
-                                    <td class="text-center">{{ number_format($row->not_picked_calls) }}</td>
-                                    <td class="text-center">{{ number_format($row->missed_calls) }}</td>
-                                    <td class="text-center">{{ number_format($row->rejected_calls) }}</td>
+                                    <td class="text-center fw-semibold">
+                                        <a href="{{ $reportMetricUrl('total', $row->telecaller_id) }}"
+                                           class="report-metric-link {{ $isActiveMetric('total', $row->telecaller_id) ? 'is-active' : '' }}">
+                                            {{ number_format($row->total_calls) }}
+                                        </a>
+                                    </td>
+                                    <td class="text-center fw-semibold text-primary">
+                                        <a href="{{ $reportMetricUrl('connected', $row->telecaller_id) }}"
+                                           class="report-metric-link {{ $isActiveMetric('connected', $row->telecaller_id) ? 'is-active' : '' }}">
+                                            {{ number_format($row->connected_calls) }}
+                                        </a>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ $reportMetricUrl('incoming', $row->telecaller_id) }}"
+                                           class="report-metric-link {{ $isActiveMetric('incoming', $row->telecaller_id) ? 'is-active' : '' }}">
+                                            {{ number_format($row->incoming_calls) }}
+                                        </a>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ $reportMetricUrl('outgoing', $row->telecaller_id) }}"
+                                           class="report-metric-link {{ $isActiveMetric('outgoing', $row->telecaller_id) ? 'is-active' : '' }}">
+                                            {{ number_format($row->outgoing_calls) }}
+                                        </a>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ $reportMetricUrl('not_picked', $row->telecaller_id) }}"
+                                           class="report-metric-link {{ $isActiveMetric('not_picked', $row->telecaller_id) ? 'is-active' : '' }}">
+                                            {{ number_format($row->not_picked_calls) }}
+                                        </a>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ $reportMetricUrl('missed', $row->telecaller_id) }}"
+                                           class="report-metric-link {{ $isActiveMetric('missed', $row->telecaller_id) ? 'is-active' : '' }}">
+                                            {{ number_format($row->missed_calls) }}
+                                        </a>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ $reportMetricUrl('rejected', $row->telecaller_id) }}"
+                                           class="report-metric-link {{ $isActiveMetric('rejected', $row->telecaller_id) ? 'is-active' : '' }}">
+                                            {{ number_format($row->rejected_calls) }}
+                                        </a>
+                                    </td>
                                     <td class="text-center">{{ \App\Models\CallAppLog::formatDuration((int) $row->total_duration_seconds) }}</td>
                                     <td class="text-center">{{ number_format($row->with_recording) }}</td>
                                     <td class="text-center">{{ number_format($row->recordings_uploaded) }}</td>
@@ -174,13 +246,48 @@
                         <tfoot class="table-light fw-semibold">
                             <tr>
                                 <td colspan="2">Grand Total</td>
-                                <td class="text-center">{{ number_format($grandTotals['total_calls']) }}</td>
-                                <td class="text-center text-primary">{{ number_format($grandTotals['connected_calls']) }}</td>
-                                <td class="text-center">{{ number_format($grandTotals['incoming_calls']) }}</td>
-                                <td class="text-center">{{ number_format($grandTotals['outgoing_calls']) }}</td>
-                                <td class="text-center">{{ number_format($grandTotals['not_picked_calls']) }}</td>
-                                <td class="text-center">{{ number_format($grandTotals['missed_calls']) }}</td>
-                                <td class="text-center">{{ number_format($grandTotals['rejected_calls']) }}</td>
+                                <td class="text-center">
+                                    <a href="{{ $reportMetricUrl('total') }}"
+                                       class="report-metric-link {{ $isActiveMetric('total') ? 'is-active' : '' }}">
+                                        {{ number_format($grandTotals['total_calls']) }}
+                                    </a>
+                                </td>
+                                <td class="text-center text-primary">
+                                    <a href="{{ $reportMetricUrl('connected') }}"
+                                       class="report-metric-link {{ $isActiveMetric('connected') ? 'is-active' : '' }}">
+                                        {{ number_format($grandTotals['connected_calls']) }}
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ $reportMetricUrl('incoming') }}"
+                                       class="report-metric-link {{ $isActiveMetric('incoming') ? 'is-active' : '' }}">
+                                        {{ number_format($grandTotals['incoming_calls']) }}
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ $reportMetricUrl('outgoing') }}"
+                                       class="report-metric-link {{ $isActiveMetric('outgoing') ? 'is-active' : '' }}">
+                                        {{ number_format($grandTotals['outgoing_calls']) }}
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ $reportMetricUrl('not_picked') }}"
+                                       class="report-metric-link {{ $isActiveMetric('not_picked') ? 'is-active' : '' }}">
+                                        {{ number_format($grandTotals['not_picked_calls']) }}
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ $reportMetricUrl('missed') }}"
+                                       class="report-metric-link {{ $isActiveMetric('missed') ? 'is-active' : '' }}">
+                                        {{ number_format($grandTotals['missed_calls']) }}
+                                    </a>
+                                </td>
+                                <td class="text-center">
+                                    <a href="{{ $reportMetricUrl('rejected') }}"
+                                       class="report-metric-link {{ $isActiveMetric('rejected') ? 'is-active' : '' }}">
+                                        {{ number_format($grandTotals['rejected_calls']) }}
+                                    </a>
+                                </td>
                                 <td class="text-center">{{ \App\Models\CallAppLog::formatDuration($grandTotals['total_duration_seconds']) }}</td>
                                 <td class="text-center">{{ number_format($grandTotals['with_recording']) }}</td>
                                 <td class="text-center">{{ number_format($grandTotals['recordings_uploaded']) }}</td>
@@ -190,8 +297,54 @@
                         @endif
                     </table>
                 </div>
+
+                @if(!empty($detail))
+                    @include('admin.call-analytics.partials.report-detail')
+                @endif
             </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function pauseOtherRecordings(activeId) {
+        document.querySelectorAll('.call-recording-player').forEach(function (player) {
+            if (player.id !== activeId) {
+                player.style.display = 'none';
+                const audio = player.querySelector('audio');
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+            }
+        });
+    }
+
+    $(document).on('click', '.js-toggle-recording', function () {
+        const targetId = $(this).data('target');
+        const player = document.getElementById(targetId);
+        if (!player) {
+            return;
+        }
+
+        const isHidden = player.style.display === 'none' || player.style.display === '';
+        pauseOtherRecordings(targetId);
+
+        if (isHidden) {
+            player.style.display = 'block';
+            const audio = player.querySelector('audio');
+            if (audio) {
+                audio.play().catch(function () {});
+            }
+        } else {
+            player.style.display = 'none';
+            const audio = player.querySelector('audio');
+            if (audio) {
+                audio.pause();
+            }
+        }
+    });
+</script>
+@endpush
