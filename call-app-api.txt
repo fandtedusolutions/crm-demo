@@ -8,7 +8,7 @@ Authentication:        Bearer Token (Laravel Sanctum)
 Content-Type (JSON):     application/json
 Accept:                  application/json
 
-All endpoints except /auth/login require:
+All endpoints except /auth/login and /app/version require:
   Authorization: Bearer {auth_token}
 
 
@@ -25,9 +25,10 @@ TABLE OF CONTENTS
      3.1 Sync Call Details (Bulk)
      3.2 Upload Call Recording
      3.3 Sync Status
-  4. Error Responses
-  5. Flutter App Integration Guide
-  6. Endpoint Summary
+  4. App Version & Force Update API
+  5. Error Responses
+  6. Flutter App Integration Guide
+  7. Endpoint Summary
 
 
 ================================================================================
@@ -35,10 +36,11 @@ TABLE OF CONTENTS
 ================================================================================
 
 1. User logs in          -> POST /auth/login        -> receive auth_token
-2. App reads call log    -> device call log + matched recordings
-3. Sync call details     -> POST /sync/calls        -> receive server_call_id
-4. Upload recordings     -> POST /sync/recordings   -> link audio to call
-5. Check sync state      -> GET  /sync/status       -> optional
+2. Check app update      -> GET  /app/version       -> compare version, force update
+3. App reads call log    -> device call log + matched recordings
+4. Sync call details     -> POST /sync/calls        -> receive server_call_id
+5. Upload recordings     -> POST /sync/recordings   -> link audio to call
+6. Check sync state      -> GET  /sync/status       -> optional
 
 Important rules:
   - Sync call details BEFORE uploading recordings
@@ -395,7 +397,65 @@ Response fields:
 
 
 ================================================================================
-4. ERROR RESPONSES
+4. APP VERSION & FORCE UPDATE API
+================================================================================
+
+Check whether the installed app needs an update. No authentication required.
+Call this on app launch (before or after login).
+
+Endpoint:  GET or POST /app/version
+Auth:      None
+
+Query / body parameter:
+  app_version   (string, required)  Installed app version, e.g. "1.0.0"
+
+Example request (GET):
+  GET /app/version?app_version=1.0.0
+
+Example request (POST):
+  POST /app/version
+  Content-Type: application/json
+
+  {
+    "app_version": "1.0.0"
+  }
+
+Success response (200):
+{
+  "success": true,
+  "data": {
+    "latest_version": "1.0.1",
+    "app_version": "1.0.0",
+    "update_required": true,
+    "force_update": false,
+    "download_url": "https://crm.natdemy.com/storage/call-app/call-tracker-1.0.1.apk"
+  }
+}
+
+Response fields:
+  latest_version    Latest version configured in admin (Settings > Call App Settings)
+  app_version       Version sent by the app
+  update_required   true when installed version is older than latest_version
+  force_update      true when admin enabled force update (block app until updated)
+  download_url      APK download link (uploaded APK takes priority over external URL)
+
+App logic:
+  1. On launch, call /app/version with installed version.
+  2. If update_required is false -> continue normally.
+  3. If update_required is true and force_update is true -> show blocking update screen.
+  4. If update_required is true and force_update is false -> show optional update dialog.
+  5. Open download_url in browser or download manager when user taps Update.
+
+Admin configuration:
+  CRM Admin -> Settings -> Call App Settings
+  - App Version: set latest version (semver, e.g. 1.0.1)
+  - Force Update: toggle mandatory update
+  - App Download Link: optional Play Store or external URL
+  - Upload APK: optional; hosted file is used as download_url when present
+
+
+================================================================================
+5. ERROR RESPONSES
 ================================================================================
 
 HTTP Status   When
@@ -422,8 +482,13 @@ Unauthorized format:
 
 
 ================================================================================
-5. FLUTTER APP INTEGRATION GUIDE
+6. FLUTTER APP INTEGRATION GUIDE
 ================================================================================
+
+STEP 0 - Check for app update (on launch)
+  GET /app/version?app_version={installedVersion}
+  If data.force_update && data.update_required -> block app, open data.download_url
+  If data.update_required && !data.force_update -> show optional update prompt
 
 STEP 1 - Login and save token
   POST /auth/login
@@ -460,19 +525,22 @@ Recommended sync timing:
 
 
 ================================================================================
-6. ENDPOINT SUMMARY
+7. ENDPOINT SUMMARY
 ================================================================================
 
   #   Purpose              Method   Endpoint
   --  -------------------  -------  ---------------------
-  1   Login                POST     /auth/login
-  2   Logout               POST     /auth/logout
-  3   Profile              GET      /profile
-  4   Sync call list       POST     /sync/calls
-  5   Upload recording     POST     /sync/recordings
-  6   Check sync status    GET      /sync/status
+  1   App version check    GET      /app/version
+  2   App version check    POST     /app/version
+  3   Login                POST     /auth/login
+  4   Logout               POST     /auth/logout
+  5   Profile              GET      /profile
+  6   Sync call list       POST     /sync/calls
+  7   Upload recording     POST     /sync/recordings
+  8   Check sync status    GET      /sync/status
 
 Full URLs (Production):
+  https://crm.natdemy.com/api/v1/call/app/version
   https://crm.natdemy.com/api/v1/call/auth/login
   https://crm.natdemy.com/api/v1/call/auth/logout
   https://crm.natdemy.com/api/v1/call/profile
@@ -515,6 +583,12 @@ call_app_recordings
   - file_size_bytes
   - duration_seconds
   - recorded_at_ms
+
+settings (call_app group - app version management)
+  - call_app_version        Latest app version string
+  - call_app_force_update   1 = force update enabled
+  - call_app_download_url   External download URL (optional)
+  - call_app_apk_path       Uploaded APK path under storage/app/public
 
 
 ================================================================================

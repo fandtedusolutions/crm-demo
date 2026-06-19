@@ -14,9 +14,13 @@ use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Call_Api\AuthController as CallApiAuthController;
 use App\Http\Controllers\API\Call_Api\ProfileController as CallApiProfileController;
 use App\Http\Controllers\API\Call_Api\CallSyncController as CallApiSyncController;
+use App\Http\Controllers\API\Call_Api\AppVersionController as CallApiAppVersionController;
 
 //Call App API Routes
 Route::prefix('v1/call')->group(function () {
+    Route::get('app/version', [CallApiAppVersionController::class, 'check']);
+    Route::post('app/version', [CallApiAppVersionController::class, 'check']);
+
     Route::post('auth/login', [CallApiAuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {

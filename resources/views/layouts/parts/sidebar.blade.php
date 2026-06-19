@@ -778,17 +778,27 @@
                 @endif
                 
                 {{-- Settings Section --}}
-                @if(has_permission('admin/website/settings') || has_permission('profile/index'))
+                @if(has_permission('admin/website/settings') || has_permission('admin/call-app/settings') || has_permission('profile/index'))
                 <li class="pc-item pc-caption">
                     <label>Settings</label>
                 </li>
                 @if(has_permission('admin/website/settings'))
-                <li class="pc-item {{ request()->routeIs('admin.website.settings.*') ? 'active' : '' }}">
+                <li class="pc-item {{ request()->routeIs('admin.website.settings*') ? 'active' : '' }}">
                     <a href="{{ route('admin.website.settings') }}" class="pc-link">
                         <span class="pc-micon">
                             <i class="ti ti-settings"></i>
                         </span>
                         <span class="pc-mtext">Website Settings</span>
+                    </a>
+                </li>
+                @endif
+                @if(has_permission('admin/call-app/settings'))
+                <li class="pc-item {{ request()->routeIs('admin.call-app.settings*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.call-app.settings') }}" class="pc-link">
+                        <span class="pc-micon">
+                            <i class="ti ti-device-mobile"></i>
+                        </span>
+                        <span class="pc-mtext">Call App Settings</span>
                     </a>
                 </li>
                 @endif

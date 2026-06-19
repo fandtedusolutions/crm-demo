@@ -706,6 +706,11 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/settings/update-bg-image', [App\Http\Controllers\SettingController::class, 'updateBackgroundImage'])->name('website.settings.update-bg-image');
         Route::post('/settings/remove-bg-image', [App\Http\Controllers\SettingController::class, 'removeBackgroundImage'])->name('website.settings.remove-bg-image');
 
+        // Call App Settings
+        Route::get('/call-app-settings', [App\Http\Controllers\CallAppSettingController::class, 'index'])->name('call-app.settings');
+        Route::post('/call-app-settings', [App\Http\Controllers\CallAppSettingController::class, 'update'])->name('call-app.settings.update');
+        Route::post('/call-app-settings/remove-apk', [App\Http\Controllers\CallAppSettingController::class, 'removeApk'])->name('call-app.settings.remove-apk');
+
         // Reports routes
         Route::get('/reports/leads', [App\Http\Controllers\LeadReportController::class, 'index'])->name('reports.leads');
         Route::get('/reports/lead-status', [App\Http\Controllers\LeadReportController::class, 'leadStatusReport'])->name('reports.lead-status');
