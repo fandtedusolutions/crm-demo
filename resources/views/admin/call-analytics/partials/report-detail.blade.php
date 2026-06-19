@@ -1,4 +1,6 @@
 @php
+    use App\Helpers\DateRangeHelper;
+
     $records = $detail['records'];
     $isContacts = $detail['type'] === 'contacts';
 @endphp
@@ -13,10 +15,11 @@
                 @else
                     All telecallers
                 @endif
-                &middot; {{ $filters['start_date'] }} to {{ $filters['end_date'] }}
+                &middot; {{ DateRangeHelper::options()[$filters['date_range']] ?? 'Custom' }}
+                ({{ $filters['start_date'] }} to {{ $filters['end_date'] }})
             </small>
         </div>
-        <a href="{{ route('admin.call-analytics.report', request()->only(['start_date', 'end_date', 'user_id', 'user_name', 'role_id', 'role_title'])) }}"
+        <a href="{{ route('admin.call-analytics.report', array_merge(DateRangeHelper::queryParams($filters), request()->only(['user_id', 'user_name', 'role_id', 'role_title']))) }}"
            class="btn btn-outline-secondary btn-sm no-print">
             <i class="ti ti-x"></i> Close List
         </a>

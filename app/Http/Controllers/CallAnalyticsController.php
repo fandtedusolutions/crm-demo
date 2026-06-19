@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\RoleHelper;
+use App\Helpers\DateRangeHelper;
 use App\Models\CallAppLog;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -31,14 +31,22 @@ class CallAnalyticsController extends Controller
 
     private function getFilterParams(Request $request): array
     {
-        return [
-            'start_date' => $request->get('start_date', Carbon::now()->subDays(30)->format('Y-m-d')),
-            'end_date' => $request->get('end_date', Carbon::now()->format('Y-m-d')),
+        $dateRange = $request->get('date_range');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        if (!$dateRange && ($startDate || $endDate)) {
+            $dateRange = DateRangeHelper::PRESET_CUSTOM;
+        }
+
+        $dates = DateRangeHelper::resolve($dateRange, $startDate, $endDate);
+
+        return array_merge($dates, [
             'telecaller_id' => $request->get('telecaller_id'),
             'call_type' => $request->get('call_type'),
             'search' => $request->get('search'),
             'metric' => $request->get('metric'),
-        ];
+        ]);
     }
 
     private function applyFilters($query, array $filters)

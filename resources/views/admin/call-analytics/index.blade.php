@@ -168,14 +168,7 @@
                     <div class="card-body bg-light">
                         <form method="GET" action="{{ route('admin.call-analytics.index') }}">
                             <div class="row g-3 align-items-end">
-                                <div class="col-md-2">
-                                    <label class="form-label fw-semibold">From Date</label>
-                                    <input type="date" name="start_date" class="form-control form-control-sm" value="{{ $filters['start_date'] }}">
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label fw-semibold">To Date</label>
-                                    <input type="date" name="end_date" class="form-control form-control-sm" value="{{ $filters['end_date'] }}">
-                                </div>
+                                @include('admin.call-analytics.partials.date-range-filter')
                                 <div class="col-md-2">
                                     <label class="form-label fw-semibold">Telecaller</label>
                                     <select name="telecaller_id" class="form-select form-select-sm">

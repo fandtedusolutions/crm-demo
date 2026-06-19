@@ -66,9 +66,12 @@
 
 @section('content')
 @php
+    use App\Helpers\DateRangeHelper;
+
     $reportMetricUrl = function (string $metric, ?int $telecallerId = null) use ($filters) {
         $params = array_merge(
-            request()->only(['start_date', 'end_date', 'user_id', 'user_name', 'role_id', 'role_title']),
+            DateRangeHelper::queryParams($filters),
+            request()->only(['user_id', 'user_name', 'role_id', 'role_title']),
             array_filter([
                 'telecaller_id' => $telecallerId ?? ($filters['telecaller_id'] ?? null),
                 'metric' => $metric,
@@ -121,15 +124,11 @@
                 <div class="card border-0 shadow-sm mb-4 no-print">
                     <div class="card-body bg-light">
                         <form method="GET" action="{{ route('admin.call-analytics.report') }}">
+                            @if(!empty($filters['metric']))
+                                <input type="hidden" name="metric" value="{{ $filters['metric'] }}">
+                            @endif
                             <div class="row g-3 align-items-end">
-                                <div class="col-md-2">
-                                    <label class="form-label fw-semibold">From Date</label>
-                                    <input type="date" name="start_date" class="form-control form-control-sm" value="{{ $filters['start_date'] }}">
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label fw-semibold">To Date</label>
-                                    <input type="date" name="end_date" class="form-control form-control-sm" value="{{ $filters['end_date'] }}">
-                                </div>
+                                @include('admin.call-analytics.partials.date-range-filter')
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold">Telecaller</label>
                                     <select name="telecaller_id" class="form-select form-select-sm">
