@@ -165,31 +165,14 @@ class CallSyncController extends Controller
 
         $validator->after(function ($validator) use ($request) {
             $file = $request->file('recording');
-            if (!$file) {
+            if (!$file || $this->isAllowedRecordingUpload($file, $request->input('original_file_name'))) {
                 return;
             }
 
-            $allowedMimes = [
-                'audio/amr',
-                'audio/mpeg',
-                'audio/mp4',
-                'audio/x-m4a',
-                'audio/aac',
-                'audio/x-aac',
-                'audio/aacp',
-                'audio/wav',
-                'audio/x-wav',
-                'audio/3gpp',
-                'audio/3gp',
-                'application/octet-stream',
-            ];
-            $mime = $file->getMimeType();
-            $extension = strtolower($file->getClientOriginalExtension());
-            $allowedExtensions = ['amr', 'm4a', 'mp3', 'wav', '3gp', 'aac'];
-
-            if (!in_array($mime, $allowedMimes, true) && !in_array($extension, $allowedExtensions, true)) {
-                $validator->errors()->add('recording', 'Invalid audio file type. Allowed: amr, m4a, mp3, wav, 3gp, aac');
-            }
+            $validator->errors()->add(
+                'recording',
+                'Invalid audio file type. Allowed: amr, m4a, mp3, wav, 3gp, aac'
+            );
         });
 
         if ($validator->fails()) {
@@ -202,7 +185,13 @@ class CallSyncController extends Controller
 
         $validated = $validator->validated();
         $file = $request->file('recording');
-        $path = $file->store("call-recordings/{$telecallerId}/{$call->id}", 'public');
+        $extension = $this->resolveRecordingExtension($file, $validated['original_file_name'] ?? null) ?? 'bin';
+        $storedFileName = 'recording.' . $extension;
+        $path = $file->storeAs(
+            "call-recordings/{$telecallerId}/{$call->id}",
+            $storedFileName,
+            'public'
+        );
 
         $recording = CallAppRecording::updateOrCreate(
             ['call_app_log_id' => $call->id],
@@ -210,7 +199,10 @@ class CallSyncController extends Controller
                 'telecaller_id' => $telecallerId,
                 'file_path' => $path,
                 'file_name' => $validated['original_file_name'] ?? $file->getClientOriginalName(),
-                'mime_type' => $file->getMimeType() ?? 'application/octet-stream',
+                'mime_type' => $this->resolveRecordingMimeType(
+                    $file,
+                    $validated['original_file_name'] ?? null
+                ),
                 'file_size_bytes' => $validated['file_size_bytes'] ?? $file->getSize(),
                 'duration_seconds' => $validated['duration_seconds'] ?? 0,
                 'recorded_at_ms' => $validated['recorded_at_ms'] ?? null,
@@ -383,5 +375,83 @@ class CallSyncController extends Controller
                 'skipped' => $skipped,
             ],
         ]);
+    }
+
+    private function isAllowedRecordingUpload($file, ?string $originalFileName = null): bool
+    {
+        $extension = $this->resolveRecordingExtension($file, $originalFileName);
+        if ($extension && in_array($extension, $this->allowedRecordingExtensions(), true)) {
+            return true;
+        }
+
+        $mime = strtolower((string) $file->getMimeType());
+
+        return in_array($mime, $this->allowedRecordingMimes(), true)
+            || str_starts_with($mime, 'audio/');
+    }
+
+    private function resolveRecordingExtension($file, ?string $originalFileName = null): ?string
+    {
+        foreach ([
+            $file->getClientOriginalExtension(),
+            pathinfo((string) $file->getClientOriginalName(), PATHINFO_EXTENSION),
+            pathinfo((string) $originalFileName, PATHINFO_EXTENSION),
+        ] as $candidate) {
+            $extension = strtolower(trim((string) $candidate));
+            if ($extension !== '') {
+                return $extension;
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveRecordingMimeType($file, ?string $originalFileName = null): string
+    {
+        $mime = strtolower((string) ($file->getMimeType() ?? ''));
+        if ($mime !== '' && $mime !== 'application/octet-stream') {
+            return $mime;
+        }
+
+        return match ($this->resolveRecordingExtension($file, $originalFileName)) {
+            'aac' => 'audio/aac',
+            'm4a' => 'audio/mp4',
+            'mp3' => 'audio/mpeg',
+            'wav' => 'audio/wav',
+            'amr' => 'audio/amr',
+            '3gp' => 'audio/3gpp',
+            default => $mime !== '' ? $mime : 'application/octet-stream',
+        };
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function allowedRecordingExtensions(): array
+    {
+        return ['amr', 'm4a', 'mp3', 'wav', '3gp', 'aac'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function allowedRecordingMimes(): array
+    {
+        return [
+            'audio/amr',
+            'audio/mpeg',
+            'audio/mp4',
+            'audio/x-m4a',
+            'audio/mp4a-latm',
+            'audio/aac',
+            'audio/x-aac',
+            'audio/aacp',
+            'audio/wav',
+            'audio/x-wav',
+            'audio/3gpp',
+            'audio/3gp',
+            'video/mp4',
+            'application/octet-stream',
+        ];
     }
 }
