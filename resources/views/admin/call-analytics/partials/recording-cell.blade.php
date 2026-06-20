@@ -14,8 +14,8 @@
             </a>
         </div>
         <div id="call-recording-{{ $call->id }}" class="call-recording-player mt-2" style="display: none;">
-            <audio controls preload="none" class="w-100" style="min-width: 220px; max-width: 300px;">
-                <source src="{{ $call->recording->file_url }}" type="{{ $call->recording->mime_type }}">
+            <audio controls preload="metadata" class="w-100" style="min-width: 220px; max-width: 300px;">
+                <source src="{{ $call->recording->stream_url }}" type="{{ $call->recording->playbackMimeType() }}">
                 Your browser does not support the audio element.
             </audio>
             <small class="text-muted d-block mt-1">{{ $call->recording->file_name }}</small>

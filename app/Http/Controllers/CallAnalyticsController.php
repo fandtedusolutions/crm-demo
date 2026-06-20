@@ -340,6 +340,38 @@ class CallAnalyticsController extends Controller
         return view('admin.call-analytics.show', compact('call'));
     }
 
+    public function streamRecording(CallAppLog $call)
+    {
+        $this->denyUnlessAllowed();
+
+        $recording = $call->recording;
+
+        if (!$recording || !Storage::disk('public')->exists($recording->file_path)) {
+            abort(404, 'Recording not found.');
+        }
+
+        $playbackPath = $recording->playbackStoragePath();
+        if (!$playbackPath || !Storage::disk('public')->exists($playbackPath)) {
+            abort(404, 'Recording not found.');
+        }
+
+        $fileName = $recording->file_name ?: basename($playbackPath);
+        $mimeType = str_ends_with(strtolower($playbackPath), '.m4a')
+            ? 'audio/mp4'
+            : $recording->playbackMimeType();
+
+        return Storage::disk('public')->response(
+            $playbackPath,
+            $fileName,
+            [
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="' . str_replace('"', '', $fileName) . '"',
+                'Accept-Ranges' => 'bytes',
+                'Cache-Control' => 'private, max-age=3600',
+            ]
+        );
+    }
+
     public function downloadRecording(CallAppLog $call)
     {
         $this->denyUnlessAllowed();

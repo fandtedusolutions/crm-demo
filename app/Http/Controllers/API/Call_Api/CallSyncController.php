@@ -209,6 +209,11 @@ class CallSyncController extends Controller
             ]
         );
 
+        if (str_ends_with(strtolower($path), '.aac')) {
+            $recording->playbackStoragePath();
+            $recording->refresh();
+        }
+
         $call->update([
             'has_recording' => true,
             'recording_uploaded' => true,

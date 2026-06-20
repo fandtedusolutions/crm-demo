@@ -113,10 +113,10 @@
                     </div>
                     <div class="mb-3">
                         <label class="text-muted small">MIME Type</label>
-                        <div>{{ $call->recording->mime_type }}</div>
+                        <div>{{ $call->recording->playbackMimeType() }}</div>
                     </div>
                     <audio controls preload="metadata" class="w-100 mb-3">
-                        <source src="{{ $call->recording->file_url }}" type="{{ $call->recording->mime_type }}">
+                        <source src="{{ $call->recording->stream_url }}" type="{{ $call->recording->playbackMimeType() }}">
                         Your browser does not support the audio element.
                     </audio>
                     <a href="{{ route('admin.call-analytics.recording.download', $call->id) }}" class="btn btn-outline-primary btn-sm w-100">
