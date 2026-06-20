@@ -39,11 +39,12 @@ class CallAppRecording extends Model
 
     public function getFileUrlAttribute(): ?string
     {
-        if (!$this->file_path) {
+        $path = $this->storedStoragePath();
+        if (!$path) {
             return null;
         }
 
-        return Storage::disk('public')->url($this->file_path);
+        return Storage::disk('public')->url($path);
     }
 
     public function getStreamUrlAttribute(): ?string
@@ -53,6 +54,30 @@ class CallAppRecording extends Model
         }
 
         return route('admin.call-analytics.recording.stream', $this->call_app_log_id);
+    }
+
+    /**
+     * Resolve the uploaded file path on disk (original API upload).
+     */
+    public function storedStoragePath(): ?string
+    {
+        if (!$this->file_path) {
+            return null;
+        }
+
+        $candidates = array_values(array_unique(array_filter([
+            $this->file_path,
+            preg_replace('/\.m4a$/i', '.aac', $this->file_path),
+            preg_replace('/\.aac$/i', '.m4a', $this->file_path),
+        ])));
+
+        foreach ($candidates as $path) {
+            if (Storage::disk('public')->exists($path)) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 
     public function playbackMimeType(): string
@@ -69,7 +94,7 @@ class CallAppRecording extends Model
             return 'audio/mp4';
         }
 
-        $detected = $this->detectMimeTypeFromFileHeader($path);
+        $detected = $this->detectMimeTypeFromFileHeader($this->storedStoragePath());
 
         if ($detected) {
             return $detected;
@@ -87,30 +112,27 @@ class CallAppRecording extends Model
     }
 
     /**
-     * Prefer an MP4/M4A version for browser playback when the upload is raw AAC.
+     * Path for inline browser playback. Keeps the original upload intact for download.
      */
     public function playbackStoragePath(): string
     {
-        if (!$this->file_path) {
-            return '';
+        $storedPath = $this->storedStoragePath();
+        if (!$storedPath) {
+            return (string) $this->file_path;
         }
 
-        if (!str_ends_with(strtolower($this->file_path), '.aac')) {
-            return $this->file_path;
+        if (!str_ends_with(strtolower($storedPath), '.aac')) {
+            return $storedPath;
         }
 
         $disk = Storage::disk('public');
-        $m4aPath = preg_replace('/\.aac$/i', '.m4a', $this->file_path);
+        $m4aPath = preg_replace('/\.aac$/i', '.m4a', $storedPath);
 
         if ($disk->exists($m4aPath)) {
             return $m4aPath;
         }
 
-        if (!$disk->exists($this->file_path)) {
-            return $this->file_path;
-        }
-
-        $input = $disk->path($this->file_path);
+        $input = $disk->path($storedPath);
         $output = $disk->path($m4aPath);
 
         foreach (['ffmpeg', '/usr/bin/ffmpeg'] as $ffmpeg) {
@@ -124,23 +146,11 @@ class CallAppRecording extends Model
             @exec($command . ' 2>/dev/null', $ignored, $exitCode);
 
             if ($exitCode === 0 && is_file($output) && filesize($output) > 0) {
-                $this->update([
-                    'file_path' => $m4aPath,
-                    'mime_type' => 'audio/mp4',
-                    'file_name' => preg_replace(
-                        '/\.aac$/i',
-                        '.m4a',
-                        (string) ($this->file_name ?: basename($m4aPath))
-                    ),
-                    'file_size_bytes' => filesize($output),
-                ]);
-                $disk->delete($this->file_path);
-
                 return $m4aPath;
             }
         }
 
-        return $this->file_path;
+        return $storedPath;
     }
 
     private function detectMimeTypeFromFileHeader(?string $path = null): ?string

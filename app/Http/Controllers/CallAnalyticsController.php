@@ -346,7 +346,7 @@ class CallAnalyticsController extends Controller
 
         $recording = $call->recording;
 
-        if (!$recording || !Storage::disk('public')->exists($recording->file_path)) {
+        if (!$recording) {
             abort(404, 'Recording not found.');
         }
 
@@ -377,14 +377,14 @@ class CallAnalyticsController extends Controller
         $this->denyUnlessAllowed();
 
         $recording = $call->recording;
+        $storedPath = $recording?->storedStoragePath();
 
-        if (!$recording || !Storage::disk('public')->exists($recording->file_path)) {
+        if (!$storedPath) {
             abort(404, 'Recording not found.');
         }
 
-        return Storage::disk('public')->download(
-            $recording->file_path,
-            $recording->file_name ?: basename($recording->file_path)
-        );
+        $downloadName = $recording->file_name ?: basename($storedPath);
+
+        return Storage::disk('public')->download($storedPath, $downloadName);
     }
 }

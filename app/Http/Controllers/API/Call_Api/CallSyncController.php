@@ -193,6 +193,13 @@ class CallSyncController extends Controller
             'public'
         );
 
+        if (!$path || !Storage::disk('public')->exists($path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to store recording file on server',
+            ], 500);
+        }
+
         $recording = CallAppRecording::updateOrCreate(
             ['call_app_log_id' => $call->id],
             [
@@ -208,11 +215,6 @@ class CallSyncController extends Controller
                 'recorded_at_ms' => $validated['recorded_at_ms'] ?? null,
             ]
         );
-
-        if (str_ends_with(strtolower($path), '.aac')) {
-            $recording->playbackStoragePath();
-            $recording->refresh();
-        }
 
         $call->update([
             'has_recording' => true,
@@ -260,9 +262,9 @@ class CallSyncController extends Controller
                 continue;
             }
 
-            $uploaded = (bool) $call->recording_uploaded;
+            $storedPath = $recording?->storedStoragePath();
+            $uploaded = (bool) $call->recording_uploaded && $storedPath !== null;
             $hasRecording = (bool) $call->has_recording;
-            $recording = $call->recording;
 
             $recordings[] = [
                 'device_call_id' => $call->device_call_id,
@@ -270,9 +272,7 @@ class CallSyncController extends Controller
                 'has_recording' => $hasRecording,
                 'recording_uploaded' => $uploaded,
                 'upload_required' => $hasRecording && !$uploaded,
-                'recording_url' => $recording
-                    ? Storage::disk('public')->url($recording->file_path)
-                    : null,
+                'recording_url' => $storedPath ? $recording->file_url : null,
                 'recording_id' => $recording?->id,
             ];
         }
@@ -348,7 +348,7 @@ class CallSyncController extends Controller
     {
         $recording = CallAppRecording::where('call_app_log_id', $call->id)->first();
 
-        if (!$recording || !Storage::disk('public')->exists($recording->file_path)) {
+        if (!$recording || !$recording->storedStoragePath()) {
             return null;
         }
 
@@ -373,7 +373,7 @@ class CallSyncController extends Controller
                 'server_call_id' => $call->id,
                 'device_call_id' => $call->device_call_id,
                 'recording_id' => $recording->id,
-                'recording_url' => Storage::disk('public')->url($recording->file_path),
+                'recording_url' => $recording->file_url,
                 'duration_seconds' => $recording->duration_seconds,
                 'file_size_bytes' => $recording->file_size_bytes,
                 'recording_uploaded' => true,
