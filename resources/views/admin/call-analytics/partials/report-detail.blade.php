@@ -31,6 +31,7 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
+                            <th class="no-print">Actions</th>
                             <th>Phone</th>
                             <th>Contact Name</th>
                             @if(empty($filters['telecaller_id']))
@@ -39,12 +40,22 @@
                             <th class="text-center">Call Count</th>
                             <th class="text-center">Talk Time</th>
                             <th>Last Called</th>
+                            <th>Recording</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($records as $index => $contact)
                             <tr>
                                 <td>{{ $records->firstItem() + $index }}</td>
+                                <td class="no-print">
+                                    @if($contact->last_call_id)
+                                        <a href="{{ route('admin.call-analytics.show', $contact->last_call_id) }}" class="btn btn-outline-primary btn-sm" title="View latest call">
+                                            <i class="ti ti-eye"></i>
+                                        </a>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td class="fw-semibold">{{ $contact->phone_number }}</td>
                                 <td>{{ $contact->contact_name ?: '-' }}</td>
                                 @if(empty($filters['telecaller_id']))
@@ -60,10 +71,17 @@
                                         -
                                     @endif
                                 </td>
+                                <td>
+                                    @if($contact->recording_call)
+                                        @include('admin.call-analytics.partials.recording-cell', ['call' => $contact->recording_call])
+                                    @else
+                                        <span class="badge bg-light text-dark border">None</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ empty($filters['telecaller_id']) ? 7 : 6 }}" class="text-center text-muted py-4">
+                                <td colspan="{{ empty($filters['telecaller_id']) ? 9 : 8 }}" class="text-center text-muted py-4">
                                     No connected contacts found.
                                 </td>
                             </tr>

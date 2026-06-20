@@ -117,13 +117,45 @@ class CallSyncController extends Controller
     }
 
     /**
-     * Upload a call recording audio file linked to a synced call.
+     * Upload a call recording when it is not already stored on the server.
      */
     public function uploadRecording(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $idValidator = Validator::make($request->all(), [
             'device_call_id' => 'nullable|string|max:120',
             'server_call_id' => 'nullable|integer',
+        ]);
+
+        $idValidator->after(function ($validator) use ($request) {
+            if (!$request->filled('device_call_id') && !$request->filled('server_call_id')) {
+                $validator->errors()->add('device_call_id', 'device_call_id or server_call_id is required');
+            }
+        });
+
+        if ($idValidator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $idValidator->errors(),
+            ], 422);
+        }
+
+        $telecallerId = $request->user()->id;
+        $call = $this->findCallForRecordingUpload($request, $telecallerId);
+
+        if (!$call) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Call record not found',
+            ], 404);
+        }
+
+        $existingRecording = $this->findExistingServerRecording($call);
+        if ($existingRecording) {
+            return $this->recordingUploadResponse($call, $existingRecording, skipped: true);
+        }
+
+        $validator = Validator::make($request->all(), [
             'recording' => 'required|file|max:25600',
             'duration_seconds' => 'nullable|integer|min:0',
             'recorded_at_ms' => 'nullable|integer',
@@ -132,30 +164,31 @@ class CallSyncController extends Controller
         ]);
 
         $validator->after(function ($validator) use ($request) {
-            if (!$request->filled('device_call_id') && !$request->filled('server_call_id')) {
-                $validator->errors()->add('device_call_id', 'device_call_id or server_call_id is required');
+            $file = $request->file('recording');
+            if (!$file) {
+                return;
             }
 
-            $file = $request->file('recording');
-            if ($file) {
-                $allowedMimes = [
-                    'audio/amr',
-                    'audio/mpeg',
-                    'audio/mp4',
-                    'audio/x-m4a',
-                    'audio/wav',
-                    'audio/x-wav',
-                    'audio/3gpp',
-                    'audio/3gp',
-                    'application/octet-stream',
-                ];
-                $mime = $file->getMimeType();
-                $extension = strtolower($file->getClientOriginalExtension());
-                $allowedExtensions = ['amr', 'm4a', 'mp3', 'wav', '3gp'];
+            $allowedMimes = [
+                'audio/amr',
+                'audio/mpeg',
+                'audio/mp4',
+                'audio/x-m4a',
+                'audio/aac',
+                'audio/x-aac',
+                'audio/aacp',
+                'audio/wav',
+                'audio/x-wav',
+                'audio/3gpp',
+                'audio/3gp',
+                'application/octet-stream',
+            ];
+            $mime = $file->getMimeType();
+            $extension = strtolower($file->getClientOriginalExtension());
+            $allowedExtensions = ['amr', 'm4a', 'mp3', 'wav', '3gp', 'aac'];
 
-                if (!in_array($mime, $allowedMimes, true) && !in_array($extension, $allowedExtensions, true)) {
-                    $validator->errors()->add('recording', 'Invalid audio file type. Allowed: amr, m4a, mp3, wav, 3gp');
-                }
+            if (!in_array($mime, $allowedMimes, true) && !in_array($extension, $allowedExtensions, true)) {
+                $validator->errors()->add('recording', 'Invalid audio file type. Allowed: amr, m4a, mp3, wav, 3gp, aac');
             }
         });
 
@@ -168,32 +201,7 @@ class CallSyncController extends Controller
         }
 
         $validated = $validator->validated();
-        $telecallerId = $request->user()->id;
-
-        $callQuery = CallAppLog::where('telecaller_id', $telecallerId);
-
-        if (!empty($validated['server_call_id'])) {
-            $callQuery->where('id', $validated['server_call_id']);
-        } else {
-            $callQuery->where('device_call_id', $validated['device_call_id']);
-        }
-
-        $call = $callQuery->first();
-
-        if (!$call) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Call record not found',
-            ], 404);
-        }
-
         $file = $request->file('recording');
-        $existingRecording = CallAppRecording::where('call_app_log_id', $call->id)->first();
-
-        if ($existingRecording && Storage::disk('public')->exists($existingRecording->file_path)) {
-            Storage::disk('public')->delete($existingRecording->file_path);
-        }
-
         $path = $file->store("call-recordings/{$telecallerId}/{$call->id}", 'public');
 
         $recording = CallAppRecording::updateOrCreate(
@@ -214,19 +222,7 @@ class CallSyncController extends Controller
             'recording_uploaded' => true,
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Recording uploaded successfully',
-            'data' => [
-                'server_call_id' => $call->id,
-                'device_call_id' => $call->device_call_id,
-                'recording_id' => $recording->id,
-                'recording_url' => Storage::disk('public')->url($path),
-                'duration_seconds' => $recording->duration_seconds,
-                'file_size_bytes' => $recording->file_size_bytes,
-                'recording_uploaded' => true,
-            ],
-        ]);
+        return $this->recordingUploadResponse($call, $recording, skipped: false);
     }
 
     /**
@@ -331,6 +327,60 @@ class CallSyncController extends Controller
                 'last_synced_at' => $lastSyncedAt?->toIso8601String(),
                 'uploaded_device_call_ids' => $uploadedDeviceCallIds,
                 'pending_recordings' => $pendingRecordings,
+            ],
+        ]);
+    }
+
+    private function findCallForRecordingUpload(Request $request, int $telecallerId): ?CallAppLog
+    {
+        $query = CallAppLog::where('telecaller_id', $telecallerId);
+
+        if ($request->filled('server_call_id')) {
+            $query->where('id', $request->input('server_call_id'));
+        } else {
+            $query->where('device_call_id', $request->input('device_call_id'));
+        }
+
+        return $query->first();
+    }
+
+    /**
+     * Returns the stored recording when the audio file is already on the server.
+     */
+    private function findExistingServerRecording(CallAppLog $call): ?CallAppRecording
+    {
+        $recording = CallAppRecording::where('call_app_log_id', $call->id)->first();
+
+        if (!$recording || !Storage::disk('public')->exists($recording->file_path)) {
+            return null;
+        }
+
+        if (!$call->recording_uploaded) {
+            $call->update([
+                'has_recording' => true,
+                'recording_uploaded' => true,
+            ]);
+        }
+
+        return $recording;
+    }
+
+    private function recordingUploadResponse(CallAppLog $call, CallAppRecording $recording, bool $skipped)
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $skipped
+                ? 'Recording already exists on server'
+                : 'Recording uploaded successfully',
+            'data' => [
+                'server_call_id' => $call->id,
+                'device_call_id' => $call->device_call_id,
+                'recording_id' => $recording->id,
+                'recording_url' => Storage::disk('public')->url($recording->file_path),
+                'duration_seconds' => $recording->duration_seconds,
+                'file_size_bytes' => $recording->file_size_bytes,
+                'recording_uploaded' => true,
+                'skipped' => $skipped,
             ],
         ]);
     }

@@ -130,11 +130,48 @@ class CallAnalyticsController extends Controller
                 DB::raw('MAX(started_at) as last_called_at'),
                 DB::raw('SUM(duration_seconds) as total_duration_seconds'),
                 DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(telecaller_id ORDER BY started_at_ms DESC), ",", 1) as last_telecaller_id'),
+                DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(id ORDER BY started_at_ms DESC), ",", 1) as last_call_id'),
+                DB::raw("SUBSTRING_INDEX(GROUP_CONCAT(IF(recording_uploaded = 1, id, NULL) ORDER BY started_at_ms DESC SEPARATOR ','), ',', 1) as recording_call_id"),
             ])
             ->groupBy(DB::raw("REGEXP_REPLACE(phone_number, '[^0-9]', '')"))
             ->orderByDesc('last_called_at')
             ->paginate($perPage)
             ->withQueryString();
+    }
+
+    private function attachRecordingCallsToContacts($contacts)
+    {
+        $callIds = $contacts->getCollection()
+            ->flatMap(fn ($contact) => array_filter([
+                $contact->recording_call_id ?? null,
+                $contact->last_call_id ?? null,
+            ]))
+            ->unique()
+            ->values();
+
+        if ($callIds->isEmpty()) {
+            return $contacts;
+        }
+
+        $calls = CallAppLog::with('recording')
+            ->whereIn('id', $callIds)
+            ->get()
+            ->keyBy('id');
+
+        $contacts->getCollection()->transform(function ($contact) use ($calls) {
+            $recordingCall = !empty($contact->recording_call_id)
+                ? $calls->get((int) $contact->recording_call_id)
+                : null;
+            $lastCall = !empty($contact->last_call_id)
+                ? $calls->get((int) $contact->last_call_id)
+                : null;
+
+            $contact->recording_call = $recordingCall ?? $lastCall;
+
+            return $contact;
+        });
+
+        return $contacts;
     }
 
     private function getReportDetail(Request $request, array $filters): ?array
@@ -148,7 +185,9 @@ class CallAnalyticsController extends Controller
         $this->applyFilters($detailQuery, $filters);
 
         if ($metric === 'connected') {
-            $contacts = $this->getConnectedContacts($detailQuery);
+            $contacts = $this->attachRecordingCallsToContacts(
+                $this->getConnectedContacts($detailQuery)
+            );
             $telecallerIds = $contacts->getCollection()
                 ->pluck('last_telecaller_id')
                 ->filter()
