@@ -360,12 +360,11 @@ class CallAnalyticsController extends Controller
             ? 'audio/mp4'
             : $recording->playbackMimeType();
 
-        return Storage::disk('public')->response(
-            $playbackPath,
-            $fileName,
+        return response()->file(
+            Storage::disk('public')->path($playbackPath),
             [
                 'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . str_replace('"', '', $fileName) . '"',
+                'Content-Disposition' => 'inline; filename="' . str_replace('"', '', preg_replace('/\.aac$/i', '.m4a', $fileName)) . '"',
                 'Accept-Ranges' => 'bytes',
                 'Cache-Control' => 'private, max-age=3600',
             ]

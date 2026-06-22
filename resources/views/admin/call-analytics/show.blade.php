@@ -117,6 +117,8 @@
                     </div>
                     <audio controls preload="metadata" class="w-100 mb-3">
                         <source src="{{ $call->recording->stream_url }}" type="{{ $call->recording->playbackMimeType() }}">
+                        <source src="{{ $call->recording->stream_url }}" type="audio/mp4">
+                        <source src="{{ $call->recording->stream_url }}" type="audio/mpeg">
                         Your browser does not support the audio element.
                     </audio>
                     <a href="{{ route('admin.call-analytics.recording.download', $call->id) }}" class="btn btn-outline-primary btn-sm w-100">

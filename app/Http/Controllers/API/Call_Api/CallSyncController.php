@@ -216,6 +216,8 @@ class CallSyncController extends Controller
             ]
         );
 
+        app(\App\Services\CallRecording\CallRecordingPlaybackPreparer::class)->prepare($path);
+
         $call->update([
             'has_recording' => true,
             'recording_uploaded' => true,

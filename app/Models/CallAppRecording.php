@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CallRecording\CallRecordingPlaybackPreparer;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
@@ -82,6 +83,11 @@ class CallAppRecording extends Model
 
     public function playbackMimeType(): string
     {
+        $playbackPath = $this->playbackStoragePath();
+        if (str_ends_with(strtolower($playbackPath), '.m4a')) {
+            return 'audio/mp4';
+        }
+
         $mime = strtolower(trim((string) ($this->mime_type ?? '')));
         if ($mime !== '' && $mime !== 'application/octet-stream') {
             return $mime;
@@ -89,10 +95,6 @@ class CallAppRecording extends Model
 
         $path = $this->file_path;
         $extension = strtolower(pathinfo((string) ($this->file_name ?: $path), PATHINFO_EXTENSION));
-
-        if ($extension === 'aac' && $path && Storage::disk('public')->exists(preg_replace('/\.aac$/i', '.m4a', $path))) {
-            return 'audio/mp4';
-        }
 
         $detected = $this->detectMimeTypeFromFileHeader($this->storedStoragePath());
 
@@ -121,36 +123,7 @@ class CallAppRecording extends Model
             return (string) $this->file_path;
         }
 
-        if (!str_ends_with(strtolower($storedPath), '.aac')) {
-            return $storedPath;
-        }
-
-        $disk = Storage::disk('public');
-        $m4aPath = preg_replace('/\.aac$/i', '.m4a', $storedPath);
-
-        if ($disk->exists($m4aPath)) {
-            return $m4aPath;
-        }
-
-        $input = $disk->path($storedPath);
-        $output = $disk->path($m4aPath);
-
-        foreach (['ffmpeg', '/usr/bin/ffmpeg'] as $ffmpeg) {
-            $command = sprintf(
-                '%s -y -i %s -c:a copy -bsf:a aac_adtstoasc %s',
-                escapeshellarg($ffmpeg),
-                escapeshellarg($input),
-                escapeshellarg($output)
-            );
-
-            @exec($command . ' 2>/dev/null', $ignored, $exitCode);
-
-            if ($exitCode === 0 && is_file($output) && filesize($output) > 0) {
-                return $m4aPath;
-            }
-        }
-
-        return $storedPath;
+        return app(CallRecordingPlaybackPreparer::class)->prepare($storedPath);
     }
 
     private function detectMimeTypeFromFileHeader(?string $path = null): ?string
