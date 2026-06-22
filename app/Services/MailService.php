@@ -52,8 +52,22 @@ class MailService
         // IMPORTANT: This email MUST come from leads_details table (form submission), not leads table
         send_email($studentEmail, $student->student_name ?? 'Student', $subject, $studentBody, $attachments, 'Support Team');
 
-        // Send to CAO with only details and files, no terms and conditions
-        send_email('cao@natdemy.com', 'CAO', $subject, $caoBody, $attachments, 'Support Team');
+        // Send to office recipients with only details and files, no terms and conditions
+        foreach (self::registrationNotificationRecipients() as [$email, $name]) {
+            send_email($email, $name, $subject, $caoBody, $attachments, 'Support Team');
+        }
+    }
+
+    /**
+     * @return list<array{0: string, 1: string}>
+     */
+    private static function registrationNotificationRecipients(): array
+    {
+        return [
+            ['cao@natdemy.com', 'CAO'],
+            ['registration@natdemy.com', 'Registration'],
+            ['academic.office@natdemy.com', 'Academic Office'],
+        ];
     }
 
     /**
