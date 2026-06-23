@@ -535,6 +535,39 @@
                                                     <i class="ti ti-copy"></i>
                                                 </button>
                                             </div>
+                                            @elseif($lead->course_id == 30)
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('public.lead.ai-integrated-video-editing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Video Editing Registration Form">
+                                                    <i class="ti ti-external-link"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-info copy-link-btn"
+                                                    data-url="{{ route('public.lead.ai-integrated-video-editing.register', $lead->id) }}"
+                                                    title="Copy AI-Integrated Video Editing Registration Link">
+                                                    <i class="ti ti-copy"></i>
+                                                </button>
+                                            </div>
+                                            @elseif($lead->course_id == 31)
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('public.lead.ai-integrated-videography.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Videography Registration Form">
+                                                    <i class="ti ti-external-link"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-info copy-link-btn"
+                                                    data-url="{{ route('public.lead.ai-integrated-videography.register', $lead->id) }}"
+                                                    title="Copy AI-Integrated Videography Registration Link">
+                                                    <i class="ti ti-copy"></i>
+                                                </button>
+                                            </div>
+                                            @elseif($lead->course_id == 32)
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('public.lead.ai-integrated-photography.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Photography Registration Form">
+                                                    <i class="ti ti-external-link"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-info copy-link-btn"
+                                                    data-url="{{ route('public.lead.ai-integrated-photography.register', $lead->id) }}"
+                                                    title="Copy AI-Integrated Photography Registration Link">
+                                                    <i class="ti ti-copy"></i>
+                                                </button>
+                                            </div>
                                             @endif
                                         </div>
                                         @endif
@@ -1050,6 +1083,39 @@
                                         <button type="button" class="btn btn-sm btn-info copy-link-btn"
                                             data-url="{{ route('public.lead.ai-sales-marketing.register', $lead->id) }}"
                                             title="Copy AI-Integrated Sales & Marketing Registration Link">
+                                            <i class="ti ti-copy f-12"></i>
+                                        </button>
+                                    </div>
+                                    @elseif($lead->course_id == 30)
+                                    <div class="d-flex gap-1 mt-2">
+                                        <a href="{{ route('public.lead.ai-integrated-video-editing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-warning" title="Open AI-Integrated Video Editing Registration Form">
+                                            <i class="ti ti-external-link f-12"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-info copy-link-btn"
+                                            data-url="{{ route('public.lead.ai-integrated-video-editing.register', $lead->id) }}"
+                                            title="Copy AI-Integrated Video Editing Registration Link">
+                                            <i class="ti ti-copy f-12"></i>
+                                        </button>
+                                    </div>
+                                    @elseif($lead->course_id == 31)
+                                    <div class="d-flex gap-1 mt-2">
+                                        <a href="{{ route('public.lead.ai-integrated-videography.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-warning" title="Open AI-Integrated Videography Registration Form">
+                                            <i class="ti ti-external-link f-12"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-info copy-link-btn"
+                                            data-url="{{ route('public.lead.ai-integrated-videography.register', $lead->id) }}"
+                                            title="Copy AI-Integrated Videography Registration Link">
+                                            <i class="ti ti-copy f-12"></i>
+                                        </button>
+                                    </div>
+                                    @elseif($lead->course_id == 32)
+                                    <div class="d-flex gap-1 mt-2">
+                                        <a href="{{ route('public.lead.ai-integrated-photography.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-warning" title="Open AI-Integrated Photography Registration Form">
+                                            <i class="ti ti-external-link f-12"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-info copy-link-btn"
+                                            data-url="{{ route('public.lead.ai-integrated-photography.register', $lead->id) }}"
+                                            title="Copy AI-Integrated Photography Registration Link">
                                             <i class="ti ti-copy f-12"></i>
                                         </button>
                                     </div>

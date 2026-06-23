@@ -1337,7 +1337,10 @@ class LeadController extends Controller
             23 => ['route' => 'public.lead.edumaster.register', 'title' => 'EduMaster'],
             25 => ['route' => 'public.lead.junior-vlogger.register', 'title' => 'CreateX AI'],
             27 => ['route' => 'public.lead.rpa.register', 'title' => 'RPA'],
-            29 => ['route' => 'public.lead.ai-sales-marketing.register', 'title' => 'AI-Integrated Sales & Marketing']
+            29 => ['route' => 'public.lead.ai-sales-marketing.register', 'title' => 'AI-Integrated Sales & Marketing'],
+            30 => ['route' => 'public.lead.ai-integrated-video-editing.register', 'title' => 'AI-Integrated Video Editing'],
+            31 => ['route' => 'public.lead.ai-integrated-videography.register', 'title' => 'AI-Integrated Videography'],
+            32 => ['route' => 'public.lead.ai-integrated-photography.register', 'title' => 'AI-Integrated Photography']
         ];
         
         if (isset($courseRoutes[$lead->course_id])) {
@@ -1667,7 +1670,10 @@ class LeadController extends Controller
             23 => 'public.lead.edumaster.register',
             25 => 'public.lead.junior-vlogger.register',
             27 => 'public.lead.rpa.register',
-            29 => 'public.lead.ai-sales-marketing.register'
+            29 => 'public.lead.ai-sales-marketing.register',
+            30 => 'public.lead.ai-integrated-video-editing.register',
+            31 => 'public.lead.ai-integrated-videography.register',
+            32 => 'public.lead.ai-integrated-photography.register'
         ];
         
         if (isset($courseRoutes[$lead->course_id])) {

@@ -438,6 +438,24 @@
                                                 <i class="ti ti-external-link me-1"></i>AI Sales & Marketing Form
                                             </a>
                                         </div>
+                                        @elseif($lead->course_id == 30)
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ route('public.lead.ai-integrated-video-editing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Video Editing Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>AI Video Editing Form
+                                            </a>
+                                        </div>
+                                        @elseif($lead->course_id == 31)
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ route('public.lead.ai-integrated-videography.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Videography Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>AI Videography Form
+                                            </a>
+                                        </div>
+                                        @elseif($lead->course_id == 32)
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ route('public.lead.ai-integrated-photography.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Photography Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>AI Photography Form
+                                            </a>
+                                        </div>
                                         @else
                                         <span class="text-muted">No form available</span>
                                         @endif

@@ -242,6 +242,24 @@ Route::prefix('register')->group(function () {
     Route::post('/graphic-designing', [App\Http\Controllers\Public\LeadGraphicDesigningRegistrationController::class, 'store'])->name('public.lead.graphic-designing.register.store');
     Route::get('/graphic-designing/subjects', [App\Http\Controllers\Public\LeadGraphicDesigningRegistrationController::class, 'getSubjects'])->name('public.lead.graphic-designing.subjects');
     Route::get('/graphic-designing/batches', [App\Http\Controllers\Public\LeadGraphicDesigningRegistrationController::class, 'getBatches'])->name('public.lead.graphic-designing.batches');
+
+    // AI-Integrated Video Editing Registration Routes (course_id = 30)
+    Route::get('/ai-integrated-video-editing/{leadId?}', [App\Http\Controllers\Public\LeadAiIntegratedVideoEditingRegistrationController::class, 'showForm'])->name('public.lead.ai-integrated-video-editing.register');
+    Route::post('/ai-integrated-video-editing', [App\Http\Controllers\Public\LeadAiIntegratedVideoEditingRegistrationController::class, 'store'])->name('public.lead.ai-integrated-video-editing.register.store');
+    Route::get('/ai-integrated-video-editing/subjects', [App\Http\Controllers\Public\LeadAiIntegratedVideoEditingRegistrationController::class, 'getSubjects'])->name('public.lead.ai-integrated-video-editing.subjects');
+    Route::get('/ai-integrated-video-editing/batches', [App\Http\Controllers\Public\LeadAiIntegratedVideoEditingRegistrationController::class, 'getBatches'])->name('public.lead.ai-integrated-video-editing.batches');
+
+    // AI-Integrated Videography Registration Routes (course_id = 31)
+    Route::get('/ai-integrated-videography/{leadId?}', [App\Http\Controllers\Public\LeadAiIntegratedVideographyRegistrationController::class, 'showForm'])->name('public.lead.ai-integrated-videography.register');
+    Route::post('/ai-integrated-videography', [App\Http\Controllers\Public\LeadAiIntegratedVideographyRegistrationController::class, 'store'])->name('public.lead.ai-integrated-videography.register.store');
+    Route::get('/ai-integrated-videography/subjects', [App\Http\Controllers\Public\LeadAiIntegratedVideographyRegistrationController::class, 'getSubjects'])->name('public.lead.ai-integrated-videography.subjects');
+    Route::get('/ai-integrated-videography/batches', [App\Http\Controllers\Public\LeadAiIntegratedVideographyRegistrationController::class, 'getBatches'])->name('public.lead.ai-integrated-videography.batches');
+
+    // AI-Integrated Photography Registration Routes (course_id = 32)
+    Route::get('/ai-integrated-photography/{leadId?}', [App\Http\Controllers\Public\LeadAiIntegratedPhotographyRegistrationController::class, 'showForm'])->name('public.lead.ai-integrated-photography.register');
+    Route::post('/ai-integrated-photography', [App\Http\Controllers\Public\LeadAiIntegratedPhotographyRegistrationController::class, 'store'])->name('public.lead.ai-integrated-photography.register.store');
+    Route::get('/ai-integrated-photography/subjects', [App\Http\Controllers\Public\LeadAiIntegratedPhotographyRegistrationController::class, 'getSubjects'])->name('public.lead.ai-integrated-photography.subjects');
+    Route::get('/ai-integrated-photography/batches', [App\Http\Controllers\Public\LeadAiIntegratedPhotographyRegistrationController::class, 'getBatches'])->name('public.lead.ai-integrated-photography.batches');
     
     // Machine Learning Registration Routes
     Route::get('/machine-learning/{leadId?}', [App\Http\Controllers\Public\LeadMachineLearningRegistrationController::class, 'showMachineLearningForm'])->name('public.lead.machine-learning.register');
