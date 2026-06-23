@@ -67,7 +67,7 @@ class BosseConvertedLeadsDataTableFormatter
         $keys = self::columnKeys($showParentPhone);
 
         if (count($cells) !== count($keys)) {
-            Log::warning('BOSSE DataTable column mismatch', [
+            Log::warning('Board of Open Schooling and Skill Education DataTable column mismatch', [
                 'converted_lead_id' => $convertedLead->id,
                 'td_count' => count($cells),
                 'key_count' => count($keys),

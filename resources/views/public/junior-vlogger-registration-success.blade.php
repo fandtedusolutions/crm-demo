@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration Successful – Junior Vlogger</title>
+    <title>Registration Successful – CreateX AI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -42,7 +42,7 @@
     <div class="success-container">
         <div class="success-icon"><i class="fas fa-check"></i></div>
         <h1 class="success-title">Thank you!</h1>
-        <p class="success-message">Your Junior Vlogger registration has been submitted successfully. We will review your application and get back to you soon.</p>
+        <p class="success-message">Your CreateX AI registration has been submitted successfully. We will review your application and get back to you soon.</p>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

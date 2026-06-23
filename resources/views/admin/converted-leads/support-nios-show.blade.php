@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'NIOS Support - Converted Lead Details')
+@section('title', 'National Institute of Open Schooling Support - Converted Lead Details')
 
 @section('content')
 <div class="page-header">
@@ -8,7 +8,7 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">NIOS Support - Converted Lead Details</h5>
+                    <h5 class="m-b-10">National Institute of Open Schooling Support - Converted Lead Details</h5>
                 </div>
             </div>
             <div class="col-md-6">
@@ -53,7 +53,7 @@
                     </div>
                     <div class="col-md-4">
                         <h6 class="text-muted">Course</h6>
-                        <div><strong>Course:</strong> {{ $convertedLead->course?->title ?? 'NIOS' }}</div>
+                        <div><strong>Course:</strong> {{ $convertedLead->course?->title ?? 'National Institute of Open Schooling' }}</div>
                         <div><strong>Subject:</strong> {{ $convertedLead->subject?->title ?? '-' }}</div>
                         <div><strong>Batch:</strong> {{ $convertedLead->batch?->title ?? '-' }}</div>
                         <div><strong>Admission Batch:</strong> {{ $convertedLead->admissionBatch?->title ?? '-' }}</div>

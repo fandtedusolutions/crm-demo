@@ -1,6 +1,6 @@
 ﻿@extends('layouts.mantis')
 
-@section('title', 'Junior Vlogger - Course Support List')
+@section('title', 'CreateX AI - Course Support List')
 
 @section('content')
 @php $appTimezone = config('app.timezone'); @endphp
@@ -62,7 +62,7 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Junior Vlogger - Course Support List</h5>
+                    <h5 class="m-b-10">CreateX AI - Course Support List</h5>
                 </div>
             </div>
             <div class="col-md-6">
@@ -70,7 +70,7 @@
                     <ul class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                        <li class="breadcrumb-item">Junior Vlogger Support</li>
+                        <li class="breadcrumb-item">CreateX AI Support</li>
                     </ul>
                     <a href="{{ route('admin.converted-leads.index') }}" class="btn btn-secondary">
                         <i class="ti ti-arrow-left"></i> Back to Converted Leads
@@ -94,10 +94,10 @@
                         <i class="ti ti-list"></i> All Converted Leads
                     </a>
                     <a href="{{ route('admin.nios-converted-leads.index') }}" class="btn btn-outline-success">
-                        <i class="ti ti-school"></i> NIOS Converted Leads
+                        <i class="ti ti-school"></i> National Institute of Open Schooling Converted Leads
                     </a>
                     <a href="{{ route('admin.bosse-converted-leads.index') }}" class="btn btn-outline-warning">
-                        <i class="ti ti-school-2"></i> BOSSE Converted Leads
+                        <i class="ti ti-school-2"></i> Board of Open Schooling and Skill Education Converted Leads
                     </a>
                     <a href="{{ route('admin.ugpg-converted-leads.index') }}" class="btn btn-outline-warning">
                         <i class="ti ti-graduation"></i> UG/PG Converted Leads
@@ -109,10 +109,10 @@
                         <i class="ti ti-building"></i> Hotel Management Converted Leads
                     </a>
                     <a href="{{ route('admin.gmvss-converted-leads.index') }}" class="btn btn-outline-info">
-                        <i class="ti ti-certificate"></i> GMVSS Converted Leads
+                        <i class="ti ti-certificate"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Leads
                     </a>
                     <a href="{{ route('admin.digital-marketing-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-marketing"></i> Digital Marketing Converted Leads
+                        <i class="ti ti-marketing"></i> AI Integrated Digital Marketing Converted Leads
                     </a>
                     <a href="{{ route('admin.diploma-in-data-science-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-database"></i> Diploma in Data Science Converted Leads
@@ -124,7 +124,7 @@
                         <i class="ti ti-device-desktop"></i> Vibe Coding Converted Leads
                     </a>
                     <a href="{{ route('admin.graphic-designing-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-palette"></i> Graphic Designing Converted Leads
+                        <i class="ti ti-palette"></i> Diploma in Graphic Designing Converted Leads
                     </a>
                     <a href="{{ route('admin.machine-learning-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-brain"></i> Diploma in Machine Learning Converted Leads
@@ -139,7 +139,7 @@
                         <i class="ti ti-device-laptop"></i> E-School Converted Leads
                     </a>
                     <a href="{{ route('admin.junior-vlogger-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-video"></i> Junior Vlogger Converted Leads
+                        <i class="ti ti-video"></i> CreateX AI Converted Leads
                     </a>
                 </div>
             </div>
@@ -163,10 +163,10 @@
                     </a>
                     @endif
                     <a href="{{ route('admin.mentor-bosse-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-user-star"></i> Bosse Converted Mentor List
+                        <i class="ti ti-user-star"></i> Board of Open Schooling and Skill Education Converted Mentor List
                     </a>
                     <a href="{{ route('admin.mentor-nios-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-user-star"></i> NIOS Converted Mentor List
+                        <i class="ti ti-user-star"></i> National Institute of Open Schooling Converted Mentor List
                     </a>
                     <a href="{{ route('admin.mentor-ugpg-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-user-star"></i> UG/PG Mentor Converted List
@@ -181,22 +181,22 @@
                         <i class="ti ti-user-star"></i> Eduthanzeel Converted Mentor List
                     </a>
                     <a href="{{ route('admin.gmvss-mentor-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-user-star"></i> GMVSS Mentor List
+                        <i class="ti ti-user-star"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Mentor List
                     </a>
                     <a href="{{ route('admin.digital-marketing-mentor-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-user-star"></i> Digital Marketing Mentor List
+                        <i class="ti ti-user-star"></i> AI Integrated Digital Marketing Mentor List
                     </a>
                     <a href="{{ route('admin.data-science-mentor-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-user-star"></i> Data Science Course Mentor List
                     </a>
                     <a href="{{ route('admin.graphic-designing-mentor-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-user-star"></i> Graphic Designing Mentor List
+                        <i class="ti ti-user-star"></i> Diploma in Graphic Designing Mentor List
                     </a>
                     <a href="{{ route('admin.machine-learning-mentor-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-user-star"></i> Machine Learning Mentor List
                     </a>
                     <a href="{{ route('admin.medical-coding-mentor-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-user-star"></i> Medical Coding Mentor List
+                        <i class="ti ti-user-star"></i> Certificate Course in Medical Coding Mentor List
                     </a>
                     <a href="{{ route('admin.python-mentor-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-user-star"></i> Python Mentor List
@@ -208,7 +208,7 @@
                         <i class="ti ti-user-star"></i> RPA Mentor List
                     </a>
                     <a href="{{ route('admin.junior-vlogger-mentor-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-user-star"></i> Junior Vlogger Converted Mentor List
+                        <i class="ti ti-user-star"></i> CreateX AI Converted Mentor List
                     </a>
                 </div>
             </div>
@@ -234,10 +234,10 @@
                     </a>
                     @endif
                     <a href="{{ route('admin.support-bosse-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> Bosse Converted Support List
+                        <i class="ti ti-headphones"></i> Board of Open Schooling and Skill Education Converted Support List
                     </a>
                     <a href="{{ route('admin.support-nios-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> NIOS Converted Support List
+                        <i class="ti ti-headphones"></i> National Institute of Open Schooling Converted Support List
                     </a>
                     <a href="{{ route('admin.support-ugpg-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-headphones"></i> UG/PG Converted Support List
@@ -249,10 +249,10 @@
                         <i class="ti ti-headphones"></i> Hotel Management Converted Support List
                     </a>
                     <a href="{{ route('admin.support-gmvss-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> GMVSS Converted Support List
+                        <i class="ti ti-headphones"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Support List
                     </a>
                     <a href="{{ route('admin.support-digital-marketing-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> Digital Marketing Converted Support List
+                        <i class="ti ti-headphones"></i> AI Integrated Digital Marketing Converted Support List
                     </a>
                     <a href="{{ route('admin.support-diploma-in-data-science-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-headphones"></i> Diploma in Data Science Converted Support List
@@ -264,7 +264,7 @@
                         <i class="ti ti-headphones"></i> Vibe Coding Converted Support List
                     </a>
                     <a href="{{ route('admin.support-graphic-designing-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> Graphic Designing Converted Support List
+                        <i class="ti ti-headphones"></i> Diploma in Graphic Designing Converted Support List
                     </a>
                     <a href="{{ route('admin.support-machine-learning-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-headphones"></i> Diploma in Machine Learning Converted Support List
@@ -279,7 +279,7 @@
                         <i class="ti ti-headphones"></i> E-School Converted Support List
                     </a>
                     <a href="{{ route('admin.support-junior-vlogger-converted-leads.index') }}" class="btn btn-primary active">
-                        <i class="ti ti-headphones"></i> Junior Vlogger - Course Support List
+                        <i class="ti ti-headphones"></i> CreateX AI - Course Support List
                     </a>
                 </div>
             </div>
@@ -341,7 +341,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Junior Vlogger - Course Support List</h5>
+                <h5 class="mb-0">CreateX AI - Course Support List</h5>
             </div>
             <div class="card-body">
                 @php

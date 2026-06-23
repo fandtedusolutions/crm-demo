@@ -59,7 +59,7 @@ class GmvssConvertedLeadsDataTableFormatter
         $keys = self::columnKeys($showParentPhone);
 
         if (count($cells) !== count($keys)) {
-            Log::warning('GMVSS DataTable column mismatch', [
+            Log::warning('Grameen Mukt Vidhyalayi Shiksha Sansthan DataTable column mismatch', [
                 'converted_lead_id' => $convertedLead->id,
                 'td_count' => count($cells),
                 'key_count' => count($keys),

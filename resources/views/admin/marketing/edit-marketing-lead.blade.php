@@ -145,26 +145,26 @@
                     </div>
                     <div class="col-md-4">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="interested_courses[]" value="Digital Marketing" id="course_digital_marketing" {{ in_array('Digital Marketing', $interestedCourses) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="course_digital_marketing">Digital Marketing</label>
+                            <input class="form-check-input" type="checkbox" name="interested_courses[]" value="AI Integrated Digital Marketing" id="course_digital_marketing" {{ in_array('AI Integrated Digital Marketing', $interestedCourses) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="course_digital_marketing">AI Integrated Digital Marketing</label>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="interested_courses[]" value="Graphic Designing" id="course_graphic_designing" {{ in_array('Graphic Designing', $interestedCourses) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="course_graphic_designing">Graphic Designing</label>
+                            <input class="form-check-input" type="checkbox" name="interested_courses[]" value="Diploma in Graphic Designing" id="course_graphic_designing" {{ in_array('Diploma in Graphic Designing', $interestedCourses) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="course_graphic_designing">Diploma in Graphic Designing</label>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="interested_courses[]" value="Medical Coding" id="course_medical_coding" {{ in_array('Medical Coding', $interestedCourses) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="course_medical_coding">Medical Coding</label>
+                            <input class="form-check-input" type="checkbox" name="interested_courses[]" value="Certificate Course in Medical Coding" id="course_medical_coding" {{ in_array('Certificate Course in Medical Coding', $interestedCourses) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="course_medical_coding">Certificate Course in Medical Coding</label>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="interested_courses[]" value="Hospital Administration" id="course_hospital_admin" {{ in_array('Hospital Administration', $interestedCourses) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="course_hospital_admin">Hospital Administration</label>
+                            <input class="form-check-input" type="checkbox" name="interested_courses[]" value="Diploma in Hospital Administration" id="course_hospital_admin" {{ in_array('Diploma in Hospital Administration', $interestedCourses) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="course_hospital_admin">Diploma in Hospital Administration</label>
                         </div>
                     </div>
                     <div class="col-md-4">

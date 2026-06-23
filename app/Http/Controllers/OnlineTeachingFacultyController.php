@@ -386,7 +386,7 @@ class OnlineTeachingFacultyController extends Controller
             'highest_educational_qualification' => 'nullable|string|max:255',
             'additional_certifications' => 'nullable|string|max:2000',
             'teaching_experience' => 'nullable|string|in:1,0',
-            'department_name' => 'nullable|string|in:E-School,EduThanzeel,Graphic Designing,Digital Marketing,Data Science,Machine Learning',
+            'department_name' => 'nullable|string|in:E-School,EduThanzeel,Diploma in Graphic Designing,AI Integrated Digital Marketing,Data Science,Machine Learning',
             'department_id' => 'nullable|exists:departments,id',
 
             // C fields
@@ -627,7 +627,7 @@ class OnlineTeachingFacultyController extends Controller
             'highest_educational_qualification' => 'required|string|max:255',
             'additional_certifications' => 'nullable|string|max:2000',
             'teaching_experience' => 'required|string|in:Yes,No',
-            'department_name' => 'required|string|in:E-School,EduThanzeel,Graphic Designing,Digital Marketing,Data Science,Machine Learning',
+            'department_name' => 'required|string|in:E-School,EduThanzeel,Diploma in Graphic Designing,AI Integrated Digital Marketing,Data Science,Machine Learning',
 
             // Documents (required only if not already uploaded)
             'document_resume_cv' => ($faculty->document_resume_cv ? 'nullable' : 'required') . '|file|max:10240',

@@ -128,21 +128,21 @@ class LeadJuniorVloggerRegistrationController extends Controller
             ]);
 
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Junior Vlogger');
+                MailService::sendStudentRegistrationEmail($studentDetail, 'CreateX AI');
             } catch (\Exception $e) {
-                \Log::error('Email sending failed for Junior Vlogger registration: ' . $e->getMessage());
+                \Log::error('Email sending failed for CreateX AI registration: ' . $e->getMessage());
             }
 
             try {
                 \App\Models\LeadActivity::create([
                     'lead_id' => $request->lead_id,
                     'activity_type' => 'registration_submitted',
-                    'description' => 'Junior Vlogger registration form submitted',
+                    'description' => 'CreateX AI registration form submitted',
                     'remarks' => 'Registration form submitted on ' . now()->format('d-m-Y') . ' at ' . now()->format('h:i A'),
                     'created_by' => $lead->telecaller_id,
                 ]);
             } catch (\Exception $e) {
-                \Log::error('Failed to create lead activity for Junior Vlogger registration: ' . $e->getMessage());
+                \Log::error('Failed to create lead activity for CreateX AI registration: ' . $e->getMessage());
             }
 
             return response()->json([

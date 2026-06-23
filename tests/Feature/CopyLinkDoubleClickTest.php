@@ -16,7 +16,7 @@ class CopyLinkDoubleClickTest extends TestCase
         // Create a test course and lead
         $course = Course::create([
             'id' => 1,
-            'title' => 'NIOS',
+            'title' => 'National Institute of Open Schooling',
             'amount' => 50000,
             'is_active' => true
         ]);
@@ -41,7 +41,7 @@ class CopyLinkDoubleClickTest extends TestCase
         // Create a test course and lead
         $course = Course::create([
             'id' => 16,
-            'title' => 'GMVSS',
+            'title' => 'Grameen Mukt Vidhyalayi Shiksha Sansthan',
             'amount' => 50000,
             'is_active' => true
         ]);

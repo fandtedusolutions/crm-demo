@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration Successful - GMVSS Course</title>
+    <title>Registration Successful - Grameen Mukt Vidhyalayi Shiksha Sansthan Course</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -189,7 +189,7 @@
             }
         }
         
-        /* GMVSS Logo Styles */
+        /* Grameen Mukt Vidhyalayi Shiksha Sansthan Logo Styles */
         .logo-container {
             display: flex;
             justify-content: center;
@@ -225,7 +225,7 @@
     
     <div class="success-container">
         <div class="logo-container mb-4">
-            <img src="{{ asset('storage/logo.png') }}" alt="GMVSS Logo" class="gmvss-logo">
+            <img src="{{ asset('storage/logo.png') }}" alt="Grameen Mukt Vidhyalayi Shiksha Sansthan Logo" class="gmvss-logo">
         </div>
         
         <div class="success-icon">
@@ -235,7 +235,7 @@
         <h1 class="success-title">Thank you!</h1>
         
         <p class="success-message">
-            Your GMVSS registration has been submitted successfully.
+            Your Grameen Mukt Vidhyalayi Shiksha Sansthan registration has been submitted successfully.
         </p>
         
     </div>

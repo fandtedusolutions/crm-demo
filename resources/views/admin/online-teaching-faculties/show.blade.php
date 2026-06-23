@@ -146,7 +146,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="text-muted small mb-1">Department Name</label>
-                        {!! renderInlineEdit($faculty, 'department_name', 'select', [''=>'N/A','E-School'=>'E-School','EduThanzeel'=>'EduThanzeel','Graphic Designing'=>'Graphic Designing','Digital Marketing'=>'Digital Marketing','Data Science'=>'Data Science','Machine Learning'=>'Machine Learning']) !!}
+                        {!! renderInlineEdit($faculty, 'department_name', 'select', [''=>'N/A','E-School'=>'E-School','EduThanzeel'=>'EduThanzeel','Diploma in Graphic Designing'=>'Diploma in Graphic Designing','AI Integrated Digital Marketing'=>'AI Integrated Digital Marketing','Data Science'=>'Data Science','Machine Learning'=>'Machine Learning']) !!}
                     </div>
                 </div>
             </div>

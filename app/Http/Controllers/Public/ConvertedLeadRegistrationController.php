@@ -195,7 +195,7 @@ class ConvertedLeadRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'NIOS');
+                MailService::sendStudentRegistrationEmail($studentDetail, 'National Institute of Open Schooling');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Converted Lead NIOS registration: ' . $e->getMessage());

@@ -63,10 +63,10 @@
                         <i class="ti ti-list"></i> All Converted Leads
                     </a>
                     <a href="{{ route('admin.nios-converted-leads.index') }}" class="btn btn-outline-success">
-                        <i class="ti ti-school"></i> NIOS Converted Leads
+                        <i class="ti ti-school"></i> National Institute of Open Schooling Converted Leads
                     </a>
                     <a href="{{ route('admin.bosse-converted-leads.index') }}" class="btn btn-outline-warning">
-                        <i class="ti ti-school-2"></i> BOSSE Converted Leads
+                        <i class="ti ti-school-2"></i> Board of Open Schooling and Skill Education Converted Leads
                     </a>
                     <a href="{{ route('admin.ugpg-converted-leads.index') }}" class="btn btn-outline-warning">
                         <i class="ti ti-graduation"></i> UG/PG Converted Leads
@@ -75,10 +75,10 @@
                         <i class="ti ti-building"></i> Hotel Management Converted Leads
                     </a>
                     <a href="{{ route('admin.gmvss-converted-leads.index') }}" class="btn btn-outline-info">
-                        <i class="ti ti-certificate"></i> GMVSS Converted Leads
+                        <i class="ti ti-certificate"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Leads
                     </a>
                     <a href="{{ route('admin.digital-marketing-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-marketing"></i> Digital Marketing Converted Leads
+                        <i class="ti ti-marketing"></i> AI Integrated Digital Marketing Converted Leads
                     </a>
                     <a href="{{ route('admin.diploma-in-data-science-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-database"></i> Diploma in Data Science Converted Leads
@@ -90,7 +90,7 @@
                         <i class="ti ti-device-desktop"></i> Vibe Coding Converted Leads
                     </a>
                     <a href="{{ route('admin.graphic-designing-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-palette"></i> Graphic Designing Converted Leads
+                        <i class="ti ti-palette"></i> Diploma in Graphic Designing Converted Leads
                     </a>
                     <a href="{{ route('admin.machine-learning-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-brain"></i> Diploma in Machine Learning Converted Leads
@@ -105,13 +105,13 @@
                         <i class="ti ti-device-laptop"></i> E-School Converted Leads
                     </a>
                     <a href="{{ route('admin.junior-vlogger-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-video"></i> Junior Vlogger Converted Leads
+                        <i class="ti ti-video"></i> CreateX AI Converted Leads
                     </a>
                     <a href="{{ route('admin.junior-vlogger-faculty-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-user-star"></i> Junior Vlogger Converted Faculty List
+                        <i class="ti ti-user-star"></i> CreateX AI Converted Faculty List
                     </a>
                     <a href="{{ route('admin.support-junior-vlogger-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> Junior Vlogger â€“ Course Support List
+                        <i class="ti ti-headphones"></i> CreateX AI â€“ Course Support List
                     </a>
                 </div>
             </div>
@@ -139,10 +139,10 @@
                     </a>
                     @endif
                     <a href="{{ route('admin.support-bosse-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> Bosse Converted Support List
+                        <i class="ti ti-headphones"></i> Board of Open Schooling and Skill Education Converted Support List
                     </a>
                     <a href="{{ route('admin.support-nios-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> NIOS Converted Support List
+                        <i class="ti ti-headphones"></i> National Institute of Open Schooling Converted Support List
                     </a>
                     <a href="{{ route('admin.support-ugpg-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-headphones"></i> UG/PG Converted Support List
@@ -154,10 +154,10 @@
                         <i class="ti ti-headphones"></i> Hotel Management Converted Support List
                     </a>
                     <a href="{{ route('admin.support-gmvss-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> GMVSS Converted Support List
+                        <i class="ti ti-headphones"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Support List
                     </a>
                     <a href="{{ route('admin.support-digital-marketing-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> Digital Marketing Converted Support List
+                        <i class="ti ti-headphones"></i> AI Integrated Digital Marketing Converted Support List
                     </a>
                     <a href="{{ route('admin.support-diploma-in-data-science-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-headphones"></i> Diploma in Data Science Converted Support List
@@ -169,7 +169,7 @@
                         <i class="ti ti-headphones"></i> Vibe Coding Converted Support List
                     </a>
                     <a href="{{ route('admin.support-graphic-designing-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> Graphic Designing Converted Support List
+                        <i class="ti ti-headphones"></i> Diploma in Graphic Designing Converted Support List
                     </a>
                     <a href="{{ route('admin.support-machine-learning-converted-leads.index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-headphones"></i> Diploma in Machine Learning Converted Support List
@@ -184,7 +184,7 @@
                         <i class="ti ti-headphones"></i> E-School Converted Support List
                     </a>
                     <a href="{{ route('admin.support-junior-vlogger-converted-leads.index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-headphones"></i> Junior Vlogger â€“ Course Support List
+                        <i class="ti ti-headphones"></i> CreateX AI â€“ Course Support List
                     </a>
                 </div>
             </div>

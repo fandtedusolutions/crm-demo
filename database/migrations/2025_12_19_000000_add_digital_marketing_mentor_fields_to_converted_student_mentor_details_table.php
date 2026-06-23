@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('converted_student_mentor_details', function (Blueprint $table) {
-            // Digital Marketing specific fields
+            // AI Integrated Digital Marketing specific fields
             $table->enum('graphic_design_session_attendance', ['Attended', 'Not Attended'])->nullable()->after('third_month_feedback');
             $table->enum('copy_writing_session_attendance', ['Attended', 'Not Attended'])->nullable()->after('graphic_design_session_attendance');
             $table->date('completed_cancelled_date')->nullable()->after('cancelled_date');

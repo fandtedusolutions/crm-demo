@@ -28,10 +28,10 @@ class LeadGmvssRegistrationController extends Controller
             }
         }
         
-        // Get GMVSS course subjects (course_id = 16)
+        // Get Grameen Mukt Vidhyalayi Shiksha Sansthan course subjects (course_id = 16)
         $subjects = Subject::where('course_id', 16)->where('is_active', true)->get();
         
-        // Get GMVSS course batches (course_id = 16)
+        // Get Grameen Mukt Vidhyalayi Shiksha Sansthan course batches (course_id = 16)
         $batches = Batch::where('course_id', 16)->where('is_active', true)->get();
         
         // Get country codes
@@ -194,7 +194,7 @@ class LeadGmvssRegistrationController extends Controller
             // Create student detail record
             $studentDetail = LeadDetail::create([
                 'lead_id' => $request->lead_id,
-                'course_id' => 16, // GMVSS course ID
+                'course_id' => 16, // Grameen Mukt Vidhyalayi Shiksha Sansthan course ID
                 'student_name' => $request->student_name,
                 'father_name' => $request->father_name,
                 'mother_name' => $request->mother_name,
@@ -235,10 +235,10 @@ class LeadGmvssRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'GMVSS');
+                MailService::sendStudentRegistrationEmail($studentDetail, 'Grameen Mukt Vidhyalayi Shiksha Sansthan');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                Log::error('Email sending failed for GMVSS registration: ' . $e->getMessage());
+                Log::error('Email sending failed for Grameen Mukt Vidhyalayi Shiksha Sansthan registration: ' . $e->getMessage());
             }
             
             // Log lead activity for form submission
@@ -252,7 +252,7 @@ class LeadGmvssRegistrationController extends Controller
                 ]);
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Failed to create lead activity for GMVSS registration: ' . $e->getMessage());
+                \Log::error('Failed to create lead activity for Grameen Mukt Vidhyalayi Shiksha Sansthan registration: ' . $e->getMessage());
             }
             
             return response()->json([

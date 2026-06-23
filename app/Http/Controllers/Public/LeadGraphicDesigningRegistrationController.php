@@ -23,7 +23,7 @@ class LeadGraphicDesigningRegistrationController extends Controller
         if ($leadId) {
             $lead = Lead::find($leadId);
             
-            // Check if student has already registered (course_id = 15 for Graphic Designing)
+            // Check if student has already registered (course_id = 15 for Diploma in Graphic Designing)
             if ($lead) {
                 $studentDetail = LeadDetail::where('lead_id', $leadId)
                     ->where('course_id', 15)
@@ -35,16 +35,16 @@ class LeadGraphicDesigningRegistrationController extends Controller
             }
         }
         
-        // Get Graphic Designing course subjects (course_id = 15)
+        // Get Diploma in Graphic Designing course subjects (course_id = 15)
         $subjects = Subject::where('course_id', 15)->where('is_active', true)->get();
         
-        // Get Graphic Designing course batches (course_id = 15)
+        // Get Diploma in Graphic Designing course batches (course_id = 15)
         $batches = Batch::where('course_id', 15)->where('is_active', true)->get();
         
         // Get course data
         $course = \App\Models\Course::find(15);
         
-        // Get class times for course_id = 15 (Graphic Designing) if course needs_time
+        // Get class times for course_id = 15 (Diploma in Graphic Designing) if course needs_time
         $classTimes = collect();
         if ($course && $course->needs_time) {
             $classTimes = ClassTime::where('course_id', 15)->where('is_active', true)->get();
@@ -182,7 +182,7 @@ class LeadGraphicDesigningRegistrationController extends Controller
             // Create student detail record
             $studentDetail = LeadDetail::create([
                 'lead_id' => $request->lead_id,
-                'course_id' => 15, // Graphic Designing course ID
+                'course_id' => 15, // Diploma in Graphic Designing course ID
                 'student_name' => $request->student_name,
                 'father_name' => $request->father_name,
                 'mother_name' => $request->mother_name,
@@ -223,10 +223,10 @@ class LeadGraphicDesigningRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Graphic Designing');
+                MailService::sendStudentRegistrationEmail($studentDetail, 'Diploma in Graphic Designing');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Email sending failed for Graphic Designing registration: ' . $e->getMessage());
+                \Log::error('Email sending failed for Diploma in Graphic Designing registration: ' . $e->getMessage());
             }
             
             // Log lead activity for form submission
@@ -240,7 +240,7 @@ class LeadGraphicDesigningRegistrationController extends Controller
                 ]);
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Failed to create lead activity for Graphic Designing registration: ' . $e->getMessage());
+                \Log::error('Failed to create lead activity for Diploma in Graphic Designing registration: ' . $e->getMessage());
             }
             
             return response()->json([

@@ -17,7 +17,7 @@ class GmvssRegistrationTest extends TestCase
     {
         // Create a test lead
         $lead = Lead::factory()->create([
-            'course_id' => 16, // GMVSS course ID
+            'course_id' => 16, // Grameen Mukt Vidhyalayi Shiksha Sansthan course ID
             'title' => 'Test Student',
             'email' => 'test@example.com',
             'phone' => '1234567890'
@@ -26,7 +26,7 @@ class GmvssRegistrationTest extends TestCase
         // Create test course, subjects, and batches
         $course = Course::create([
             'id' => 16,
-            'title' => 'GMVSS',
+            'title' => 'Grameen Mukt Vidhyalayi Shiksha Sansthan',
             'is_active' => true
         ]);
 
@@ -45,7 +45,7 @@ class GmvssRegistrationTest extends TestCase
         $response = $this->get(route('public.lead.gmvss.register', $lead->id));
 
         $response->assertStatus(200);
-        $response->assertSee('GMVSS Course Registration');
+        $response->assertSee('Grameen Mukt Vidhyalayi Shiksha Sansthan Registration');
         $response->assertSee('Test Student');
         $response->assertSee('Test Subject');
         $response->assertSee('Test Batch');

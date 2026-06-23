@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'BOSSE Support - Converted Lead Details')
+@section('title', 'Board of Open Schooling and Skill Education Support - Converted Lead Details')
 
 @section('content')
 <div class="page-header">
@@ -8,7 +8,7 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">BOSSE Support - Converted Lead Details</h5>
+                    <h5 class="m-b-10">Board of Open Schooling and Skill Education Support - Converted Lead Details</h5>
                 </div>
             </div>
             <div class="col-md-6">

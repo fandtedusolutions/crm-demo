@@ -15,10 +15,10 @@
                     </a>
                     @endif
                     <a href="{{ route('admin.mentor-bosse-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.mentor-bosse-converted-leads.index' ? 'active' : '' }}">
-                        <i class="ti ti-user-star"></i> Bosse Converted Mentor List
+                        <i class="ti ti-user-star"></i> Board of Open Schooling and Skill Education Converted Mentor List
                     </a>
                     <a href="{{ route('admin.mentor-nios-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.mentor-nios-converted-leads.index' ? 'active' : '' }}">
-                        <i class="ti ti-user-star"></i> NIOS Converted Mentor List
+                        <i class="ti ti-user-star"></i> National Institute of Open Schooling Converted Mentor List
                     </a>
                     <a href="{{ route('admin.mentor-ugpg-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.mentor-ugpg-converted-leads.index' ? 'active' : '' }}">
                         <i class="ti ti-user-star"></i> UG/PG Mentor Converted List
@@ -33,22 +33,22 @@
                         <i class="ti ti-user-star"></i> Eduthanzeel Converted Mentor List
                     </a>
                     <a href="{{ route('admin.gmvss-mentor-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.gmvss-mentor-converted-leads.index' ? 'active' : '' }}">
-                        <i class="ti ti-user-star"></i> GMVSS Mentor List
+                        <i class="ti ti-user-star"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Mentor List
                     </a>
                     <a href="{{ route('admin.digital-marketing-mentor-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.digital-marketing-mentor-converted-leads.index' ? 'active' : '' }}">
-                        <i class="ti ti-user-star"></i> Digital Marketing Mentor List
+                        <i class="ti ti-user-star"></i> AI Integrated Digital Marketing Mentor List
                     </a>
                     <a href="{{ route('admin.data-science-mentor-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.data-science-mentor-converted-leads.index' ? 'active' : '' }}">
                         <i class="ti ti-user-star"></i> Data Science Course Mentor List
                     </a>
                     <a href="{{ route('admin.graphic-designing-mentor-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.graphic-designing-mentor-converted-leads.index' ? 'active' : '' }}">
-                        <i class="ti ti-user-star"></i> Graphic Designing Mentor List
+                        <i class="ti ti-user-star"></i> Diploma in Graphic Designing Mentor List
                     </a>
                     <a href="{{ route('admin.machine-learning-mentor-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.machine-learning-mentor-converted-leads.index' ? 'active' : '' }}">
                         <i class="ti ti-user-star"></i> Machine Learning Mentor List
                     </a>
                     <a href="{{ route('admin.medical-coding-mentor-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.medical-coding-mentor-converted-leads.index' ? 'active' : '' }}">
-                        <i class="ti ti-user-star"></i> Medical Coding Mentor List
+                        <i class="ti ti-user-star"></i> Certificate Course in Medical Coding Mentor List
                     </a>
                     <a href="{{ route('admin.python-mentor-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.python-mentor-converted-leads.index' ? 'active' : '' }}">
                         <i class="ti ti-user-star"></i> Python Mentor List
@@ -60,7 +60,7 @@
                         <i class="ti ti-user-star"></i> RPA Mentor List
                     </a>
                     <a href="{{ route('admin.junior-vlogger-mentor-converted-leads.index') }}" class="btn btn-outline-primary {{ $activeMentorRoute === 'admin.junior-vlogger-mentor-converted-leads.index' ? 'active' : '' }}">
-                        <i class="ti ti-user-star"></i> Junior Vlogger Converted Mentor List
+                        <i class="ti ti-user-star"></i> CreateX AI Converted Mentor List
                     </a>
                 </div>
             </div>

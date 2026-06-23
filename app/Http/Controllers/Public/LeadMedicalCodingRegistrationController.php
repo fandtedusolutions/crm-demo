@@ -29,16 +29,16 @@ class LeadMedicalCodingRegistrationController extends Controller
             }
         }
         
-        // Get Medical Coding course subjects (course_id = 3)
+        // Get Certificate Course in Medical Coding course subjects (course_id = 3)
         $subjects = Subject::where('course_id', 3)->where('is_active', true)->get();
         
-        // Get Medical Coding course batches (course_id = 3)
+        // Get Certificate Course in Medical Coding course batches (course_id = 3)
         $batches = Batch::where('course_id', 3)->where('is_active', true)->get();
         
         // Get course data
         $course = \App\Models\Course::find(3);
         
-        // Get class times for course_id = 3 (Medical Coding) if course needs_time
+        // Get class times for course_id = 3 (Certificate Course in Medical Coding) if course needs_time
         $classTimes = collect();
         if ($course && $course->needs_time) {
             $classTimes = ClassTime::where('course_id', 3)->where('is_active', true)->get();
@@ -158,7 +158,7 @@ class LeadMedicalCodingRegistrationController extends Controller
             // Create student detail record
             $studentDetail = LeadDetail::create([
                 'lead_id' => $request->lead_id,
-                'course_id' => 3, // Medical Coding course ID
+                'course_id' => 3, // Certificate Course in Medical Coding course ID
                 'student_name' => $request->student_name,
                 'father_name' => $request->father_name,
                 'mother_name' => $request->mother_name,
@@ -191,10 +191,10 @@ class LeadMedicalCodingRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Medical Coding');
+                MailService::sendStudentRegistrationEmail($studentDetail, 'Certificate Course in Medical Coding');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Email sending failed for Medical Coding registration: ' . $e->getMessage());
+                \Log::error('Email sending failed for Certificate Course in Medical Coding registration: ' . $e->getMessage());
             }
             
             // Log lead activity for form submission
@@ -208,7 +208,7 @@ class LeadMedicalCodingRegistrationController extends Controller
                 ]);
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Failed to create lead activity for Medical Coding registration: ' . $e->getMessage());
+                \Log::error('Failed to create lead activity for Certificate Course in Medical Coding registration: ' . $e->getMessage());
             }
             
             return response()->json([

@@ -21,16 +21,16 @@ class MedicalCodingRegistrationController extends Controller
         if ($convertedLeadId) {
             $convertedLead = ConvertedLead::find($convertedLeadId);
             
-            // Check if student has already registered for Medical Coding
+            // Check if student has already registered for Certificate Course in Medical Coding
             if ($convertedLead && $convertedLead->medicalCodingStudentDetails) {
                 return view('public.medical-coding-registration-success');
             }
         }
         
-        // Get Medical Coding course subjects (course_id = 3)
+        // Get Certificate Course in Medical Coding course subjects (course_id = 3)
         $subjects = Subject::where('course_id', 3)->where('is_active', true)->get();
         
-        // Get Medical Coding course batches (course_id = 3)
+        // Get Certificate Course in Medical Coding course batches (course_id = 3)
         $batches = Batch::where('course_id', 3)->where('is_active', true)->get();
         
         // Get country codes
@@ -134,10 +134,10 @@ class MedicalCodingRegistrationController extends Controller
                 'code' => $request->personal_code,
             ]);
             
-            // Create student detail record for Medical Coding
+            // Create student detail record for Certificate Course in Medical Coding
             $studentDetail = ConvertedStudentDetail::create([
                 'converted_lead_id' => $request->converted_lead_id,
-                'course_id' => 3, // Medical Coding course ID
+                'course_id' => 3, // Certificate Course in Medical Coding course ID
                 'student_name' => $request->student_name,
                 'father_name' => $request->father_name,
                 'mother_name' => $request->mother_name,
@@ -166,10 +166,10 @@ class MedicalCodingRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Medical Coding');
+                MailService::sendStudentRegistrationEmail($studentDetail, 'Certificate Course in Medical Coding');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Email sending failed for Medical Coding registration: ' . $e->getMessage());
+                \Log::error('Email sending failed for Certificate Course in Medical Coding registration: ' . $e->getMessage());
             }
             
             return response()->json([

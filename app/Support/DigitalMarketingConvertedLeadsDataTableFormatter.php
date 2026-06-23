@@ -63,7 +63,7 @@ class DigitalMarketingConvertedLeadsDataTableFormatter
         $keys = self::columnKeys($showParentPhone);
 
         if (count($cells) !== count($keys)) {
-            Log::warning('Digital Marketing DataTable column mismatch', [
+            Log::warning('AI Integrated Digital Marketing DataTable column mismatch', [
                 'converted_lead_id' => $convertedLead->id,
                 'td_count' => count($cells),
                 'key_count' => count($keys),

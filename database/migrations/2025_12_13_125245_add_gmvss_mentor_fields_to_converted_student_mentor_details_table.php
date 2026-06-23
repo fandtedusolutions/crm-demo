@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('converted_student_mentor_details', function (Blueprint $table) {
-            // GMVSS Mentor specific fields
+            // Grameen Mukt Vidhyalayi Shiksha Sansthan Mentor specific fields
             $table->date('online_result_publication_date')->nullable()->after('courier_tracking_number');
             $table->date('certificate_publication_date')->nullable()->after('online_result_publication_date');
         });

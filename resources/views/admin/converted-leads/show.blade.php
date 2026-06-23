@@ -395,7 +395,7 @@
                         <hr>
                         <h6 class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-school"></i> Course-Specific Information</h6>
                         <div class="row g-3">
-                            @if($convertedLead->course_id == 16) {{-- GMVSS --}}
+                            @if($convertedLead->course_id == 16) {{-- Grameen Mukt Vidhyalayi Shiksha Sansthan --}}
                                 <div class="col-md-3">
                                     <label class="form-label text-muted">Registration Link</label>
                                     <p class="fw-bold">{{ $convertedLead->studentDetails->registrationLink?->title ?? 'N/A' }}</p>

@@ -652,8 +652,8 @@ class MailService
 
     private static function getTermsAndConditions($courseType, $student)
     {
-        // Only add terms and conditions for NIOS and BOSSE courses
-        if (! in_array(strtoupper($courseType), ['NIOS', 'BOSSE'])) {
+        // Only add terms and conditions for NIOS and Board of Open Schooling and Skill Education courses
+        if (! in_array(strtoupper($courseType), ['NIOS', 'Board of Open Schooling and Skill Education'])) {
             return '';
         }
 

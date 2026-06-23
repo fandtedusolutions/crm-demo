@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 class DigitalMarketingFacultyController extends Controller
 {
     /**
-     * Display a listing of Digital Marketing converted leads for faculty
+     * Display a listing of AI Integrated Digital Marketing converted leads for faculty
      */
     public function index(Request $request)
     {
@@ -38,7 +38,7 @@ class DigitalMarketingFacultyController extends Controller
             'batch',
             'admissionBatch',
             'leadDetail'
-        ])->where('course_id', 11) // Digital Marketing course
+        ])->where('course_id', 11) // AI Integrated Digital Marketing course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

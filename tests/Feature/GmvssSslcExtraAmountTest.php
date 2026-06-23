@@ -17,15 +17,15 @@ class GmvssSslcExtraAmountTest extends TestCase
 
     public function test_gmvss_sslc_extra_amount_in_convert_modal()
     {
-        // Create GMVSS course
+        // Create Grameen Mukt Vidhyalayi Shiksha Sansthan course
         $course = Course::create([
             'id' => 16,
-            'title' => 'GMVSS',
+            'title' => 'Grameen Mukt Vidhyalayi Shiksha Sansthan',
             'amount' => 50000,
             'is_active' => true
         ]);
 
-        // Create a lead with GMVSS course
+        // Create a lead with Grameen Mukt Vidhyalayi Shiksha Sansthan course
         $lead = Lead::factory()->create([
             'course_id' => 16,
             'title' => 'Test Student',
@@ -46,21 +46,21 @@ class GmvssSslcExtraAmountTest extends TestCase
         $response = $this->get(route('leads.convert', $lead->id));
 
         $response->assertStatus(200);
-        $response->assertSee('GMVSS SSLC Extra: +₹10,000.00');
+        $response->assertSee('Grameen Mukt Vidhyalayi Shiksha Sansthan SSLC Extra: +₹10,000.00');
         $response->assertSee('Total: ₹60,000.00');
     }
 
     public function test_gmvss_sslc_extra_amount_in_invoice_generation()
     {
-        // Create GMVSS course
+        // Create Grameen Mukt Vidhyalayi Shiksha Sansthan course
         $course = Course::create([
             'id' => 16,
-            'title' => 'GMVSS',
+            'title' => 'Grameen Mukt Vidhyalayi Shiksha Sansthan',
             'amount' => 50000,
             'is_active' => true
         ]);
 
-        // Create a converted lead with GMVSS course
+        // Create a converted lead with Grameen Mukt Vidhyalayi Shiksha Sansthan course
         $convertedLead = ConvertedLead::create([
             'lead_id' => 1,
             'name' => 'Test Student',
@@ -87,15 +87,15 @@ class GmvssSslcExtraAmountTest extends TestCase
 
     public function test_gmvss_plustwo_no_extra_amount()
     {
-        // Create GMVSS course
+        // Create Grameen Mukt Vidhyalayi Shiksha Sansthan course
         $course = Course::create([
             'id' => 16,
-            'title' => 'GMVSS',
+            'title' => 'Grameen Mukt Vidhyalayi Shiksha Sansthan',
             'amount' => 50000,
             'is_active' => true
         ]);
 
-        // Create a converted lead with GMVSS course
+        // Create a converted lead with Grameen Mukt Vidhyalayi Shiksha Sansthan course
         $convertedLead = ConvertedLead::create([
             'lead_id' => 1,
             'name' => 'Test Student',
@@ -122,15 +122,15 @@ class GmvssSslcExtraAmountTest extends TestCase
 
     public function test_non_gmvss_course_no_extra_amount()
     {
-        // Create non-GMVSS course
+        // Create non-Grameen Mukt Vidhyalayi Shiksha Sansthan course
         $course = Course::create([
             'id' => 1,
-            'title' => 'NIOS',
+            'title' => 'National Institute of Open Schooling',
             'amount' => 30000,
             'is_active' => true
         ]);
 
-        // Create a converted lead with non-GMVSS course
+        // Create a converted lead with non-Grameen Mukt Vidhyalayi Shiksha Sansthan course
         $convertedLead = ConvertedLead::create([
             'lead_id' => 1,
             'name' => 'Test Student',

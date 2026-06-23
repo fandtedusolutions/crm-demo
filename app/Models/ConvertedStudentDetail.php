@@ -26,7 +26,7 @@ class ConvertedStudentDetail extends Model
         'certificate_received_date',
         'certificate_issued_date',
         'remarks',
-        // BOSSE specific fields
+        // Board of Open Schooling and Skill Education specific fields
         'application_number',
         'board_registration_number',
         'st',
@@ -53,7 +53,7 @@ class ConvertedStudentDetail extends Model
         'certificate_received_date' => 'date',
         'certificate_issued_date' => 'date',
         'screening' => 'date',
-        // BOSSE specific fields
+        // Board of Open Schooling and Skill Education specific fields
         'st' => 'integer',
         'phy' => 'integer',
         'che' => 'integer',

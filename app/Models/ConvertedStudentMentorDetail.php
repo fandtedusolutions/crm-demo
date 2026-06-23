@@ -193,7 +193,7 @@ class ConvertedStudentMentorDetail extends Model
         'degree_certificate_distribution_date',
         'degree_courier_tracking_number',
         'degree_remarks',
-        // Junior Vlogger mentor fields
+        // CreateX AI mentor fields
         'total_class_days',
         'first_term_fee_status',
         'first_term_start_date',
@@ -288,7 +288,7 @@ class ConvertedStudentMentorDetail extends Model
         'degree_certificate_publication_date' => 'date',
         'degree_certificate_issued_date' => 'date',
         'degree_certificate_distribution_date' => 'date',
-        // Junior Vlogger mentor date fields
+        // CreateX AI mentor date fields
         'first_term_start_date' => 'date',
         'first_term_task_1_date' => 'date',
         'first_term_task_2_date' => 'date',

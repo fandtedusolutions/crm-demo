@@ -721,7 +721,7 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Junior Vlogger (course 25) uses plan b2b_amount only — not the regular amount column.
+     * CreateX AI (course 25) uses plan b2b_amount only — not the regular amount column.
      */
     private function shouldUseB2bBatchAmount(int $courseId, ConvertedLead $student): bool
     {
@@ -963,10 +963,10 @@ class InvoiceController extends Controller
 
         if ($courseId === 25) {
             if (! $batchId) {
-                return 'Please select a plan for Junior Vlogger.';
+                return 'Please select a plan for CreateX AI.';
             }
             if (! $this->batchBelongsToCourse($batchId, $courseId)) {
-                return 'The selected plan does not belong to Junior Vlogger.';
+                return 'The selected plan does not belong to CreateX AI.';
             }
             return null;
         }

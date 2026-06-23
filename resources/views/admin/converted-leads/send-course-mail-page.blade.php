@@ -14,7 +14,7 @@
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('admin.support-bosse-converted-leads.index') }}">Bosse Support</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.support-bosse-converted-leads.index') }}">Board of Open Schooling and Skill Education Support</a></li>
                     <li class="breadcrumb-item">Send Mail</li>
                 </ul>
             </div>

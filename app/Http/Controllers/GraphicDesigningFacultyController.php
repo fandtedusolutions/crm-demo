@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 class GraphicDesigningFacultyController extends Controller
 {
     /**
-     * Display a listing of Graphic Designing converted leads for faculty
+     * Display a listing of Diploma in Graphic Designing converted leads for faculty
      */
     public function index(Request $request)
     {
@@ -38,7 +38,7 @@ class GraphicDesigningFacultyController extends Controller
             'batch',
             'admissionBatch',
             'leadDetail'
-        ])->where('course_id', 15) // Graphic Designing course
+        ])->where('course_id', 15) // Diploma in Graphic Designing course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

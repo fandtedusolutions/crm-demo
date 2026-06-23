@@ -1316,26 +1316,26 @@ class LeadController extends Controller
         
         // Render registration form links based on course_id
         $courseRoutes = [
-            1 => ['route' => 'public.lead.nios.register', 'title' => 'NIOS'],
-            2 => ['route' => 'public.lead.bosse.register', 'title' => 'BOSSE'],
-            3 => ['route' => 'public.lead.medical-coding.register', 'title' => 'Medical Coding'],
-            4 => ['route' => 'public.lead.hospital-admin.register', 'title' => 'Hospital Administration'],
+            1 => ['route' => 'public.lead.nios.register', 'title' => 'National Institute of Open Schooling'],
+            2 => ['route' => 'public.lead.bosse.register', 'title' => 'Board of Open Schooling and Skill Education'],
+            3 => ['route' => 'public.lead.medical-coding.register', 'title' => 'Certificate Course in Medical Coding'],
+            4 => ['route' => 'public.lead.hospital-admin.register', 'title' => 'Diploma in Hospital Administration'],
             5 => ['route' => 'public.lead.eschool.register', 'title' => 'E-School'],
             6 => ['route' => 'public.lead.eduthanzeel.register', 'title' => 'Eduthanzeel'],
             7 => ['route' => 'public.lead.ttc.register', 'title' => 'TTC'],
             8 => ['route' => 'public.lead.hotel-mgmt.register', 'title' => 'Hotel Management'],
             9 => ['route' => 'public.lead.ugpg.register', 'title' => 'UG/PG'],
             10 => ['route' => 'public.lead.python.register', 'title' => 'Python'],
-            11 => ['route' => 'public.lead.digital-marketing.register', 'title' => 'Digital Marketing'],
+            11 => ['route' => 'public.lead.digital-marketing.register', 'title' => 'AI Integrated Digital Marketing'],
             12 => ['route' => 'public.lead.diploma-in-data-science.register', 'title' => 'Diploma in Data Science'],
             13 => ['route' => 'public.lead.web-dev.register', 'title' => 'Web Development & Designing'],
             14 => ['route' => 'public.lead.vibe-coding.register', 'title' => 'Vibe Coding'],
-            15 => ['route' => 'public.lead.graphic-designing.register', 'title' => 'Graphic Designing'],
-            16 => ['route' => 'public.lead.gmvss.register', 'title' => 'GMVSS'],
+            15 => ['route' => 'public.lead.graphic-designing.register', 'title' => 'Diploma in Graphic Designing'],
+            16 => ['route' => 'public.lead.gmvss.register', 'title' => 'Grameen Mukt Vidhyalayi Shiksha Sansthan'],
             20 => ['route' => 'public.lead.machine-learning.register', 'title' => 'Diploma in Machine Learning'],
             21 => ['route' => 'public.lead.flutter.register', 'title' => 'Flutter'],
             23 => ['route' => 'public.lead.edumaster.register', 'title' => 'EduMaster'],
-            25 => ['route' => 'public.lead.junior-vlogger.register', 'title' => 'Junior Vlogger'],
+            25 => ['route' => 'public.lead.junior-vlogger.register', 'title' => 'CreateX AI'],
             27 => ['route' => 'public.lead.rpa.register', 'title' => 'RPA']
         ];
         
@@ -5519,7 +5519,7 @@ class LeadController extends Controller
                     'new_value' => $value
                 ]);
             } elseif ($field === 'class') {
-                // Validate class value (for GMVSS course)
+                // Validate class value (for Grameen Mukt Vidhyalayi Shiksha Sansthan course)
                 $value = strtolower($value);
                 if (!in_array($value, ['sslc', 'plustwo'])) {
                     return response()->json([
@@ -5528,11 +5528,11 @@ class LeadController extends Controller
                     ], 400);
                 }
                 
-                // Only allow editing class for GMVSS course (course_id = 16)
+                // Only allow editing class for Grameen Mukt Vidhyalayi Shiksha Sansthan course (course_id = 16)
                 if ($studentDetail->course_id != 16) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Class field is only applicable for GMVSS course.'
+                        'message' => 'Class field is only applicable for Grameen Mukt Vidhyalayi Shiksha Sansthan course.'
                     ], 400);
                 }
                 

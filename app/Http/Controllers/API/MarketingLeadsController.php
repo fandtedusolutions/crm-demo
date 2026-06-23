@@ -289,20 +289,20 @@ class MarketingLeadsController extends Controller
                 'label' => 'Ai Python'
             ],
             [
-                'value' => 'Digital Marketing',
-                'label' => 'Digital Marketing'
+                'value' => 'AI Integrated Digital Marketing',
+                'label' => 'AI Integrated Digital Marketing'
             ],
             [
-                'value' => 'Graphic Designing',
-                'label' => 'Graphic Designing'
+                'value' => 'Diploma in Graphic Designing',
+                'label' => 'Diploma in Graphic Designing'
             ],
             [
-                'value' => 'Medical Coding',
-                'label' => 'Medical Coding'
+                'value' => 'Certificate Course in Medical Coding',
+                'label' => 'Certificate Course in Medical Coding'
             ],
             [
-                'value' => 'Hospital Administration',
-                'label' => 'Hospital Administration'
+                'value' => 'Diploma in Hospital Administration',
+                'label' => 'Diploma in Hospital Administration'
             ],
             [
                 'value' => 'Hotel Management',

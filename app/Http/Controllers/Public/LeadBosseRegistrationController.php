@@ -27,10 +27,10 @@ class LeadBosseRegistrationController extends Controller
             }
         }
         
-        // Get BOSSE course subjects (course_id = 2)
+        // Get Board of Open Schooling and Skill Education course subjects (course_id = 2)
         $subjects = Subject::where('course_id', 2)->where('is_active', true)->get();
         
-        // Get BOSSE course batches (course_id = 2)
+        // Get Board of Open Schooling and Skill Education course batches (course_id = 2)
         $batches = Batch::where('course_id', 2)->where('is_active', true)->get();
         
         // Get country codes
@@ -188,7 +188,7 @@ class LeadBosseRegistrationController extends Controller
             // Create student detail record
             $studentDetail = LeadDetail::create([
                 'lead_id' => $request->lead_id,
-                'course_id' => 2, // BOSSE course ID
+                'course_id' => 2, // Board of Open Schooling and Skill Education course ID
                 'student_name' => $request->student_name,
                 'father_name' => $request->father_name,
                 'mother_name' => $request->mother_name,
@@ -228,10 +228,10 @@ class LeadBosseRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'BOSSE');
+                MailService::sendStudentRegistrationEmail($studentDetail, 'Board of Open Schooling and Skill Education');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Email sending failed for BOSSE registration: ' . $e->getMessage());
+                \Log::error('Email sending failed for Board of Open Schooling and Skill Education registration: ' . $e->getMessage());
             }
             
             // Log lead activity for form submission
@@ -245,7 +245,7 @@ class LeadBosseRegistrationController extends Controller
                 ]);
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Failed to create lead activity for BOSSE registration: ' . $e->getMessage());
+                \Log::error('Failed to create lead activity for Board of Open Schooling and Skill Education registration: ' . $e->getMessage());
             }
             
             return response()->json([

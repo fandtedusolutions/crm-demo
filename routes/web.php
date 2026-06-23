@@ -110,32 +110,32 @@ Route::post('/api/invoices/calculate-amount/{studentId}', [App\Http\Controllers\
 
 // Public Lead Registration Routes
 Route::prefix('register')->group(function () {
-    // NIOS Registration Routes
+    // National Institute of Open Schooling Registration Routes
     Route::get('/nios/{leadId?}', [App\Http\Controllers\Public\LeadRegistrationController::class, 'showNiosForm'])->name('public.lead.nios.register');
     Route::post('/nios', [App\Http\Controllers\Public\LeadRegistrationController::class, 'store'])->name('public.lead.nios.store');
     Route::get('/nios/subjects', [App\Http\Controllers\Public\LeadRegistrationController::class, 'getSubjects'])->name('public.lead.nios.subjects');
     Route::get('/nios/batches', [App\Http\Controllers\Public\LeadRegistrationController::class, 'getBatches'])->name('public.lead.nios.batches');
 
-    // BOSSE Registration Routes
+    // Board of Open Schooling and Skill Education Registration Routes
     Route::get('/bosse/{leadId?}', [App\Http\Controllers\Public\LeadBosseRegistrationController::class, 'showBosseForm'])->name('public.lead.bosse.register');
     Route::post('/bosse', [App\Http\Controllers\Public\LeadBosseRegistrationController::class, 'store'])->name('public.lead.bosse.store');
     Route::get('/bosse/subjects', [App\Http\Controllers\Public\LeadBosseRegistrationController::class, 'getSubjects'])->name('public.lead.bosse.subjects');
     Route::get('/bosse/batches', [App\Http\Controllers\Public\LeadBosseRegistrationController::class, 'getBatches'])->name('public.lead.bosse.batches');
 
-    // GMVSS Registration Routes
+    // Grameen Mukt Vidhyalayi Shiksha Sansthan Registration Routes
     Route::get('/gmvss/{leadId?}', [App\Http\Controllers\Public\LeadGmvssRegistrationController::class, 'showGmvssForm'])->name('public.lead.gmvss.register');
     Route::post('/gmvss', [App\Http\Controllers\Public\LeadGmvssRegistrationController::class, 'store'])->name('public.lead.gmvss.store');
     Route::get('/gmvss/subjects', [App\Http\Controllers\Public\LeadGmvssRegistrationController::class, 'getSubjects'])->name('public.lead.gmvss.subjects');
     Route::get('/gmvss/batches', [App\Http\Controllers\Public\LeadGmvssRegistrationController::class, 'getBatches'])->name('public.lead.gmvss.batches');
 
-    // Medical Coding Registration Routes
+    // Certificate Course in Medical Coding Registration Routes
     Route::get('/medical-coding/{leadId?}', [App\Http\Controllers\Public\LeadMedicalCodingRegistrationController::class, 'showMedicalCodingForm'])->name('public.lead.medical-coding.register');
     Route::post('/medical-coding', [App\Http\Controllers\Public\LeadMedicalCodingRegistrationController::class, 'store'])->name('public.lead.medical-coding.store');
     Route::get('/medical-coding/{leadId}/success', [App\Http\Controllers\Public\LeadMedicalCodingRegistrationController::class, 'showSuccess'])->name('public.lead.medical-coding.register.success');
     Route::get('/medical-coding/subjects', [App\Http\Controllers\Public\LeadMedicalCodingRegistrationController::class, 'getSubjects'])->name('public.lead.medical-coding.subjects');
     Route::get('/medical-coding/batches', [App\Http\Controllers\Public\LeadMedicalCodingRegistrationController::class, 'getBatches'])->name('public.lead.medical-coding.batches');
 
-    // Hospital Administration Registration Routes
+    // Diploma in Hospital Administration Registration Routes
     Route::get('/hospital-admin/{leadId?}', [App\Http\Controllers\Public\LeadHospitalAdminRegistrationController::class, 'showHospitalAdminForm'])->name('public.lead.hospital-admin.register');
     Route::post('/hospital-admin', [App\Http\Controllers\Public\LeadHospitalAdminRegistrationController::class, 'store'])->name('public.lead.hospital-admin.register.store');
     Route::get('/hospital-admin/{leadId}/success', [App\Http\Controllers\Public\LeadHospitalAdminRegistrationController::class, 'showSuccess'])->name('public.lead.hospital-admin.register.success');
@@ -192,13 +192,13 @@ Route::prefix('register')->group(function () {
     Route::get('/python/subjects', [App\Http\Controllers\Public\LeadPythonRegistrationController::class, 'getSubjects'])->name('public.lead.python.subjects');
     Route::get('/python/batches', [App\Http\Controllers\Public\LeadPythonRegistrationController::class, 'getBatches'])->name('public.lead.python.batches');
 
-    // Digital Marketing Registration Routes
+    // AI Integrated Digital Marketing Registration Routes
     Route::get('/digital-marketing/{leadId?}', [App\Http\Controllers\Public\LeadDigitalMarketingRegistrationController::class, 'showDigitalMarketingForm'])->name('public.lead.digital-marketing.register');
     Route::post('/digital-marketing', [App\Http\Controllers\Public\LeadDigitalMarketingRegistrationController::class, 'store'])->name('public.lead.digital-marketing.register.store');
     Route::get('/digital-marketing/subjects', [App\Http\Controllers\Public\LeadDigitalMarketingRegistrationController::class, 'getSubjects'])->name('public.lead.digital-marketing.subjects');
     Route::get('/digital-marketing/batches', [App\Http\Controllers\Public\LeadDigitalMarketingRegistrationController::class, 'getBatches'])->name('public.lead.digital-marketing.batches');
 
-    // Junior Vlogger Registration Routes (course_id = 25)
+    // CreateX AI Registration Routes (course_id = 25)
     Route::get('/junior-vlogger/{leadId?}', [App\Http\Controllers\Public\LeadJuniorVloggerRegistrationController::class, 'showForm'])->name('public.lead.junior-vlogger.register');
     Route::post('/junior-vlogger', [App\Http\Controllers\Public\LeadJuniorVloggerRegistrationController::class, 'store'])->name('public.lead.junior-vlogger.store');
     Route::get('/junior-vlogger/{leadId}/success', [App\Http\Controllers\Public\LeadJuniorVloggerRegistrationController::class, 'showSuccess'])->name('public.lead.junior-vlogger.register.success');
@@ -230,7 +230,7 @@ Route::prefix('register')->group(function () {
     Route::get('/rpa/{leadId?}', [App\Http\Controllers\Public\LeadRpaRegistrationController::class, 'showRpaForm'])->name('public.lead.rpa.register');
     Route::post('/rpa', [App\Http\Controllers\Public\LeadRpaRegistrationController::class, 'store'])->name('public.lead.rpa.register.store');
 
-    // Graphic Designing Registration Routes
+    // Diploma in Graphic Designing Registration Routes
     Route::get('/graphic-designing/{leadId?}', [App\Http\Controllers\Public\LeadGraphicDesigningRegistrationController::class, 'showGraphicDesigningForm'])->name('public.lead.graphic-designing.register');
     Route::post('/graphic-designing', [App\Http\Controllers\Public\LeadGraphicDesigningRegistrationController::class, 'store'])->name('public.lead.graphic-designing.register.store');
     Route::get('/graphic-designing/subjects', [App\Http\Controllers\Public\LeadGraphicDesigningRegistrationController::class, 'getSubjects'])->name('public.lead.graphic-designing.subjects');
@@ -862,11 +862,11 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/placement-list/{id}/interviews', [App\Http\Controllers\ConvertedLeadController::class, 'storeScheduleInterview'])->name('placement-list.interviews.store');
         Route::patch('/placement-list/{id}/interviews/{interviewId}/status', [App\Http\Controllers\ConvertedLeadController::class, 'updateInterviewStatus'])->name('placement-list.interviews.status');
 
-        // NIOS Converted Leads Routes
+        // National Institute of Open Schooling Converted Leads Routes
         Route::get('/nios-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'niosIndex'])->name('nios-converted-leads.index');
         Route::get('/nios-converted-leads/data', [App\Http\Controllers\ConvertedLeadController::class, 'getNiosConvertedLeadsData'])->name('nios-converted-leads.data');
 
-        // BOSSE Converted Leads Routes
+        // Board of Open Schooling and Skill Education Converted Leads Routes
         Route::get('/bosse-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'bosseIndex'])->name('bosse-converted-leads.index');
         Route::get('/bosse-converted-leads/data', [App\Http\Controllers\ConvertedLeadController::class, 'getBosseConvertedLeadsData'])->name('bosse-converted-leads.data');
 
@@ -882,7 +882,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/hotel-management-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'hotelManagementIndex'])->name('hotel-management-converted-leads.index');
         Route::get('/hotel-management-converted-leads/data', [App\Http\Controllers\ConvertedLeadController::class, 'getHotelManagementConvertedLeadsData'])->name('hotel-management-converted-leads.data');
 
-        // GMVSS Converted Leads Routes
+        // Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Leads Routes
         Route::get('/gmvss-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'gmvssIndex'])->name('gmvss-converted-leads.index');
         Route::get('/gmvss-converted-leads/data', [App\Http\Controllers\ConvertedLeadController::class, 'getGmvssConvertedLeadsData'])->name('gmvss-converted-leads.data');
         Route::get('/gmvss-mentor-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'gmvssMentorIndex'])->name('gmvss-mentor-converted-leads.index');
@@ -923,7 +923,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/converted-leads/{id}/inline-update', [App\Http\Controllers\ConvertedLeadController::class, 'inlineUpdate'])->name('converted-leads.inline-update');
         Route::post('/converted-leads/batch-update', [App\Http\Controllers\ConvertedLeadController::class, 'batchUpdate'])->name('converted-leads.batch-update');
 
-        // BOSSE Mentor Converted Leads Routes
+        // Board of Open Schooling and Skill Education Mentor Converted Leads Routes
         Route::get('/mentor-bosse-converted-leads', [App\Http\Controllers\MentorConvertedLeadController::class, 'index'])->name('mentor-bosse-converted-leads.index');
         Route::post('/mentor-bosse-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\MentorConvertedLeadController::class, 'updateMentorDetails'])->name('mentor-bosse-converted-leads.update-mentor-details');
 
@@ -955,15 +955,15 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/machine-learning-mentor-converted-leads', [App\Http\Controllers\MachineLearningMentorController::class, 'index'])->name('machine-learning-mentor-converted-leads.index');
         Route::post('/machine-learning-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\MachineLearningMentorController::class, 'updateMentorDetails'])->name('machine-learning-mentor-converted-leads.update-mentor-details');
 
-        // Digital Marketing Mentor Converted Leads Routes
+        // AI Integrated Digital Marketing Mentor Converted Leads Routes
         Route::get('/digital-marketing-mentor-converted-leads', [App\Http\Controllers\DigitalMarketingMentorController::class, 'index'])->name('digital-marketing-mentor-converted-leads.index');
         Route::post('/digital-marketing-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\DigitalMarketingMentorController::class, 'updateMentorDetails'])->name('digital-marketing-mentor-converted-leads.update-mentor-details');
 
-        // Graphic Designing Mentor Converted Leads Routes
+        // Diploma in Graphic Designing Mentor Converted Leads Routes
         Route::get('/graphic-designing-mentor-converted-leads', [App\Http\Controllers\GraphicDesigningMentorController::class, 'index'])->name('graphic-designing-mentor-converted-leads.index');
         Route::post('/graphic-designing-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\GraphicDesigningMentorController::class, 'updateMentorDetails'])->name('graphic-designing-mentor-converted-leads.update-mentor-details');
 
-        // Junior Vlogger Mentor Converted Leads Routes
+        // CreateX AI Mentor Converted Leads Routes
         Route::get('/junior-vlogger-mentor-converted-leads', [App\Http\Controllers\JuniorVloggerMentorController::class, 'index'])->name('junior-vlogger-mentor-converted-leads.index');
         Route::post('/junior-vlogger-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\JuniorVloggerMentorController::class, 'updateMentorDetails'])->name('junior-vlogger-mentor-converted-leads.update-mentor-details');
 
@@ -973,7 +973,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/flutter-mentor-converted-leads', [App\Http\Controllers\AdditionalMentorCourseController::class, 'flutterIndex'])->name('flutter-mentor-converted-leads.index');
         Route::get('/rpa-mentor-converted-leads', [App\Http\Controllers\AdditionalMentorCourseController::class, 'rpaIndex'])->name('rpa-mentor-converted-leads.index');
 
-        // BOSSE Faculty Converted Leads Routes
+        // Board of Open Schooling and Skill Education Faculty Converted Leads Routes
         Route::get('/faculty-bosse-converted-leads', [App\Http\Controllers\FacultyConvertedLeadController::class, 'index'])->name('faculty-bosse-converted-leads.index');
         Route::post('/faculty-bosse-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\FacultyConvertedLeadController::class, 'updateMentorDetails'])->name('faculty-bosse-converted-leads.update-mentor-details');
 
@@ -1005,19 +1005,19 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/machine-learning-faculty-converted-leads', [App\Http\Controllers\MachineLearningFacultyController::class, 'index'])->name('machine-learning-faculty-converted-leads.index');
         Route::post('/machine-learning-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\MachineLearningFacultyController::class, 'updateMentorDetails'])->name('machine-learning-faculty-converted-leads.update-mentor-details');
 
-        // Digital Marketing Faculty Converted Leads Routes
+        // AI Integrated Digital Marketing Faculty Converted Leads Routes
         Route::get('/digital-marketing-faculty-converted-leads', [App\Http\Controllers\DigitalMarketingFacultyController::class, 'index'])->name('digital-marketing-faculty-converted-leads.index');
         Route::post('/digital-marketing-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\DigitalMarketingFacultyController::class, 'updateMentorDetails'])->name('digital-marketing-faculty-converted-leads.update-mentor-details');
 
-        // Graphic Designing Faculty Converted Leads Routes
+        // Diploma in Graphic Designing Faculty Converted Leads Routes
         Route::get('/graphic-designing-faculty-converted-leads', [App\Http\Controllers\GraphicDesigningFacultyController::class, 'index'])->name('graphic-designing-faculty-converted-leads.index');
         Route::post('/graphic-designing-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\GraphicDesigningFacultyController::class, 'updateMentorDetails'])->name('graphic-designing-faculty-converted-leads.update-mentor-details');
 
-        // Junior Vlogger Faculty Converted Leads Routes
+        // CreateX AI Faculty Converted Leads Routes
         Route::get('/junior-vlogger-faculty-converted-leads', [App\Http\Controllers\JuniorVloggerFacultyController::class, 'index'])->name('junior-vlogger-faculty-converted-leads.index');
         Route::post('/junior-vlogger-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\JuniorVloggerFacultyController::class, 'updateMentorDetails'])->name('junior-vlogger-faculty-converted-leads.update-mentor-details');
 
-        // GMVSS Faculty Converted Leads Routes
+        // Grameen Mukt Vidhyalayi Shiksha Sansthan Faculty Converted Leads Routes
         Route::get('/gmvss-faculty-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'gmvssFacultyIndex'])->name('gmvss-faculty-converted-leads.index');
 
         // Additional Faculty Converted Leads Routes
@@ -1037,7 +1037,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/support-bosse-converted-leads/{id}/details', [App\Http\Controllers\SupportConvertedLeadController::class, 'show'])->name('support-bosse-converted-leads.details');
         Route::get('/support-nios-converted-leads/{id}/details', [App\Http\Controllers\SupportConvertedLeadController::class, 'show'])->name('support-nios-converted-leads.details');
 
-        // BOSSE Support Converted Leads Routes
+        // Board of Open Schooling and Skill Education Support Converted Leads Routes
         Route::get('/support-bosse-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'index'])->name('support-bosse-converted-leads.index');
         Route::post('/support-bosse-converted-leads/{id}/send-whatsapp', [App\Http\Controllers\SupportConvertedLeadController::class, 'sendSupportWhatsApp'])->name('support-bosse-converted-leads.send-whatsapp');
         Route::get('/support-bosse-converted-leads/{id}/send-course-mail', [App\Http\Controllers\SupportConvertedLeadController::class, 'showSendCourseMailForm'])->name('support-bosse-converted-leads.send-course-mail');
@@ -1059,7 +1059,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/support-hotel-management-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'hotelManagementIndex'])->name('support-hotel-management-converted-leads.index');
         Route::post('/support-hotel-management-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-hotel-management-converted-leads.update-support-details');
 
-        // GMVSS Support Converted Leads Routes
+        // Grameen Mukt Vidhyalayi Shiksha Sansthan Support Converted Leads Routes
         Route::get('/support-gmvss-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'gmvssIndex'])->name('support-gmvss-converted-leads.index');
         Route::post('/support-gmvss-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-gmvss-converted-leads.update-support-details');
 
@@ -1067,7 +1067,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/support-ai-python-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'aiPythonIndex'])->name('support-ai-python-converted-leads.index');
         Route::post('/support-ai-python-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-ai-python-converted-leads.update-support-details');
 
-        // Digital Marketing Support Converted Leads Routes
+        // AI Integrated Digital Marketing Support Converted Leads Routes
         Route::get('/support-digital-marketing-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'digitalMarketingIndex'])->name('support-digital-marketing-converted-leads.index');
         Route::post('/support-digital-marketing-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-digital-marketing-converted-leads.update-support-details');
 
@@ -1083,7 +1083,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/support-vibe-coding-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'vibeCodingIndex'])->name('support-vibe-coding-converted-leads.index');
         Route::post('/support-vibe-coding-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-vibe-coding-converted-leads.update-support-details');
 
-        // Graphic Designing Support Converted Leads Routes
+        // Diploma in Graphic Designing Support Converted Leads Routes
         Route::get('/support-graphic-designing-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'graphicDesigningIndex'])->name('support-graphic-designing-converted-leads.index');
         Route::post('/support-graphic-designing-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-graphic-designing-converted-leads.update-support-details');
 

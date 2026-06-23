@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Log;
 class SupportConvertedLeadController extends Controller
 {
     /**
-     * Display a listing of BOSSE converted leads for support
+     * Display a listing of Board of Open Schooling and Skill Education converted leads for support
      */
     public function index(Request $request)
     {
@@ -43,7 +43,7 @@ class SupportConvertedLeadController extends Controller
             'subject',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 2) // BOSSE course
+        ])->where('course_id', 2) // Board of Open Schooling and Skill Education course
           ->where('is_academic_verified', 1);
 
         // Apply role-based filtering
@@ -320,7 +320,7 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
-     * Show BOSSE support converted lead details
+     * Show Board of Open Schooling and Skill Education support converted lead details
      */
     public function showBosse($id)
     {
@@ -1017,11 +1017,11 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
-     * Display a listing of GMVSS converted leads for support
+     * Display a listing of Grameen Mukt Vidhyalayi Shiksha Sansthan converted leads for support
      */
     public function gmvssIndex(Request $request)
     {
-        return $this->getCourseSupportIndex($request, 16, 'GMVSS Converted Support List', 'admin.converted-leads.support-gmvss-index');
+        return $this->getCourseSupportIndex($request, 16, 'Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Support List', 'admin.converted-leads.support-gmvss-index');
     }
 
     /**
@@ -1033,11 +1033,11 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
-     * Display a listing of Digital Marketing converted leads for support
+     * Display a listing of AI Integrated Digital Marketing converted leads for support
      */
     public function digitalMarketingIndex(Request $request)
     {
-        return $this->getCourseSupportIndex($request, 11, 'Digital Marketing Converted Support List', 'admin.converted-leads.support-digital-marketing-index');
+        return $this->getCourseSupportIndex($request, 11, 'AI Integrated Digital Marketing Converted Support List', 'admin.converted-leads.support-digital-marketing-index');
     }
 
     /**
@@ -1065,11 +1065,11 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
-     * Display a listing of Graphic Designing converted leads for support
+     * Display a listing of Diploma in Graphic Designing converted leads for support
      */
     public function graphicDesigningIndex(Request $request)
     {
-        return $this->getCourseSupportIndex($request, 15, 'Graphic Designing Converted Support List', 'admin.converted-leads.support-graphic-designing-index');
+        return $this->getCourseSupportIndex($request, 15, 'Diploma in Graphic Designing Converted Support List', 'admin.converted-leads.support-graphic-designing-index');
     }
 
     /**
@@ -1105,11 +1105,11 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
-     * Display Junior Vlogger – Course Support list (course_id = 25)
+     * Display CreateX AI – Course Support list (course_id = 25)
      */
     public function juniorVloggerIndex(Request $request)
     {
-        return $this->getCourseSupportIndex($request, 25, 'Junior Vlogger – Course Support List', 'admin.converted-leads.support-junior-vlogger-index');
+        return $this->getCourseSupportIndex($request, 25, 'CreateX AI – Course Support List', 'admin.converted-leads.support-junior-vlogger-index');
     }
 
     /**

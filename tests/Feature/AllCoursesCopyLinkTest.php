@@ -15,22 +15,22 @@ class AllCoursesCopyLinkTest extends TestCase
     {
         // Define all courses with their IDs and names
         $courses = [
-            1 => 'NIOS',
-            2 => 'BOSSE', 
-            3 => 'Medical Coding',
-            4 => 'Hospital Administration',
+            1 => 'National Institute of Open Schooling',
+            2 => 'Board of Open Schooling and Skill Education', 
+            3 => 'Certificate Course in Medical Coding',
+            4 => 'Diploma in Hospital Administration',
             5 => 'E-School',
             6 => 'Eduthanzeel',
             7 => 'TTC',
             8 => 'Hotel Management',
             9 => 'UG/PG',
             10 => 'Python',
-            11 => 'Digital Marketing',
+            11 => 'AI Integrated Digital Marketing',
             12 => 'AI Automation',
             13 => 'Web Development & Designing',
             14 => 'Vibe Coding',
-            15 => 'Graphic Designing',
-            16 => 'GMVSS'
+            15 => 'Diploma in Graphic Designing',
+            16 => 'Grameen Mukt Vidhyalayi Shiksha Sansthan'
         ];
 
         foreach ($courses as $courseId => $courseName) {
@@ -127,7 +127,7 @@ class AllCoursesCopyLinkTest extends TestCase
         // Create a test course and lead
         $course = Course::create([
             'id' => 1,
-            'title' => 'NIOS',
+            'title' => 'National Institute of Open Schooling',
             'amount' => 50000,
             'is_active' => true
         ]);
@@ -145,6 +145,6 @@ class AllCoursesCopyLinkTest extends TestCase
         $response->assertStatus(200);
         // Check for both desktop and mobile copy link buttons
         $response->assertSee('copy-link-btn');
-        $response->assertSee('Copy NIOS Registration Link');
+        $response->assertSee('Copy National Institute of Open Schooling Registration Link');
     }
 }

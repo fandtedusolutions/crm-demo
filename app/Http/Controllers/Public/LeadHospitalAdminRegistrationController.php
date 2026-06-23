@@ -27,10 +27,10 @@ class LeadHospitalAdminRegistrationController extends Controller
             }
         }
         
-        // Get Hospital Administration course subjects (course_id = 4)
+        // Get Diploma in Hospital Administration course subjects (course_id = 4)
         $subjects = Subject::where('course_id', 4)->where('is_active', true)->get();
         
-        // Get Hospital Administration course batches (course_id = 4)
+        // Get Diploma in Hospital Administration course batches (course_id = 4)
         $batches = Batch::where('course_id', 4)->where('is_active', true)->get();
         
         // Get country codes
@@ -148,7 +148,7 @@ class LeadHospitalAdminRegistrationController extends Controller
             // Create student detail record
             $studentDetail = LeadDetail::create([
                 'lead_id' => $request->lead_id,
-                'course_id' => 4, // Hospital Administration course ID
+                'course_id' => 4, // Diploma in Hospital Administration course ID
                 'student_name' => $request->student_name,
                 'father_name' => $request->father_name,
                 'mother_name' => $request->mother_name,

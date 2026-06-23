@@ -160,7 +160,7 @@ trait ConvertedLeadScopedDataTables
     }
 
     /**
-     * Matches legacy index methods: Digital Marketing (11) and Diploma in Data Science (12) did not filter by admission_batch_id.
+     * Matches legacy index methods: AI Integrated Digital Marketing (11) and Diploma in Data Science (12) did not filter by admission_batch_id.
      */
     protected function programmeCourseUsesAdmissionBatchFilter(int $courseId): bool
     {

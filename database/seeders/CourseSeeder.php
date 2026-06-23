@@ -16,7 +16,7 @@ class CourseSeeder extends Seeder
         $courses = [
             [
                 'id' => 1,
-                'title' => 'NIOS',
+                'title' => 'National Institute of Open Schooling',
                 'code' => '9992',
                 'amount' => 0,
                 'hod_number' => '+91 92076 66621',
@@ -27,7 +27,7 @@ class CourseSeeder extends Seeder
             ],
             [
                 'id' => 2,
-                'title' => 'BOSSE',
+                'title' => 'Board of Open Schooling and Skill Education',
                 'code' => '9992',
                 'amount' => 0,
                 'hod_number' => '+91 92076 66623',
@@ -38,7 +38,7 @@ class CourseSeeder extends Seeder
             ],
             [
                 'id' => 3,
-                'title' => 'Medical Coding',
+                'title' => 'Certificate Course in Medical Coding',
                 'code' => '9992',
                 'amount' => 15000,
                 'hod_number' => null,
@@ -49,7 +49,7 @@ class CourseSeeder extends Seeder
             ],
             [
                 'id' => 4,
-                'title' => 'Hospital Administration',
+                'title' => 'Diploma in Hospital Administration',
                 'code' => '9992',
                 'amount' => 20000,
                 'hod_number' => null,
@@ -126,7 +126,7 @@ class CourseSeeder extends Seeder
             ],
             [
                 'id' => 11,
-                'title' => 'Digital Marketing',
+                'title' => 'AI Integrated Digital Marketing',
                 'code' => '9992',
                 'amount' => 25000,
                 'hod_number' => '+91 92076 66635',
@@ -170,7 +170,7 @@ class CourseSeeder extends Seeder
             ],
             [
                 'id' => 15,
-                'title' => 'Graphic Designing',
+                'title' => 'Diploma in Graphic Designing',
                 'code' => '9992',
                 'amount' => 0,
                 'hod_number' => '+91 92076 66635',
@@ -181,7 +181,7 @@ class CourseSeeder extends Seeder
             ],
             [
                 'id' => 16,
-                'title' => 'GMVSS',
+                'title' => 'Grameen Mukt Vidhyalayi Shiksha Sansthan',
                 'code' => '9992',
                 'amount' => 15000,
                 'hod_number' => '+91 92076 66628',

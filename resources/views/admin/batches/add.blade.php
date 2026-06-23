@@ -32,7 +32,7 @@
 
         <div class="col-lg-6 gmvss-amount d-none">
             <div class="p-1">
-                <label for="sslc_amount" class="form-label">SSLC Amount (GMVSS)</label>
+                <label for="sslc_amount" class="form-label">SSLC Amount (Grameen Mukt Vidhyalayi Shiksha Sansthan)</label>
                 <div class="input-group">
                     <span class="input-group-text">₹</span>
                     <input type="number" step="0.01" min="0" class="form-control" name="sslc_amount" id="sslc_amount" value="{{ old('sslc_amount') }}" placeholder="Enter SSLC amount">
@@ -42,7 +42,7 @@
 
         <div class="col-lg-6 gmvss-amount d-none">
             <div class="p-1">
-                <label for="plustwo_amount" class="form-label">Plus Two Amount (GMVSS)</label>
+                <label for="plustwo_amount" class="form-label">Plus Two Amount (Grameen Mukt Vidhyalayi Shiksha Sansthan)</label>
                 <div class="input-group">
                     <span class="input-group-text">₹</span>
                     <input type="number" step="0.01" min="0" class="form-control" name="plustwo_amount" id="plustwo_amount" value="{{ old('plustwo_amount') }}" placeholder="Enter Plus Two amount">

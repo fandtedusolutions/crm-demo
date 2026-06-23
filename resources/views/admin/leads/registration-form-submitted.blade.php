@@ -350,20 +350,20 @@
                                         @else
                                         @if($lead->course_id == 1)
                                         <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.nios.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open NIOS Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>NIOS Form
+                                            <a href="{{ route('public.lead.nios.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open National Institute of Open Schooling Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>National Institute of Open Schooling Form
                                             </a>
                                         </div>
                                         @elseif($lead->course_id == 2)
                                         <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.bosse.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Open BOSSE Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>BOSSE Form
+                                            <a href="{{ route('public.lead.bosse.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Open Board of Open Schooling and Skill Education Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>Board of Open Schooling and Skill Education Form
                                             </a>
                                         </div>
                                         @elseif($lead->course_id == 3)
                                         <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.medical-coding.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-success" title="Open Medical Coding Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Medical Coding Form
+                                            <a href="{{ route('public.lead.medical-coding.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-success" title="Open Certificate Course in Medical Coding Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>Certificate Course in Medical Coding Form
                                             </a>
                                         </div>
                                         @elseif($lead->course_id == 4)
@@ -374,8 +374,8 @@
                                         </div>
                                         @elseif($lead->course_id == 5)
                                         <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.gmvss.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Open GMVSS Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>GMVSS Form
+                                            <a href="{{ route('public.lead.gmvss.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Open Grameen Mukt Vidhyalayi Shiksha Sansthan Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>Grameen Mukt Vidhyalayi Shiksha Sansthan Form
                                             </a>
                                         </div>
                                         @elseif($lead->course_id == 6)
@@ -386,8 +386,8 @@
                                         </div>
                                         @elseif($lead->course_id == 7)
                                         <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.digital-marketing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open Digital Marketing Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Digital Marketing Form
+                                            <a href="{{ route('public.lead.digital-marketing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI Integrated Digital Marketing Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>AI Integrated Digital Marketing Form
                                             </a>
                                         </div>
                                         @elseif($lead->course_id == 8)
@@ -410,8 +410,8 @@
                                         </div>
                                         @elseif($lead->course_id == 11)
                                         <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.graphic-designing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Open Graphic Designing Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Graphic Designing Form
+                                            <a href="{{ route('public.lead.graphic-designing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Open Diploma in Graphic Designing Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>Diploma in Graphic Designing Form
                                             </a>
                                         </div>
                                         @elseif($lead->course_id == 12)

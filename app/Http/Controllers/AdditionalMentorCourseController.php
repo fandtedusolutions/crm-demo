@@ -13,7 +13,7 @@ class AdditionalMentorCourseController extends Controller
 {
     public function medicalCodingIndex(Request $request)
     {
-        return $this->renderMentorList($request, 3, 'Medical Coding', 'admin.medical-coding-mentor-converted-leads.index');
+        return $this->renderMentorList($request, 3, 'Certificate Course in Medical Coding', 'admin.medical-coding-mentor-converted-leads.index');
     }
 
     public function pythonIndex(Request $request)

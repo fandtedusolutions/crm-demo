@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>GMVSS Course Registration</title>
+    <title>Grameen Mukt Vidhyalayi Shiksha Sansthan Registration</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -281,7 +281,7 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* GMVSS Logo Styles */
+        /* Grameen Mukt Vidhyalayi Shiksha Sansthan Logo Styles */
         .logo-container {
             display: flex;
             justify-content: center;
@@ -312,9 +312,9 @@
     <div class="wizard-container">
         <div class="wizard-header">
             <div class="logo-container mb-3">
-                <img src="{{ asset('storage/logo.png') }}" alt="GMVSS Logo" class="gmvss-logo">
+                <img src="{{ asset('storage/logo.png') }}" alt="Grameen Mukt Vidhyalayi Shiksha Sansthan Logo" class="gmvss-logo">
             </div>
-            <h2><i class="fas fa-graduation-cap me-2"></i>GMVSS Course Registration</h2>
+            <h2><i class="fas fa-graduation-cap me-2"></i>Grameen Mukt Vidhyalayi Shiksha Sansthan Registration</h2>
             <p class="mb-0">Complete your registration in a few simple steps</p>
         </div>
         
@@ -522,7 +522,7 @@
                         </div>
                     </div>
                     
-                    <!-- Passed Year Field - New addition for GMVSS -->
+                    <!-- Passed Year Field - New addition for Grameen Mukt Vidhyalayi Shiksha Sansthan -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">

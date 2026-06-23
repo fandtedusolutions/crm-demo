@@ -1199,7 +1199,7 @@ class RegistrationLeadsController extends Controller
             }
 
             if ($field === 'class') {
-                // Validate class value (for GMVSS course)
+                // Validate class value (for Grameen Mukt Vidhyalayi Shiksha Sansthan course)
                 $value = strtolower($value);
                 if (!in_array($value, ['sslc', 'plustwo'])) {
                     return response()->json([
@@ -1208,11 +1208,11 @@ class RegistrationLeadsController extends Controller
                     ], 400);
                 }
 
-                // Only allow editing class for GMVSS course (course_id = 16)
+                // Only allow editing class for Grameen Mukt Vidhyalayi Shiksha Sansthan course (course_id = 16)
                 if ($studentDetail->course_id != 16) {
                     return response()->json([
                         'status' => false,
-                        'message' => 'Class field is only applicable for GMVSS course.',
+                        'message' => 'Class field is only applicable for Grameen Mukt Vidhyalayi Shiksha Sansthan course.',
                     ], 400);
                 }
 

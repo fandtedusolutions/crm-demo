@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 class FacultyConvertedLeadController extends Controller
 {
     /**
-     * Display a listing of BOSSE converted leads for faculty
+     * Display a listing of Board of Open Schooling and Skill Education converted leads for faculty
      */
     public function index(Request $request)
     {
@@ -33,7 +33,7 @@ class FacultyConvertedLeadController extends Controller
             'flag', 'courseFlag',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 2) // BOSSE course
+        ])->where('course_id', 2) // Board of Open Schooling and Skill Education course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

@@ -13,7 +13,7 @@ class AdditionalFacultyCourseController extends Controller
 {
     public function medicalCodingIndex(Request $request)
     {
-        return $this->renderFacultyList($request, 3, 'Medical Coding', 'admin.medical-coding-faculty-converted-leads.index');
+        return $this->renderFacultyList($request, 3, 'Certificate Course in Medical Coding', 'admin.medical-coding-faculty-converted-leads.index');
     }
 
     public function pythonIndex(Request $request)
@@ -119,6 +119,7 @@ class AdditionalFacultyCourseController extends Controller
         $convertedLeads = $query->orderBy('created_at', 'desc')->paginate(50);
         $batches = Batch::where('course_id', $courseId)->orderBy('title')->get();
         $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
+        $activeFacultyRoute = $routeName;
 
         return view('admin.converted-leads.additional-faculty-course-index', compact(
             'convertedLeads',
@@ -127,7 +128,7 @@ class AdditionalFacultyCourseController extends Controller
             'courseId',
             'batches',
             'flags',
-            'activeFacultyRoute' => $routeName,
+            'activeFacultyRoute',
         ));
     }
 }

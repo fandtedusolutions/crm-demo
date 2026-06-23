@@ -800,7 +800,7 @@ class ConvertedLeadController extends Controller
     }
 
     /**
-     * Display BOSSE converted leads (course_id = 2); rows load via AJAX.
+     * Display Board of Open Schooling and Skill Education converted leads (course_id = 2); rows load via AJAX.
      */
     public function bosseIndex(Request $request)
     {
@@ -815,7 +815,7 @@ class ConvertedLeadController extends Controller
     }
 
     /**
-     * Server-side DataTables JSON for BOSSE converted leads (course_id = 2).
+     * Server-side DataTables JSON for Board of Open Schooling and Skill Education converted leads (course_id = 2).
      */
     public function getBosseConvertedLeadsData(Request $request): JsonResponse
     {
@@ -1456,7 +1456,7 @@ class ConvertedLeadController extends Controller
     }
 
     /**
-     * Server-side DataTables JSON for GMVSS converted leads.
+     * Server-side DataTables JSON for Grameen Mukt Vidhyalayi Shiksha Sansthan converted leads.
      */
     public function getGmvssConvertedLeadsData(Request $request): JsonResponse
     {
@@ -1630,7 +1630,7 @@ class ConvertedLeadController extends Controller
     }
 
     /**
-     * Display GMVSS converted leads (course_id = 16)
+     * Display Grameen Mukt Vidhyalayi Shiksha Sansthan converted leads (course_id = 16)
      */
     public function gmvssIndex(Request $request)
     {
@@ -1647,7 +1647,7 @@ class ConvertedLeadController extends Controller
     }
 
     /**
-     * Display GMVSS Mentor converted leads (course_id = 16, is_mentor = true)
+     * Display Grameen Mukt Vidhyalayi Shiksha Sansthan Mentor converted leads (course_id = 16, is_mentor = true)
      */
     public function gmvssMentorIndex(Request $request)
     {
@@ -1990,7 +1990,7 @@ class ConvertedLeadController extends Controller
     }
 
     /**
-     * Display Digital Marketing converted leads (course_id = 11)
+     * Display AI Integrated Digital Marketing converted leads (course_id = 11)
      */
     public function digitalMarketingIndex(Request $request)
     {
@@ -2005,7 +2005,7 @@ class ConvertedLeadController extends Controller
         // Get offline places for location dropdown
         $offlinePlaces = \App\Models\OfflinePlace::active()->get();
         
-        // Get class times for course_id = 11 (Digital Marketing)
+        // Get class times for course_id = 11 (AI Integrated Digital Marketing)
         $classTimes = collect();
         $course = \App\Models\Course::find(11);
         if ($course && $course->needs_time) {
@@ -2191,7 +2191,7 @@ class ConvertedLeadController extends Controller
     }
 
     /**
-     * Display Junior Vlogger converted leads (course_id = 25)
+     * Display CreateX AI converted leads (course_id = 25)
      */
     public function juniorVloggerIndex(Request $request)
     {
@@ -2297,7 +2297,7 @@ class ConvertedLeadController extends Controller
     }
 
     /**
-     * Display Graphic Designing converted leads (course_id = 15)
+     * Display Diploma in Graphic Designing converted leads (course_id = 15)
      */
     public function graphicDesigningIndex(Request $request)
     {
@@ -4037,7 +4037,7 @@ class ConvertedLeadController extends Controller
             // E-School and Eduthanzeel specific fields
             'continuing_studies' => 'nullable|string|in:yes,no',
             'reason' => 'nullable|string|max:1000',
-            // BOSSE specific fields
+            // Board of Open Schooling and Skill Education specific fields
             'application_number' => 'nullable|string|max:255',
             'board_registration_number' => 'nullable|string|max:255',
             'st' => 'nullable|integer|min:0|max:20',
@@ -4086,7 +4086,7 @@ class ConvertedLeadController extends Controller
             'programme_type' => 'nullable|string|in:online,offline',
             'location' => 'nullable|string|in:Ernakulam,Malappuram',
             'class_time_id' => 'nullable|exists:class_times,id',
-            // GMVSS specific fields
+            // Grameen Mukt Vidhyalayi Shiksha Sansthan specific fields
             'class' => 'nullable|string|in:sslc,plustwo',
             // EduMaster specific fields
             'selected_courses' => 'nullable|string',
@@ -4658,7 +4658,7 @@ class ConvertedLeadController extends Controller
             $leadDetail = LeadDetail::where('lead_id', $convertedLead->lead_id)->first();
         }
 
-        // Determine batch amount with class-specific pricing for GMVSS (course 16)
+        // Determine batch amount with class-specific pricing for Grameen Mukt Vidhyalayi Shiksha Sansthan (course 16)
         if ($batch) {
             if ($course && (int) $course->id === 16 && $leadDetail) {
                 $studentClass = strtolower($leadDetail->class ?? '');

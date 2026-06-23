@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('converted_student_details', function (Blueprint $table) {
-            // Add remarks field if it doesn't exist (it may already exist from GMVSS migration)
+            // Add remarks field if it doesn't exist (it may already exist from Grameen Mukt Vidhyalayi Shiksha Sansthan migration)
             if (!Schema::hasColumn('converted_student_details', 'remarks')) {
                 $table->text('remarks')->nullable()->after('screening');
             }

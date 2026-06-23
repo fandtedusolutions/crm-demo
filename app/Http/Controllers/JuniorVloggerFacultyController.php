@@ -19,7 +19,7 @@ class JuniorVloggerFacultyController extends Controller
     private const COURSE_ID = 25;
 
     /**
-     * Display Junior Vlogger Converted Mentor List (course_id = 25)
+     * Display CreateX AI Converted Mentor List (course_id = 25)
      */
     public function index(Request $request)
     {
@@ -137,7 +137,7 @@ class JuniorVloggerFacultyController extends Controller
     }
 
     /**
-     * Update mentor/details inline for Junior Vlogger
+     * Update mentor/details inline for CreateX AI
      */
     public function updateMentorDetails(Request $request, $id)
     {
@@ -217,7 +217,7 @@ class JuniorVloggerFacultyController extends Controller
                 'value' => $responseValue,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error updating Junior Vlogger mentor details: ' . $e->getMessage());
+            Log::error('Error updating CreateX AI mentor details: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'error' => 'Update failed: ' . $e->getMessage(),

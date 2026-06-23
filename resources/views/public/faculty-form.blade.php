@@ -397,8 +397,8 @@
                             <option value="">Select</option>
                             <option value="E-School" {{ old('department_name', $faculty->department_name) === 'E-School' ? 'selected' : '' }}>E-School</option>
                             <option value="EduThanzeel" {{ old('department_name', $faculty->department_name) === 'EduThanzeel' ? 'selected' : '' }}>EduThanzeel</option>
-                            <option value="Graphic Designing" {{ old('department_name', $faculty->department_name) === 'Graphic Designing' ? 'selected' : '' }}>Graphic Designing</option>
-                            <option value="Digital Marketing" {{ old('department_name', $faculty->department_name) === 'Digital Marketing' ? 'selected' : '' }}>Digital Marketing</option>
+                            <option value="Diploma in Graphic Designing" {{ old('department_name', $faculty->department_name) === 'Diploma in Graphic Designing' ? 'selected' : '' }}>Diploma in Graphic Designing</option>
+                            <option value="AI Integrated Digital Marketing" {{ old('department_name', $faculty->department_name) === 'AI Integrated Digital Marketing' ? 'selected' : '' }}>AI Integrated Digital Marketing</option>
                             <option value="Data Science" {{ old('department_name', $faculty->department_name) === 'Data Science' ? 'selected' : '' }}>Data Science</option>
                             <option value="Machine Learning" {{ old('department_name', $faculty->department_name) === 'Machine Learning' ? 'selected' : '' }}>Machine Learning</option>
                         </select>
