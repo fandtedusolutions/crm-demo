@@ -20,7 +20,7 @@ trait ConvertedLeadScopedDataTables
      */
     protected function digitalProgrammeStyleCourseIds(): array
     {
-        return [11, 12, 13, 14, 15, 20, 21, 27];
+        return [11, 12, 13, 14, 15, 20, 21, 27, 30, 31, 32];
     }
 
     protected function aiPythonStyleCourseId(): int

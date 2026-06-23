@@ -1072,6 +1072,21 @@ class SupportConvertedLeadController extends Controller
         return $this->getCourseSupportIndex($request, 15, 'Diploma in Graphic Designing Converted Support List', 'admin.converted-leads.support-graphic-designing-index');
     }
 
+    public function aiIntegratedVideoEditingIndex(Request $request)
+    {
+        return $this->getCourseSupportIndex($request, 30, 'AI-Integrated Video Editing Converted Support List', 'admin.converted-leads.support-ai-integrated-video-editing-index');
+    }
+
+    public function aiIntegratedVideographyIndex(Request $request)
+    {
+        return $this->getCourseSupportIndex($request, 31, 'AI-Integrated Videography Converted Support List', 'admin.converted-leads.support-ai-integrated-videography-index');
+    }
+
+    public function aiIntegratedPhotographyIndex(Request $request)
+    {
+        return $this->getCourseSupportIndex($request, 32, 'AI-Integrated Photography Converted Support List', 'admin.converted-leads.support-ai-integrated-photography-index');
+    }
+
     /**
      * Display a listing of Diploma in Machine Learning converted leads for support
      */

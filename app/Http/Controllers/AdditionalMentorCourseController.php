@@ -118,6 +118,7 @@ class AdditionalMentorCourseController extends Controller
         $convertedLeads = $query->orderBy('created_at', 'desc')->paginate(50);
         $batches = Batch::where('course_id', $courseId)->orderBy('title')->get();
         $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
+        $activeMentorRoute = $routeName;
 
         return view('admin.converted-leads.additional-mentor-course-index', compact(
             'convertedLeads',
@@ -125,7 +126,8 @@ class AdditionalMentorCourseController extends Controller
             'routeName',
             'courseId',
             'batches',
-            'flags'
+            'flags',
+            'activeMentorRoute',
         ));
     }
 }

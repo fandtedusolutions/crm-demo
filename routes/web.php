@@ -952,6 +952,9 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/web-development-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'webDevIndex'])->name('web-development-converted-leads.index');
         Route::get('/vibe-coding-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'vibeCodingIndex'])->name('vibe-coding-converted-leads.index');
         Route::get('/graphic-designing-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'graphicDesigningIndex'])->name('graphic-designing-converted-leads.index');
+        Route::get('/ai-integrated-video-editing-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'aiIntegratedVideoEditingIndex'])->name('ai-integrated-video-editing-converted-leads.index');
+        Route::get('/ai-integrated-videography-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'aiIntegratedVideographyIndex'])->name('ai-integrated-videography-converted-leads.index');
+        Route::get('/ai-integrated-photography-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'aiIntegratedPhotographyIndex'])->name('ai-integrated-photography-converted-leads.index');
         Route::get('/machine-learning-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'machineLearningIndex'])->name('machine-learning-converted-leads.index');
         Route::get('/flutter-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'flutterIndex'])->name('flutter-converted-leads.index');
         Route::get('/rpa-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'rpaIndex'])->name('rpa-converted-leads.index');
@@ -1004,6 +1007,13 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/graphic-designing-mentor-converted-leads', [App\Http\Controllers\GraphicDesigningMentorController::class, 'index'])->name('graphic-designing-mentor-converted-leads.index');
         Route::post('/graphic-designing-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\GraphicDesigningMentorController::class, 'updateMentorDetails'])->name('graphic-designing-mentor-converted-leads.update-mentor-details');
 
+        Route::get('/ai-integrated-video-editing-mentor-converted-leads', [App\Http\Controllers\AiIntegratedVideoEditingMentorController::class, 'index'])->name('ai-integrated-video-editing-mentor-converted-leads.index');
+        Route::post('/ai-integrated-video-editing-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\AiIntegratedVideoEditingMentorController::class, 'updateMentorDetails'])->name('ai-integrated-video-editing-mentor-converted-leads.update-mentor-details');
+        Route::get('/ai-integrated-videography-mentor-converted-leads', [App\Http\Controllers\AiIntegratedVideographyMentorController::class, 'index'])->name('ai-integrated-videography-mentor-converted-leads.index');
+        Route::post('/ai-integrated-videography-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\AiIntegratedVideographyMentorController::class, 'updateMentorDetails'])->name('ai-integrated-videography-mentor-converted-leads.update-mentor-details');
+        Route::get('/ai-integrated-photography-mentor-converted-leads', [App\Http\Controllers\AiIntegratedPhotographyMentorController::class, 'index'])->name('ai-integrated-photography-mentor-converted-leads.index');
+        Route::post('/ai-integrated-photography-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\AiIntegratedPhotographyMentorController::class, 'updateMentorDetails'])->name('ai-integrated-photography-mentor-converted-leads.update-mentor-details');
+
         // CreateX AI Mentor Converted Leads Routes
         Route::get('/junior-vlogger-mentor-converted-leads', [App\Http\Controllers\JuniorVloggerMentorController::class, 'index'])->name('junior-vlogger-mentor-converted-leads.index');
         Route::post('/junior-vlogger-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\JuniorVloggerMentorController::class, 'updateMentorDetails'])->name('junior-vlogger-mentor-converted-leads.update-mentor-details');
@@ -1053,6 +1063,13 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // Diploma in Graphic Designing Faculty Converted Leads Routes
         Route::get('/graphic-designing-faculty-converted-leads', [App\Http\Controllers\GraphicDesigningFacultyController::class, 'index'])->name('graphic-designing-faculty-converted-leads.index');
         Route::post('/graphic-designing-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\GraphicDesigningFacultyController::class, 'updateMentorDetails'])->name('graphic-designing-faculty-converted-leads.update-mentor-details');
+
+        Route::get('/ai-integrated-video-editing-faculty-converted-leads', [App\Http\Controllers\AiIntegratedVideoEditingFacultyController::class, 'index'])->name('ai-integrated-video-editing-faculty-converted-leads.index');
+        Route::post('/ai-integrated-video-editing-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\AiIntegratedVideoEditingFacultyController::class, 'updateMentorDetails'])->name('ai-integrated-video-editing-faculty-converted-leads.update-mentor-details');
+        Route::get('/ai-integrated-videography-faculty-converted-leads', [App\Http\Controllers\AiIntegratedVideographyFacultyController::class, 'index'])->name('ai-integrated-videography-faculty-converted-leads.index');
+        Route::post('/ai-integrated-videography-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\AiIntegratedVideographyFacultyController::class, 'updateMentorDetails'])->name('ai-integrated-videography-faculty-converted-leads.update-mentor-details');
+        Route::get('/ai-integrated-photography-faculty-converted-leads', [App\Http\Controllers\AiIntegratedPhotographyFacultyController::class, 'index'])->name('ai-integrated-photography-faculty-converted-leads.index');
+        Route::post('/ai-integrated-photography-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\AiIntegratedPhotographyFacultyController::class, 'updateMentorDetails'])->name('ai-integrated-photography-faculty-converted-leads.update-mentor-details');
 
         // CreateX AI Faculty Converted Leads Routes
         Route::get('/junior-vlogger-faculty-converted-leads', [App\Http\Controllers\JuniorVloggerFacultyController::class, 'index'])->name('junior-vlogger-faculty-converted-leads.index');
@@ -1127,6 +1144,13 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // Diploma in Graphic Designing Support Converted Leads Routes
         Route::get('/support-graphic-designing-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'graphicDesigningIndex'])->name('support-graphic-designing-converted-leads.index');
         Route::post('/support-graphic-designing-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-graphic-designing-converted-leads.update-support-details');
+
+        Route::get('/support-ai-integrated-video-editing-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'aiIntegratedVideoEditingIndex'])->name('support-ai-integrated-video-editing-converted-leads.index');
+        Route::post('/support-ai-integrated-video-editing-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-ai-integrated-video-editing-converted-leads.update-support-details');
+        Route::get('/support-ai-integrated-videography-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'aiIntegratedVideographyIndex'])->name('support-ai-integrated-videography-converted-leads.index');
+        Route::post('/support-ai-integrated-videography-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-ai-integrated-videography-converted-leads.update-support-details');
+        Route::get('/support-ai-integrated-photography-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'aiIntegratedPhotographyIndex'])->name('support-ai-integrated-photography-converted-leads.index');
+        Route::post('/support-ai-integrated-photography-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-ai-integrated-photography-converted-leads.update-support-details');
 
         // Diploma in Machine Learning Support Converted Leads Routes
         Route::get('/support-machine-learning-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'machineLearningIndex'])->name('support-machine-learning-converted-leads.index');

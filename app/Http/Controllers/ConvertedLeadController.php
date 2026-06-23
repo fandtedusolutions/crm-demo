@@ -2304,6 +2304,21 @@ class ConvertedLeadController extends Controller
         return $this->programmeCourseConvertedLeadsIndex(15, 'graphic-designing-index', 'graphicDesigningConvertedLeadsTable');
     }
 
+    public function aiIntegratedVideoEditingIndex(Request $request)
+    {
+        return $this->programmeCourseConvertedLeadsIndex(30, 'ai-integrated-video-editing-index', 'aiIntegratedVideoEditingConvertedLeadsTable');
+    }
+
+    public function aiIntegratedVideographyIndex(Request $request)
+    {
+        return $this->programmeCourseConvertedLeadsIndex(31, 'ai-integrated-videography-index', 'aiIntegratedVideographyConvertedLeadsTable');
+    }
+
+    public function aiIntegratedPhotographyIndex(Request $request)
+    {
+        return $this->programmeCourseConvertedLeadsIndex(32, 'ai-integrated-photography-index', 'aiIntegratedPhotographyConvertedLeadsTable');
+    }
+
     /**
      * Display Diploma in Machine Learning converted leads (course_id = 20)
      */
