@@ -749,7 +749,8 @@ class LeadsController extends Controller
             14 => 'public.lead.vibe-coding.register',
             15 => 'public.lead.graphic-designing.register',
             16 => 'public.lead.gmvss.register',
-            27 => 'public.lead.rpa.register'
+            27 => 'public.lead.rpa.register',
+            29 => 'public.lead.ai-sales-marketing.register'
         ];
         
         $showLeadRegFormLink = isset($courseRoutes[$lead->course_id]) ? 1 : 0;

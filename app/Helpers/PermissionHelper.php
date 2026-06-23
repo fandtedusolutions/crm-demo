@@ -153,6 +153,8 @@ class PermissionHelper
             'admin/support-flags/index',
             'admin/course-flags/index',
             'admin/class-times/index',
+            'admin/course-types/index',
+            'admin/stream-specializations/index',
             'admin/offline-places/index',
             'admin/hod/index',
             'admin/sub-courses/index',

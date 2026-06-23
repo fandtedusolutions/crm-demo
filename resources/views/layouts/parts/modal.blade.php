@@ -71,6 +71,10 @@
         $('#small-modal-title').html(header);
     }
 
+    $('#small_modal').on('hidden.bs.modal', function() {
+        $('#small-modal-content').empty();
+    });
+
     function show_ajax_modal(url, header, leadId = null) {
         // SHOWING AJAX PRELOADER IMAGE
         $('#ajax-modal-content').html('<div style="padding:40px; text-align:center;"><img src="{{ asset("assets/loader.gif") }}" width="150" height="150" alt="Loading..."></div>');

@@ -105,6 +105,8 @@ Route::get('/api/sub-courses/by-course/{courseId}', [App\Http\Controllers\SubCou
 Route::get('/api/admission-batches/by-batch/{batchId}', [App\Http\Controllers\AdmissionBatchController::class, 'getByBatch'])->name('api.admission-batches.by-batch');
 Route::get('/api/university-courses/by-university/{universityId}', [App\Http\Controllers\UniversityCourseController::class, 'getByUniversity'])->name('api.university-courses.by-university');
 Route::get('/api/class-times/by-course/{courseId}', [App\Http\Controllers\ClassTimeController::class, 'getByCourse'])->name('api.class-times.by-course');
+Route::get('/api/course-types/by-course/{courseId}', [App\Http\Controllers\CourseTypeController::class, 'getByCourse'])->name('api.course-types.by-course');
+Route::get('/api/stream-specializations/by-course/{courseId}', [App\Http\Controllers\StreamSpecializationController::class, 'getByCourse'])->name('api.stream-specializations.by-course');
 Route::get('/api/courses/{courseId}/needs-time', [App\Http\Controllers\CourseController::class, 'checkNeedsTime'])->name('api.courses.needs-time');
 Route::post('/api/invoices/calculate-amount/{studentId}', [App\Http\Controllers\InvoiceController::class, 'calculateAmount'])->name('api.invoices.calculate-amount');
 
@@ -134,6 +136,11 @@ Route::prefix('register')->group(function () {
     Route::get('/medical-coding/{leadId}/success', [App\Http\Controllers\Public\LeadMedicalCodingRegistrationController::class, 'showSuccess'])->name('public.lead.medical-coding.register.success');
     Route::get('/medical-coding/subjects', [App\Http\Controllers\Public\LeadMedicalCodingRegistrationController::class, 'getSubjects'])->name('public.lead.medical-coding.subjects');
     Route::get('/medical-coding/batches', [App\Http\Controllers\Public\LeadMedicalCodingRegistrationController::class, 'getBatches'])->name('public.lead.medical-coding.batches');
+
+    // AI-Integrated Sales & Marketing Registration Routes
+    Route::get('/ai-integrated-sales-marketing/{leadId?}', [App\Http\Controllers\Public\LeadAiSalesMarketingRegistrationController::class, 'showForm'])->name('public.lead.ai-sales-marketing.register');
+    Route::post('/ai-integrated-sales-marketing', [App\Http\Controllers\Public\LeadAiSalesMarketingRegistrationController::class, 'store'])->name('public.lead.ai-sales-marketing.store');
+    Route::get('/ai-integrated-sales-marketing/{leadId}/success', [App\Http\Controllers\Public\LeadAiSalesMarketingRegistrationController::class, 'showSuccess'])->name('public.lead.ai-sales-marketing.register.success');
 
     // Diploma in Hospital Administration Registration Routes
     Route::get('/hospital-admin/{leadId?}', [App\Http\Controllers\Public\LeadHospitalAdminRegistrationController::class, 'showHospitalAdminForm'])->name('public.lead.hospital-admin.register');
@@ -513,6 +520,22 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/offline-places-submit', [App\Http\Controllers\OfflinePlaceController::class, 'submit'])->name('offline-places.submit');
         Route::put('/offline-places-update/{id}', [App\Http\Controllers\OfflinePlaceController::class, 'update'])->name('offline-places.update');
         Route::delete('/offline-places-delete/{id}', [App\Http\Controllers\OfflinePlaceController::class, 'delete'])->name('offline-places.delete');
+
+        // Course Types Routes
+        Route::delete('/course-types-delete/{id}', [App\Http\Controllers\CourseTypeController::class, 'delete'])->name('course-types.delete');
+        Route::resource('course-types', App\Http\Controllers\CourseTypeController::class)->except(['create', 'edit']);
+        Route::get('/course-types-add', [App\Http\Controllers\CourseTypeController::class, 'ajax_add'])->name('course-types.add');
+        Route::get('/course-types-edit/{id}', [App\Http\Controllers\CourseTypeController::class, 'ajax_edit'])->name('course-types.edit');
+        Route::post('/course-types-submit', [App\Http\Controllers\CourseTypeController::class, 'submit'])->name('course-types.submit');
+        Route::put('/course-types-update/{id}', [App\Http\Controllers\CourseTypeController::class, 'update'])->name('course-types.update');
+
+        // Stream Specializations Routes
+        Route::delete('/stream-specializations-delete/{id}', [App\Http\Controllers\StreamSpecializationController::class, 'delete'])->name('stream-specializations.delete');
+        Route::resource('stream-specializations', App\Http\Controllers\StreamSpecializationController::class)->except(['create', 'edit']);
+        Route::get('/stream-specializations-add', [App\Http\Controllers\StreamSpecializationController::class, 'ajax_add'])->name('stream-specializations.add');
+        Route::get('/stream-specializations-edit/{id}', [App\Http\Controllers\StreamSpecializationController::class, 'ajax_edit'])->name('stream-specializations.edit');
+        Route::post('/stream-specializations-submit', [App\Http\Controllers\StreamSpecializationController::class, 'submit'])->name('stream-specializations.submit');
+        Route::put('/stream-specializations-update/{id}', [App\Http\Controllers\StreamSpecializationController::class, 'update'])->name('stream-specializations.update');
 
         Route::resource('teams', TeamController::class)->except(['create', 'edit']);
         Route::get('/teams-add', [TeamController::class, 'ajax_add'])->name('teams.add');

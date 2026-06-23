@@ -210,6 +210,11 @@ class Lead extends Model
         return $this->hasOne(LeadDetail::class, 'lead_id')->where('course_id', 3);
     }
 
+    public function aiSalesMarketingStudentDetails()
+    {
+        return $this->hasOne(LeadDetail::class, 'lead_id')->where('course_id', 29);
+    }
+
     public function hospitalAdminStudentDetails()
     {
         return $this->hasOne(LeadDetail::class, 'lead_id')->where('course_id', 4);

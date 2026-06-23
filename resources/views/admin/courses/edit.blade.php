@@ -131,81 +131,101 @@
     </form>
 
     <script>
-    $(document).ready(function() {
-        // Handle HOD selection change
-        $('#hod_id').on('change', function() {
-            const selectedOption = $(this).find('option:selected');
-            const code = selectedOption.data('code');
-            const phone = selectedOption.data('phone');
-            
-            if (code && phone) {
-                $('#hod_number').val('+' + code + ' ' + phone);
-            } else if (phone) {
-                $('#hod_number').val(phone);
-            } else {
-                $('#hod_number').val('');
+    (function() {
+        function initCourseEditForm() {
+            const form = $('#courseEditForm');
+            if (!form.length) {
+                return;
             }
-        });
 
-        // Initialize HOD number if HOD is already selected on page load
-        const selectedHod = $('#hod_id option:selected');
-        if (selectedHod.val() && !$('#hod_number').val()) {
-            const code = selectedHod.data('code');
-            const phone = selectedHod.data('phone');
-            if (code && phone) {
-                $('#hod_number').val('+' + code + ' ' + phone);
-            } else if (phone) {
-                $('#hod_number').val(phone);
-            }
-        }
+            $('#hod_id').off('change.courseEdit').on('change.courseEdit', function() {
+                const selectedOption = $(this).find('option:selected');
+                const code = selectedOption.data('code');
+                const phone = selectedOption.data('phone');
 
-        // Allow manual editing of HOD number
-        $('#hod_number').on('focus', function() {
-            $(this).prop('readonly', false);
-        });
-
-        $('#courseEditForm').on('submit', function(e) {
-            e.preventDefault();
-            
-            // Clear previous errors
-            $('.form-control').removeClass('is-invalid');
-            $('.invalid-feedback').text('');
-            
-            $.ajax({
-                url: $(this).attr('action'),
-                type: 'POST',
-                data: $(this).serialize(),
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Show success message
-                        toast_success(response.message);
-                        
-                        // Close modal and reload page after a short delay
-                        $('#small_modal').modal('hide');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                },
-                error: function(xhr) {
-                    if (xhr.status === 422) {
-                        // Validation errors
-                        var errors = xhr.responseJSON.errors;
-                        $.each(errors, function(field, messages) {
-                            var input = $('[name="' + field + '"]');
-                            input.addClass('is-invalid');
-                            input.siblings('.invalid-feedback').text(messages[0]);
-                        });
-                    } else {
-                        // Other errors
-                        alert('An error occurred. Please try again.');
-                    }
+                if (code && phone) {
+                    $('#hod_number').val('+' + code + ' ' + phone);
+                } else if (phone) {
+                    $('#hod_number').val(phone);
+                } else {
+                    $('#hod_number').val('');
                 }
             });
-        });
-    });
+
+            const selectedHod = $('#hod_id option:selected');
+            if (selectedHod.val() && !$('#hod_number').val()) {
+                const code = selectedHod.data('code');
+                const phone = selectedHod.data('phone');
+                if (code && phone) {
+                    $('#hod_number').val('+' + code + ' ' + phone);
+                } else if (phone) {
+                    $('#hod_number').val(phone);
+                }
+            }
+
+            $('#hod_number').off('focus.courseEdit').on('focus.courseEdit', function() {
+                $(this).prop('readonly', false);
+            });
+
+            form.off('submit.courseEdit').on('submit.courseEdit', function(e) {
+                e.preventDefault();
+
+                if (form.data('submitting')) {
+                    return;
+                }
+
+                form.data('submitting', true);
+                form.find('.form-control').removeClass('is-invalid');
+                form.find('.invalid-feedback').text('');
+
+                const submitBtn = form.find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<i class="ti ti-loader-2 spin"></i> Updating...');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toast_success(response.message);
+                            $('#small_modal').modal('hide');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                            return;
+                        }
+
+                        form.data('submitting', false);
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html(originalText);
+                    },
+                    error: function(xhr) {
+                        form.data('submitting', false);
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html(originalText);
+
+                        if (xhr.status === 422) {
+                            const errors = xhr.responseJSON.errors;
+                            $.each(errors, function(field, messages) {
+                                const input = form.find('[name="' + field + '"]');
+                                input.addClass('is-invalid');
+                                input.siblings('.invalid-feedback').text(messages[0]);
+                            });
+                        } else {
+                            alert('An error occurred. Please try again.');
+                        }
+                    }
+                });
+            });
+        }
+
+        initCourseEditForm();
+    })();
     </script>
 </div>

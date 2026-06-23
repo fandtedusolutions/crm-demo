@@ -18,6 +18,7 @@ class LeadDetail extends Model
         'university_id',
         'university_course_id',
         'course_type',
+        'course_type_id',
         'edumaster_course_name',
         'student_name',
         'father_name',
@@ -41,6 +42,7 @@ class LeadDetail extends Model
         'sslc_back_year',
         'plustwo_back_year',
         'plustwo_subject',
+        'stream_specialization_id',
         'back_year',
         'degree_back_year',
         'subject_id',
@@ -142,6 +144,16 @@ class LeadDetail extends Model
     public function batch()
     {
         return $this->belongsTo(Batch::class);
+    }
+
+    public function courseTypeOption()
+    {
+        return $this->belongsTo(CourseType::class, 'course_type_id');
+    }
+
+    public function streamSpecialization()
+    {
+        return $this->belongsTo(StreamSpecialization::class, 'stream_specialization_id');
     }
 
     public function course()

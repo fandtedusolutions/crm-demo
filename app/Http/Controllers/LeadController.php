@@ -1336,7 +1336,8 @@ class LeadController extends Controller
             21 => ['route' => 'public.lead.flutter.register', 'title' => 'Flutter'],
             23 => ['route' => 'public.lead.edumaster.register', 'title' => 'EduMaster'],
             25 => ['route' => 'public.lead.junior-vlogger.register', 'title' => 'CreateX AI'],
-            27 => ['route' => 'public.lead.rpa.register', 'title' => 'RPA']
+            27 => ['route' => 'public.lead.rpa.register', 'title' => 'RPA'],
+            29 => ['route' => 'public.lead.ai-sales-marketing.register', 'title' => 'AI-Integrated Sales & Marketing']
         ];
         
         if (isset($courseRoutes[$lead->course_id])) {
@@ -1665,7 +1666,8 @@ class LeadController extends Controller
             21 => 'public.lead.flutter.register',
             23 => 'public.lead.edumaster.register',
             25 => 'public.lead.junior-vlogger.register',
-            27 => 'public.lead.rpa.register'
+            27 => 'public.lead.rpa.register',
+            29 => 'public.lead.ai-sales-marketing.register'
         ];
         
         if (isset($courseRoutes[$lead->course_id])) {

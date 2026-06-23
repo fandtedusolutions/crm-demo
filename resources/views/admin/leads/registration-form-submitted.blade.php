@@ -432,6 +432,12 @@
                                                 <i class="ti ti-external-link me-1"></i>RPA Form
                                             </a>
                                         </div>
+                                        @elseif($lead->course_id == 29)
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ route('public.lead.ai-sales-marketing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Sales & Marketing Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>AI Sales & Marketing Form
+                                            </a>
+                                        </div>
                                         @else
                                         <span class="text-muted">No form available</span>
                                         @endif

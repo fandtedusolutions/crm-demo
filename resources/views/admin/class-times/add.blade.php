@@ -61,58 +61,66 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    $('#classTimeAddForm').on('submit', function(e) {
-        e.preventDefault();
-        
-        const form = $(this);
-        const formData = new FormData(this);
-        const submitBtn = form.find('button[type="submit"]');
-        const originalText = submitBtn.html();
-        
-        // Show loading state
-        submitBtn.prop('disabled', true);
-        submitBtn.html('<i class="ti ti-loader-2 spin"></i> Submitting...');
-        
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                // Close modal
-                $('#small_modal').modal('hide');
-                
-                // Show success message
-                toast_success('Class time created successfully!');
-                
-                // Redirect to the index page
-                setTimeout(() => {
-                    window.location.href = '{{ route("admin.class-times.index") }}';
-                }, 1000);
-            },
-            error: function(xhr) {
-                let errorMessage = 'An error occurred while creating the class time.';
-                
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
-                    const errors = xhr.responseJSON.errors;
-                    errorMessage = Object.values(errors).flat().join('<br>');
-                }
-                
-                toast_danger(errorMessage);
-                
-                // Re-enable submit button
-                submitBtn.prop('disabled', false);
-                submitBtn.html(originalText);
+(function() {
+    function initClassTimeAddForm() {
+        const form = $('#classTimeAddForm');
+        if (!form.length) {
+            return;
+        }
+
+        form.off('submit.classTimeAdd').on('submit.classTimeAdd', function(e) {
+            e.preventDefault();
+
+            if (form.data('submitting')) {
+                return;
             }
+
+            form.data('submitting', true);
+
+            const formData = new FormData(this);
+            const submitBtn = form.find('button[type="submit"]');
+            const originalText = submitBtn.html();
+
+            submitBtn.prop('disabled', true);
+            submitBtn.html('<i class="ti ti-loader-2 spin"></i> Submitting...');
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    $('#small_modal').modal('hide');
+                    toast_success(response.message || 'Class time created successfully!');
+                    setTimeout(function() {
+                        window.location.href = '{{ route("admin.class-times.index") }}';
+                    }, 1000);
+                },
+                error: function(xhr) {
+                    let errorMessage = 'An error occurred while creating the class time.';
+
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        const errors = xhr.responseJSON.errors;
+                        errorMessage = Object.values(errors).flat().join('<br>');
+                    }
+
+                    toast_danger(errorMessage);
+                    form.data('submitting', false);
+                    submitBtn.prop('disabled', false);
+                    submitBtn.html(originalText);
+                }
+            });
         });
-    });
-});
+    }
+
+    initClassTimeAddForm();
+})();
 </script>
 
