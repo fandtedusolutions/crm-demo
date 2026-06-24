@@ -123,6 +123,11 @@
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
+        .auth-main .auth-wrapper.v3 .auth-form::after {
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            background: rgba(255, 255, 255, 0.08);
+        }
     </style>
 </body>
 <!-- [Body] end -->
