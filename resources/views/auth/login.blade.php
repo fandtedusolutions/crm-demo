@@ -116,7 +116,7 @@
     
     <style>
         .auth-main .auth-wrapper.v3 .auth-form {
-            background-image: url('{{ asset($siteSettings['bg_image']) }}');
+            background-image: url('{{ \App\Helpers\PublicStorageHelper::publicUrl($siteSettings['bg_image']) }}');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;

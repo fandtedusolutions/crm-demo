@@ -139,7 +139,7 @@
                             </div>
                             <div class="card-body">
                                 <div class="text-center mb-3">
-                                    <img id="current-bg-image" src="{{ asset($siteSettings['bg_image']) }}" alt="Current Background Image" 
+                                    <img id="current-bg-image" src="{{ \App\Helpers\PublicStorageHelper::publicUrl($siteSettings['bg_image']) }}" alt="Current Background Image"
                                          class="img-fluid rounded" style="max-height: 200px; max-width: 400px; border: 1px solid #dee2e6;"
                                          onerror="this.src='{{ asset('assets/mantis/images/auth-bg.jpg') }}'">
                                 </div>
@@ -256,7 +256,7 @@ $(document).ready(function() {
                 if (response.success) {
                     toast_success(response.message);
                     // Update logo display
-                    $('#current-logo').attr('src', response.logo_url + '?t=' + new Date().getTime());
+                    $('#current-logo').attr('src', response.logo_url);
                 } else {
                     toast_danger(response.message);
                 }
@@ -302,7 +302,7 @@ $(document).ready(function() {
                 if (response.success) {
                     toast_success(response.message);
                     // Update favicon display
-                    $('#current-favicon').attr('src', response.favicon_url + '?t=' + new Date().getTime());
+                    $('#current-favicon').attr('src', response.favicon_url);
                 } else {
                     toast_danger(response.message);
                 }
@@ -390,7 +390,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     // Update the preview image
-                    $('#current-bg-image').attr('src', response.bg_image_url + '?t=' + new Date().getTime());
+                    $('#current-bg-image').attr('src', response.bg_image_url);
                     toast_success(response.message);
                 } else {
                     toast_danger(response.message);

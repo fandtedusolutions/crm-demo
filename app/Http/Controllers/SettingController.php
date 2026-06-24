@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use App\Helpers\AuthHelper;
+use App\Helpers\PublicStorageHelper;
 use App\Models\Setting;
 
 class SettingController extends Controller
@@ -43,21 +42,13 @@ class SettingController extends Controller
         }
 
         try {
-            // Delete old logo if exists
-            if (Storage::disk('public')->exists('logo.png')) {
-                Storage::disk('public')->delete('logo.png');
-            }
-
-            // Store new logo
-            $logoPath = $request->file('logo')->storeAs('', 'logo.png', 'public');
-            
-            // Update settings table
+            PublicStorageHelper::storeFile($request->file('logo'), 'logo.png');
             Setting::set('site_logo', 'storage/logo.png', 'file', 'Website logo file path', 'site');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Logo updated successfully!',
-                'logo_url' => asset('storage/logo.png')
+                'logo_url' => PublicStorageHelper::publicUrl('storage/logo.png')
             ]);
 
         } catch (\Exception $e) {
@@ -83,21 +74,13 @@ class SettingController extends Controller
         }
 
         try {
-            // Delete old favicon if exists
-            if (Storage::disk('public')->exists('favicon.ico')) {
-                Storage::disk('public')->delete('favicon.ico');
-            }
-
-            // Store new favicon
-            $faviconPath = $request->file('favicon')->storeAs('', 'favicon.ico', 'public');
-            
-            // Update settings table
+            PublicStorageHelper::storeFile($request->file('favicon'), 'favicon.ico');
             Setting::set('site_favicon', 'storage/favicon.ico', 'file', 'Website favicon file path', 'site');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Favicon updated successfully!',
-                'favicon_url' => asset('storage/favicon.ico')
+                'favicon_url' => PublicStorageHelper::publicUrl('storage/favicon.ico')
             ]);
 
         } catch (\Exception $e) {
@@ -159,21 +142,21 @@ class SettingController extends Controller
         }
 
         try {
-            // Delete old background image if exists
-            if (Storage::disk('public')->exists('auth-bg.jpg')) {
-                Storage::disk('public')->delete('auth-bg.jpg');
+            $oldBg = Setting::get('bg_image');
+            if ($oldBg && str_starts_with($oldBg, 'storage/')) {
+                PublicStorageHelper::deleteFile(substr($oldBg, strlen('storage/')));
             }
 
-            // Store new background image
-            $bgImagePath = $request->file('bg_image')->storeAs('', 'auth-bg.jpg', 'public');
-            
-            // Update settings table
-            Setting::set('bg_image', 'storage/auth-bg.jpg', 'file', 'Login page background image', 'site');
+            $extension = strtolower($request->file('bg_image')->getClientOriginalExtension() ?: 'jpg');
+            $filename = 'auth-bg.' . $extension;
+
+            PublicStorageHelper::storeFile($request->file('bg_image'), $filename);
+            Setting::set('bg_image', 'storage/' . $filename, 'file', 'Login page background image', 'site');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Background image updated successfully!',
-                'bg_image_url' => asset('storage/auth-bg.jpg')
+                'bg_image_url' => PublicStorageHelper::publicUrl('storage/' . $filename)
             ]);
 
         } catch (\Exception $e) {
@@ -187,12 +170,11 @@ class SettingController extends Controller
     public function removeBackgroundImage(Request $request)
     {
         try {
-            // Delete the current background image file if it exists
-            if (Storage::disk('public')->exists('auth-bg.jpg')) {
-                Storage::disk('public')->delete('auth-bg.jpg');
+            $currentBg = Setting::get('bg_image');
+            if ($currentBg && str_starts_with($currentBg, 'storage/')) {
+                PublicStorageHelper::deleteFile(substr($currentBg, strlen('storage/')));
             }
-            
-            // Update settings table to use default background
+
             Setting::set('bg_image', 'assets/mantis/images/auth-bg.jpg', 'file', 'Login page background image', 'site');
 
             return response()->json([
