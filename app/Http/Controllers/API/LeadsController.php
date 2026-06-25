@@ -256,6 +256,15 @@ class LeadsController extends Controller
                 'courses' => $courses,
                 'ratings' => $ratings,
                 'telecallers' => $telecallers,
+                'registration_form_courses' => collect(\App\Helpers\LeadRegistrationRouteHelper::courseRegistrationRouteNames())
+                    ->map(function ($routeName, $courseId) {
+                        return [
+                            'course_id' => (int) $courseId,
+                            'title' => \App\Helpers\LeadRegistrationRouteHelper::registrationTitle((int) $courseId),
+                            'route_name' => $routeName,
+                        ];
+                    })
+                    ->values(),
             ]
         ], 200);
     }
@@ -464,6 +473,8 @@ class LeadsController extends Controller
 
         $lead->load([
             'leadStatus:id,title',
+            'studentDetails:id,lead_id,status,course_id',
+            'plusTwoFollowUpQuestionnaire:id,lead_id',
             'leadActivities' => function ($query) use ($canViewPullbackHistory) {
                 $query->select('id', 'lead_id', 'reason', 'created_at', 'activity_type', 'description', 'remarks', 'rating', 'followup_date', 'created_by', 'lead_status_id', 'is_pullbacked')
                     ->with(['leadStatus:id,title', 'createdBy:id,name'])
@@ -515,7 +526,7 @@ class LeadsController extends Controller
             ];
         })->values();
 
-        $leadData = [
+        $leadData = array_merge([
             'id' => $lead->id,
             'name' => $lead->title,
             'phone_code' => $lead->code,
@@ -529,7 +540,7 @@ class LeadsController extends Controller
             'rating' => $lead->rating,
             'remarks' => $lead->remarks,
             'followup_date' => $lead->followup_date ? Carbon::parse($lead->followup_date)->format('Y-m-d') : null,
-        ];
+        ], \App\Helpers\LeadRegistrationRouteHelper::apiRegistrationFields($lead));
 
         return response()->json([
             'status' => true,
@@ -731,47 +742,8 @@ class LeadsController extends Controller
         
         $profileCompletedPercentage = round(($completedFields / count($requiredFields)) * 100);
 
-        // Determine show_lead_reg_form_link (1 if course has registration form, 0 otherwise)
-        $courseRoutes = [
-            1 => 'public.lead.nios.register',
-            2 => 'public.lead.bosse.register',
-            3 => 'public.lead.medical-coding.register',
-            4 => 'public.lead.hospital-admin.register',
-            5 => 'public.lead.eschool.register',
-            6 => 'public.lead.eduthanzeel.register',
-            7 => 'public.lead.ttc.register',
-            8 => 'public.lead.hotel-mgmt.register',
-            9 => 'public.lead.ugpg.register',
-            10 => 'public.lead.python.register',
-            11 => 'public.lead.digital-marketing.register',
-            12 => 'public.lead.diploma-in-data-science.register',
-            13 => 'public.lead.web-dev.register',
-            14 => 'public.lead.vibe-coding.register',
-            15 => 'public.lead.graphic-designing.register',
-            16 => 'public.lead.gmvss.register',
-            27 => 'public.lead.rpa.register',
-            29 => 'public.lead.ai-sales-marketing.register',
-            30 => 'public.lead.ai-integrated-video-editing.register',
-            31 => 'public.lead.ai-integrated-videography.register',
-            32 => 'public.lead.ai-integrated-photography.register'
-        ];
-        
-        $showLeadRegFormLink = isset($courseRoutes[$lead->course_id]) ? 1 : 0;
-        
-        // Get registration form link
-        $regFormLink = '';
-        if ($showLeadRegFormLink && $lead->course_id) {
-            $routeName = $courseRoutes[$lead->course_id];
-            try {
-                $regFormLink = route($routeName, $lead->id);
-            } catch (\Exception $e) {
-                // If route doesn't exist, set to null
-                $regFormLink = '';
-            }
-        }
-
-        // Check if registration form is submitted
-        $isLeadRegFormSubmitted = $lead->studentDetails ? 1 : 0;
+        $registrationFields = \App\Helpers\LeadRegistrationRouteHelper::apiRegistrationFields($lead);
+        $isLeadRegFormSubmitted = $registrationFields['is_lead_reg_form_submitted'];
 
         // Format follow_up_date
         $followUpDate = $lead->followup_date ? Carbon::parse($lead->followup_date)->format('d-m-Y') : '';
@@ -783,19 +755,7 @@ class LeadsController extends Controller
 
         $registrationDetailsStatus = $isLeadRegFormSubmitted ? $this->getRegistrationDetailsStatus($lead) : '';
 
-        $isPlusTwoFollowUpLead = (int) $lead->lead_source_id === PlusTwoFollowUpQuestionnaire::LEAD_SOURCE_ID;
-        $isPlusTwoFollowUpFormSubmitted = $isPlusTwoFollowUpLead && $lead->plusTwoFollowUpQuestionnaire ? 1 : 0;
-        $showPlusTwoFollowUpFormLink = $isPlusTwoFollowUpLead && !$lead->plusTwoFollowUpQuestionnaire ? 1 : 0;
-        $plusTwoFollowUpFormLink = '';
-        if ($showPlusTwoFollowUpFormLink) {
-            try {
-                $plusTwoFollowUpFormLink = route('public.lead.plus-two-follow-up.register', $lead->id);
-            } catch (\Exception $e) {
-                $plusTwoFollowUpFormLink = '';
-            }
-        }
-
-        return [
+        return array_merge([
             'id' => $lead->id,
             'name' => $lead->title ?? '',
             'profile_completed_percentage' => $profileCompletedPercentage,
@@ -808,12 +768,6 @@ class LeadsController extends Controller
             'course_name' => $lead->course ? $lead->course->title : '',
             'course_id' => $lead->course_id,
             'telecaller_name' => $lead->telecaller ? $lead->telecaller->name : '',
-            'is_lead_reg_form_submitted' => $isLeadRegFormSubmitted,
-            'show_lead_reg_form_link' => $showLeadRegFormLink,
-            'reg_form_link' => $regFormLink,
-            'show_plus_two_follow_up_form_link' => $showPlusTwoFollowUpFormLink,
-            'plus_two_follow_up_form_link' => $plusTwoFollowUpFormLink,
-            'is_plus_two_follow_up_form_submitted' => $isPlusTwoFollowUpFormSubmitted,
             'remarks' => $this->stripHtmlContent($lead->remarks ?? ''),
             'marketing_remarks' => $this->stripHtmlContent($lead->marketing_remarks ?? ''),
             'date' => $date,
@@ -821,8 +775,8 @@ class LeadsController extends Controller
             'follow_up_date' => $followUpDate,
             'registration_details_status' => $registrationDetailsStatus,
             'can_convert' => $this->canConvertLead($lead),
-            'created_at' => $createdAt->format('d-m-Y h:i A')
-        ];
+            'created_at' => $createdAt->format('d-m-Y h:i A'),
+        ], $registrationFields);
     }
 
 

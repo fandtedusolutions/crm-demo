@@ -78,7 +78,7 @@ class FollowupLeadsController extends Controller
 
             $lastReasonEntry = $lead->leadActivities->first();
 
-            return [
+            return array_merge([
                 'id' => $lead->id,
                 'name' => $lead->title,
                 'phone' => $phone,
@@ -107,7 +107,7 @@ class FollowupLeadsController extends Controller
                 'date' => $createdAt ? $createdAt->format('d-m-Y') : null,
                 'time' => $createdAt ? $createdAt->format('h:i A') : null,
                 'created_at' => $lead->created_at ? $lead->created_at->format('Y-m-d H:i:s') : null,
-            ];
+            ], \App\Helpers\LeadRegistrationRouteHelper::apiRegistrationFields($lead));
         });
 
         return response()->json([
@@ -242,6 +242,7 @@ class FollowupLeadsController extends Controller
                 'course:id,title',
                 'telecaller:id,name,team_id',
                 'studentDetails:id,lead_id,status,course_id',
+                'plusTwoFollowUpQuestionnaire:id,lead_id',
                 'leadActivities' => function ($query) {
                     $query->select('id', 'lead_id', 'reason', 'created_at', 'activity_type')
                         ->whereNotNull('reason')

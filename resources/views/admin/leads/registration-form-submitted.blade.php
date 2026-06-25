@@ -456,6 +456,18 @@
                                                 <i class="ti ti-external-link me-1"></i>AI Photography Form
                                             </a>
                                         </div>
+                                        @elseif($lead->course_id == 33)
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ route('public.lead.robo-vibe.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open Robo Vibe Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>Robo Vibe Form
+                                            </a>
+                                        </div>
+                                        @elseif($lead->course_id == 34)
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ route('public.lead.prompt-engineering.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open Prompt Engineering Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>Prompt Engineering Form
+                                            </a>
+                                        </div>
                                         @else
                                         <span class="text-muted">No form available</span>
                                         @endif

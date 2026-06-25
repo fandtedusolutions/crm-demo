@@ -85,7 +85,7 @@ foreach ($files as $file) {
             $content,
             1
         );
-    } elseif (str_contains($content, '<h6 class="mb-3">Support List</h6>') && !str_contains($content, 'converted-leads-support-nav')) {
+    } elseif (str_contains($content, '<h6 class="mb-3">Support List</h6>') && !str_contains($content, 'converted-leads-support-nav')) {                                                           
         $content = preg_replace(
             '/@if\(\\App\\Helpers\\RoleHelper::is_admin_or_super_admin\(\) \|\| \\App\\Helpers\\RoleHelper::is_admission_counsellor\(\) \|\| \\App\\Helpers\\RoleHelper::is_support_team\(\)\)\s*<div class="row mb-3">.*?<h6 class="mb-3">Support List<\/h6>.*?<\/div>\s*<\/div>\s*<\/div>\s*@endif/s',
             trim($supportInclude),

@@ -260,6 +260,16 @@ Route::prefix('register')->group(function () {
     Route::post('/ai-integrated-photography', [App\Http\Controllers\Public\LeadAiIntegratedPhotographyRegistrationController::class, 'store'])->name('public.lead.ai-integrated-photography.register.store');
     Route::get('/ai-integrated-photography/subjects', [App\Http\Controllers\Public\LeadAiIntegratedPhotographyRegistrationController::class, 'getSubjects'])->name('public.lead.ai-integrated-photography.subjects');
     Route::get('/ai-integrated-photography/batches', [App\Http\Controllers\Public\LeadAiIntegratedPhotographyRegistrationController::class, 'getBatches'])->name('public.lead.ai-integrated-photography.batches');
+
+    // Robo Vibe Registration Routes (course_id = 33)
+    Route::get('/robo-vibe/{leadId?}', [App\Http\Controllers\Public\LeadRoboVibeRegistrationController::class, 'showForm'])->name('public.lead.robo-vibe.register');
+    Route::post('/robo-vibe', [App\Http\Controllers\Public\LeadRoboVibeRegistrationController::class, 'store'])->name('public.lead.robo-vibe.store');
+    Route::get('/robo-vibe/{leadId}/success', [App\Http\Controllers\Public\LeadRoboVibeRegistrationController::class, 'showSuccess'])->name('public.lead.robo-vibe.register.success');
+
+    // Prompt Engineering Registration Routes (course_id = 34)
+    Route::get('/prompt-engineering/{leadId?}', [App\Http\Controllers\Public\LeadPromptEngineeringRegistrationController::class, 'showForm'])->name('public.lead.prompt-engineering.register');
+    Route::post('/prompt-engineering', [App\Http\Controllers\Public\LeadPromptEngineeringRegistrationController::class, 'store'])->name('public.lead.prompt-engineering.store');
+    Route::get('/prompt-engineering/{leadId}/success', [App\Http\Controllers\Public\LeadPromptEngineeringRegistrationController::class, 'showSuccess'])->name('public.lead.prompt-engineering.register.success');
     
     // Machine Learning Registration Routes
     Route::get('/machine-learning/{leadId?}', [App\Http\Controllers\Public\LeadMachineLearningRegistrationController::class, 'showMachineLearningForm'])->name('public.lead.machine-learning.register');

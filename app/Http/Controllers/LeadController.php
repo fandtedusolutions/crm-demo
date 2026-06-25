@@ -1315,36 +1315,14 @@ class LeadController extends Controller
         }
         
         // Render registration form links based on course_id
-        $courseRoutes = [
-            1 => ['route' => 'public.lead.nios.register', 'title' => 'National Institute of Open Schooling'],
-            2 => ['route' => 'public.lead.bosse.register', 'title' => 'Board of Open Schooling and Skill Education'],
-            3 => ['route' => 'public.lead.medical-coding.register', 'title' => 'Certificate Course in Medical Coding'],
-            4 => ['route' => 'public.lead.hospital-admin.register', 'title' => 'Diploma in Hospital Administration'],
-            5 => ['route' => 'public.lead.eschool.register', 'title' => 'E-School'],
-            6 => ['route' => 'public.lead.eduthanzeel.register', 'title' => 'Eduthanzeel'],
-            7 => ['route' => 'public.lead.ttc.register', 'title' => 'TTC'],
-            8 => ['route' => 'public.lead.hotel-mgmt.register', 'title' => 'Hotel Management'],
-            9 => ['route' => 'public.lead.ugpg.register', 'title' => 'UG/PG'],
-            10 => ['route' => 'public.lead.python.register', 'title' => 'Python'],
-            11 => ['route' => 'public.lead.digital-marketing.register', 'title' => 'AI Integrated Digital Marketing'],
-            12 => ['route' => 'public.lead.diploma-in-data-science.register', 'title' => 'Diploma in Data Science'],
-            13 => ['route' => 'public.lead.web-dev.register', 'title' => 'Web Development & Designing'],
-            14 => ['route' => 'public.lead.vibe-coding.register', 'title' => 'Vibe Coding'],
-            15 => ['route' => 'public.lead.graphic-designing.register', 'title' => 'Diploma in Graphic Designing'],
-            16 => ['route' => 'public.lead.gmvss.register', 'title' => 'Grameen Mukt Vidhyalayi Shiksha Sansthan'],
-            20 => ['route' => 'public.lead.machine-learning.register', 'title' => 'Diploma in Machine Learning'],
-            21 => ['route' => 'public.lead.flutter.register', 'title' => 'Flutter'],
-            23 => ['route' => 'public.lead.edumaster.register', 'title' => 'EduMaster'],
-            25 => ['route' => 'public.lead.junior-vlogger.register', 'title' => 'CreateX AI'],
-            27 => ['route' => 'public.lead.rpa.register', 'title' => 'RPA'],
-            29 => ['route' => 'public.lead.ai-sales-marketing.register', 'title' => 'AI-Integrated Sales & Marketing'],
-            30 => ['route' => 'public.lead.ai-integrated-video-editing.register', 'title' => 'AI-Integrated Video Editing'],
-            31 => ['route' => 'public.lead.ai-integrated-videography.register', 'title' => 'AI-Integrated Videography'],
-            32 => ['route' => 'public.lead.ai-integrated-photography.register', 'title' => 'AI-Integrated Photography']
-        ];
-        
-        if (isset($courseRoutes[$lead->course_id])) {
-            $routeInfo = $courseRoutes[$lead->course_id];
+        $routeNames = \App\Helpers\LeadRegistrationRouteHelper::courseRegistrationRouteNames();
+        $titles = \App\Helpers\LeadRegistrationRouteHelper::courseRegistrationTitles();
+
+        if (isset($routeNames[$lead->course_id])) {
+            $routeInfo = [
+                'route' => $routeNames[$lead->course_id],
+                'title' => $titles[$lead->course_id] ?? 'Registration',
+            ];
             $html = '<div class="d-flex gap-1">';
             $html .= '<a href="' . route($routeInfo['route'], $lead->id) . '" target="_blank" class="btn btn-sm btn-outline-warning" title="Open ' . $routeInfo['title'] . ' Registration Form"><i class="ti ti-external-link"></i></a>';
             $html .= '<button type="button" class="btn btn-sm btn-outline-info copy-link-btn" data-url="' . route($routeInfo['route'], $lead->id) . '" title="Copy ' . $routeInfo['title'] . ' Registration Link"><i class="ti ti-copy"></i></button>';
@@ -1648,39 +1626,9 @@ class LeadController extends Controller
             return route('public.lead.plus-two-follow-up.register', $lead->id);
         }
 
-        $courseRoutes = [
-            1 => 'public.lead.nios.register',
-            2 => 'public.lead.bosse.register',
-            3 => 'public.lead.medical-coding.register',
-            4 => 'public.lead.hospital-admin.register',
-            5 => 'public.lead.eschool.register',
-            6 => 'public.lead.eduthanzeel.register',
-            7 => 'public.lead.ttc.register',
-            8 => 'public.lead.hotel-mgmt.register',
-            9 => 'public.lead.ugpg.register',
-            10 => 'public.lead.python.register',
-            11 => 'public.lead.digital-marketing.register',
-            12 => 'public.lead.diploma-in-data-science.register',
-            13 => 'public.lead.web-dev.register',
-            14 => 'public.lead.vibe-coding.register',
-            15 => 'public.lead.graphic-designing.register',
-            16 => 'public.lead.gmvss.register',
-            20 => 'public.lead.machine-learning.register',
-            21 => 'public.lead.flutter.register',
-            23 => 'public.lead.edumaster.register',
-            25 => 'public.lead.junior-vlogger.register',
-            27 => 'public.lead.rpa.register',
-            29 => 'public.lead.ai-sales-marketing.register',
-            30 => 'public.lead.ai-integrated-video-editing.register',
-            31 => 'public.lead.ai-integrated-videography.register',
-            32 => 'public.lead.ai-integrated-photography.register'
-        ];
-        
-        if (isset($courseRoutes[$lead->course_id])) {
-            return route($courseRoutes[$lead->course_id], $lead->id);
-        }
-        
-        return null;
+        $url = \App\Helpers\LeadRegistrationRouteHelper::registrationUrlForLead($lead);
+
+        return $url !== '' ? $url : null;
     }
 
     /**

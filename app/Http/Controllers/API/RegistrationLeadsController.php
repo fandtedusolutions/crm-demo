@@ -941,7 +941,8 @@ class RegistrationLeadsController extends Controller
                 'student_name', 'father_name', 'mother_name', 'date_of_birth', 'gender', 'is_employed',
                 'email', 'phone', 'whatsapp', 'parents_phone', 'father_contact_number', 'father_contact_code',
                 'mother_contact_number', 'mother_contact_code', 'street', 'locality', 'post_office', 'district', 'state', 'pin_code',
-                'message', 'subject_id', 'batch_id', 'sub_course_id', 'passed_year', 'programme_type', 'location', 'class_time_id', 'class'
+                'message', 'subject_id', 'batch_id', 'sub_course_id', 'passed_year', 'programme_type', 'location', 'class_time_id', 'class',
+                'medium_of_study', 'previous_qualification', 'technology_performance_category'
             ];
 
             if (!in_array($field, $allowedFields)) {
@@ -1816,6 +1817,7 @@ class RegistrationLeadsController extends Controller
                 'leadSource:id,title',
                 'course:id,title',
                 'telecaller:id,name,team_id',
+                'plusTwoFollowUpQuestionnaire:id,lead_id',
                 'studentDetails' => function ($query) {
                     $query->select([
                         'id',
@@ -2040,12 +2042,13 @@ class RegistrationLeadsController extends Controller
         $latestActivity = $lead->leadActivities->first();
         $documentsStatus = $studentDetail ? $studentDetail->getDocumentVerificationStatus() : null;
 
-        return [
+        return array_merge([
             'id' => $lead->id,
             'name' => $lead->title,
             'phone' => $this->formatPhone($lead->code, $lead->phone),
             'email' => $lead->email,
             'course' => $lead->course ? $lead->course->title : null,
+            'course_id' => $lead->course_id,
             'lead_status' => $lead->leadStatus ? $lead->leadStatus->title : null,
             'lead_source' => $lead->leadSource ? $lead->leadSource->title : null,
             'telecaller' => $lead->telecaller ? $lead->telecaller->name : null,
@@ -2065,7 +2068,7 @@ class RegistrationLeadsController extends Controller
             'documents_summary' => $this->buildDocumentSummary($studentDetail),
             'submitted_at' => $studentDetail ? optional($studentDetail->created_at)->format('Y-m-d H:i:s') : null,
             'created_at' => $lead->created_at ? $lead->created_at->format('Y-m-d H:i:s') : null,
-        ];
+        ], \App\Helpers\LeadRegistrationRouteHelper::apiRegistrationFields($lead));
     }
 
     /**
@@ -2097,6 +2100,10 @@ class RegistrationLeadsController extends Controller
                 ? Carbon::parse($detail->date_of_birth)->format('Y-m-d')
                 : null,
             'gender' => $detail->gender,
+            'medium_of_study' => $detail->medium_of_study,
+            'previous_qualification' => $detail->previous_qualification,
+            'technology_performance_category' => $detail->technology_performance_category,
+            'message' => $detail->message,
             'contact' => [
                 'personal' => $this->formatPhone($detail->personal_code, $detail->personal_number),
                 'parents' => $this->formatPhone($detail->parents_code, $detail->parents_number),

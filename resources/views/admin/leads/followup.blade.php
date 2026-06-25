@@ -568,6 +568,28 @@
                                                     <i class="ti ti-copy"></i>
                                                 </button>
                                             </div>
+                                            @elseif($lead->course_id == 33)
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('public.lead.robo-vibe.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open Robo Vibe Registration Form">
+                                                    <i class="ti ti-external-link"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-info copy-link-btn"
+                                                    data-url="{{ route('public.lead.robo-vibe.register', $lead->id) }}"
+                                                    title="Copy Robo Vibe Registration Link">
+                                                    <i class="ti ti-copy"></i>
+                                                </button>
+                                            </div>
+                                            @elseif($lead->course_id == 34)
+                                            <div class="d-flex gap-1">
+                                                <a href="{{ route('public.lead.prompt-engineering.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open Prompt Engineering Registration Form">
+                                                    <i class="ti ti-external-link"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-info copy-link-btn"
+                                                    data-url="{{ route('public.lead.prompt-engineering.register', $lead->id) }}"
+                                                    title="Copy Prompt Engineering Registration Link">
+                                                    <i class="ti ti-copy"></i>
+                                                </button>
+                                            </div>
                                             @endif
                                         </div>
                                         @endif
@@ -1116,6 +1138,28 @@
                                         <button type="button" class="btn btn-sm btn-info copy-link-btn"
                                             data-url="{{ route('public.lead.ai-integrated-photography.register', $lead->id) }}"
                                             title="Copy AI-Integrated Photography Registration Link">
+                                            <i class="ti ti-copy f-12"></i>
+                                        </button>
+                                    </div>
+                                    @elseif($lead->course_id == 33)
+                                    <div class="d-flex gap-1 mt-2">
+                                        <a href="{{ route('public.lead.robo-vibe.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-warning" title="Open Robo Vibe Registration Form">
+                                            <i class="ti ti-external-link f-12"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-info copy-link-btn"
+                                            data-url="{{ route('public.lead.robo-vibe.register', $lead->id) }}"
+                                            title="Copy Robo Vibe Registration Link">
+                                            <i class="ti ti-copy f-12"></i>
+                                        </button>
+                                    </div>
+                                    @elseif($lead->course_id == 34)
+                                    <div class="d-flex gap-1 mt-2">
+                                        <a href="{{ route('public.lead.prompt-engineering.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-warning" title="Open Prompt Engineering Registration Form">
+                                            <i class="ti ti-external-link f-12"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-info copy-link-btn"
+                                            data-url="{{ route('public.lead.prompt-engineering.register', $lead->id) }}"
+                                            title="Copy Prompt Engineering Registration Link">
                                             <i class="ti ti-copy f-12"></i>
                                         </button>
                                     </div>

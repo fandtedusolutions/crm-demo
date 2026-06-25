@@ -255,6 +255,16 @@ class Lead extends Model
         return $this->hasOne(LeadDetail::class, 'lead_id')->where('course_id', 25);
     }
 
+    public function roboVibeStudentDetails()
+    {
+        return $this->hasOne(LeadDetail::class, 'lead_id')->where('course_id', 33);
+    }
+
+    public function promptEngineeringStudentDetails()
+    {
+        return $this->hasOne(LeadDetail::class, 'lead_id')->where('course_id', 34);
+    }
+
     public function plusTwoFollowUpQuestionnaire()
     {
         return $this->hasOne(PlusTwoFollowUpQuestionnaire::class, 'lead_id');
