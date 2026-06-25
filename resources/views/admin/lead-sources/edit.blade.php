@@ -35,16 +35,20 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    $('#leadSourceEditForm').on('submit', function(e) {
+(function() {
+    $('#leadSourceEditForm').off('submit.leadSourceEdit').on('submit.leadSourceEdit', function(e) {
         e.preventDefault();
-        
+
         const form = $(this);
+        if (form.data('submitting')) {
+            return false;
+        }
+
         const formData = new FormData(this);
         const submitBtn = form.find('button[type="submit"]');
         const originalText = submitBtn.html();
-        
-        // Show loading state
+
+        form.data('submitting', true);
         submitBtn.prop('disabled', true);
         submitBtn.html('<i class="ti ti-loader-2 spin"></i> Updating...');
         
@@ -59,22 +63,13 @@ $(document).ready(function() {
                 'X-HTTP-Method-Override': 'PUT'
             },
             success: function(response) {
-                // Close modal
                 $('#small_modal').modal('hide');
-                
-                // Show success message
                 toast_success('Lead Source updated successfully!');
-                
-                // Redirect to the index page
                 setTimeout(() => {
                     window.location.href = '{{ route("admin.lead-sources.index") }}';
                 }, 1000);
             },
             error: function(xhr) {
-                console.log('Error response:', xhr);
-                console.log('Status:', xhr.status);
-                console.log('Response:', xhr.responseText);
-                
                 let errorMessage = 'An error occurred while updating the lead source.';
                 
                 if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -89,12 +84,11 @@ $(document).ready(function() {
                 }
                 
                 toast_danger(errorMessage);
-                
-                // Re-enable submit button
+                form.data('submitting', false);
                 submitBtn.prop('disabled', false);
                 submitBtn.html(originalText);
             }
         });
     });
-});
+})();
 </script>

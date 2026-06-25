@@ -95,6 +95,10 @@
         $('#ajax-modal-title').html(header);
     }
 
+    $('#ajax_modal').on('hidden.bs.modal', function() {
+        $('#ajax-modal-content').empty();
+    });
+
     function show_large_modal(url, header) {
         // SHOWING AJAX PRELOADER IMAGE
         $('#large-modal-content').html('<div style="padding:40px; text-align:center;"><img src="{{ asset("assets/loader.gif") }}" width="150" height="150" alt="Loading..."></div>');
@@ -243,8 +247,10 @@
             url: url,
             type: 'GET',
             success: function(response) {
-                $(target).html(response);
-                $(target).find('script').each(function() {
+                const $container = $('<div>').html(response);
+                const $scripts = $container.find('script').detach();
+                $(target).html($container.html());
+                $scripts.each(function() {
                     if (this.src) {
                         const src = this.getAttribute('src');
                         if (!src || document.querySelector('script[src="' + src + '"]')) {

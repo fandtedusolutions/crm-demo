@@ -49,16 +49,20 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    $('#teamAddForm').on('submit', function(e) {
+(function() {
+    $('#teamAddForm').off('submit.teamAdd').on('submit.teamAdd', function(e) {
         e.preventDefault();
-        
+
         const form = $(this);
+        if (form.data('submitting')) {
+            return false;
+        }
+
         const formData = new FormData(this);
         const submitBtn = form.find('button[type="submit"]');
         const originalText = submitBtn.html();
-        
-        // Show loading state
+
+        form.data('submitting', true);
         submitBtn.prop('disabled', true);
         submitBtn.html('<i class="ti ti-loader-2 spin"></i> Submitting...');
         
@@ -72,13 +76,8 @@ $(document).ready(function() {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
-                // Close modal
                 $('#small_modal').modal('hide');
-                
-                // Show success message
                 toast_success('Team created successfully!');
-                
-                // Redirect to the index page
                 setTimeout(() => {
                     window.location.href = '{{ route("admin.teams.index") }}';
                 }, 1000);
@@ -94,12 +93,11 @@ $(document).ready(function() {
                 }
                 
                 toast_danger(errorMessage);
-                
-                // Re-enable submit button
+                form.data('submitting', false);
                 submitBtn.prop('disabled', false);
                 submitBtn.html(originalText);
             }
         });
     });
-});
+})();
 </script>

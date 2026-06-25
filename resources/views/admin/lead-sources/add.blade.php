@@ -34,16 +34,20 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    $('#leadSourceAddForm').on('submit', function(e) {
+(function() {
+    $('#leadSourceAddForm').off('submit.leadSourceAdd').on('submit.leadSourceAdd', function(e) {
         e.preventDefault();
-        
+
         const form = $(this);
+        if (form.data('submitting')) {
+            return false;
+        }
+
         const formData = new FormData(this);
         const submitBtn = form.find('button[type="submit"]');
         const originalText = submitBtn.html();
-        
-        // Show loading state
+
+        form.data('submitting', true);
         submitBtn.prop('disabled', true);
         submitBtn.html('<i class="ti ti-loader-2 spin"></i> Submitting...');
         
@@ -57,22 +61,13 @@ $(document).ready(function() {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
-                // Close modal
                 $('#small_modal').modal('hide');
-                
-                // Show success message
                 toast_success('Lead Source created successfully!');
-                
-                // Redirect to the index page
                 setTimeout(() => {
                     window.location.href = '{{ route("admin.lead-sources.index") }}';
                 }, 1000);
             },
             error: function(xhr) {
-                console.log('Error response:', xhr);
-                console.log('Status:', xhr.status);
-                console.log('Response:', xhr.responseText);
-                
                 let errorMessage = 'An error occurred while creating the lead source.';
                 
                 if (xhr.responseJSON && xhr.responseJSON.message) {
@@ -87,12 +82,11 @@ $(document).ready(function() {
                 }
                 
                 toast_danger(errorMessage);
-                
-                // Re-enable submit button
+                form.data('submitting', false);
                 submitBtn.prop('disabled', false);
                 submitBtn.html(originalText);
             }
         });
     });
-});
+})();
 </script>

@@ -250,16 +250,13 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    // Check if user is telecaller
+(function() {
     var isTelecaller = $('.container').data('is-telecaller') === 'true';
     
     if (!isTelecaller) {
-        // Store all team options
         const allTeamOptions = $('#team_id option').clone();
         
-        // Filter teams based on is_b2b checkbox
-        $('#is_b2b_edit_modal').on('change', function() {
+        $('#is_b2b_edit_modal').off('change.leadEdit').on('change.leadEdit', function() {
             const isB2BChecked = $(this).is(':checked');
             const currentSelectedValue = $('#team_id').val();
             
@@ -305,11 +302,9 @@ $(document).ready(function() {
             }
         });
 
-        // Initialize B2B filter
         $('#is_b2b_edit_modal').trigger('change');
         
-        // Handle team selection change (only for non-telecallers)
-        $('#team_id').on('change', function() {
+        $('#team_id').off('change.leadEdit').on('change.leadEdit', function() {
             const teamId = $(this).val();
             const telecallerSelect = $('#telecaller_id');
             const isB2BChecked = $('#is_b2b_edit_modal').is(':checked');
@@ -361,9 +356,12 @@ $(document).ready(function() {
         }
     }
 
-    // Form submission with AJAX
-    $('#leadEditForm').on('submit', function(e) {
+    $('#leadEditForm').off('submit.leadEdit').on('submit.leadEdit', function(e) {
         e.preventDefault();
+
+        if ($(this).data('submitting')) {
+            return false;
+        }
         
         $('.form-control, .form-select').removeClass('is-invalid');
         $('.invalid-feedback').text('');
@@ -372,7 +370,8 @@ $(document).ready(function() {
         const originalText = submitBtn.html();
         const form = $(this);
         const formData = new FormData(this);
-        
+
+        form.data('submitting', true);
         submitBtn.prop('disabled', true);
         submitBtn.html('<i class="ti ti-loader-2"></i> Updating...');
         
@@ -392,13 +391,17 @@ $(document).ready(function() {
                     setTimeout(() => {
                         window.location.reload();
                     }, 1000);
+                } else {
+                    form.data('submitting', false);
+                    submitBtn.prop('disabled', false);
+                    submitBtn.html(originalText);
                 }
             },
             error: function(xhr) {
                 if (xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
                     $.each(errors, function(field, messages) {
-                        var input = $('[name="' + field + '"]');
+                        var input = form.find('[name="' + field + '"]');
                         input.addClass('is-invalid');
                         input.siblings('.invalid-feedback').text(messages[0]);
                     });
@@ -406,10 +409,11 @@ $(document).ready(function() {
                     toast_danger('An error occurred while updating the lead. Please try again.');
                 }
                 
+                form.data('submitting', false);
                 submitBtn.prop('disabled', false);
                 submitBtn.html(originalText);
             }
         });
     });
-});
+})();
 </script>

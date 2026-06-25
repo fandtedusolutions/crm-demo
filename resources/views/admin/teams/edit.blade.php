@@ -50,16 +50,20 @@
 </div>
 
 <script>
-$(document).ready(function() {
-    $('#teamEditForm').on('submit', function(e) {
+(function() {
+    $('#teamEditForm').off('submit.teamEdit').on('submit.teamEdit', function(e) {
         e.preventDefault();
-        
+
         const form = $(this);
+        if (form.data('submitting')) {
+            return false;
+        }
+
         const formData = new FormData(this);
         const submitBtn = form.find('button[type="submit"]');
         const originalText = submitBtn.html();
-        
-        // Show loading state
+
+        form.data('submitting', true);
         submitBtn.prop('disabled', true);
         submitBtn.html('<i class="ti ti-loader-2 spin"></i> Updating...');
         
@@ -74,13 +78,8 @@ $(document).ready(function() {
                 'X-HTTP-Method-Override': 'PUT'
             },
             success: function(response) {
-                // Close modal
                 $('#small_modal').modal('hide');
-                
-                // Show success message
                 toast_success('Team updated successfully!');
-                
-                // Redirect to the index page
                 setTimeout(() => {
                     window.location.href = '{{ route("admin.teams.index") }}';
                 }, 1000);
@@ -96,12 +95,11 @@ $(document).ready(function() {
                 }
                 
                 toast_danger(errorMessage);
-                
-                // Re-enable submit button
+                form.data('submitting', false);
                 submitBtn.prop('disabled', false);
                 submitBtn.html(originalText);
             }
         });
     });
-});
+})();
 </script>
