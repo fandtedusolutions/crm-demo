@@ -111,22 +111,22 @@
                                     @endfor
                             </select>
                         </div>
+                    </div>
 
-                        <!-- Telecaller (conditional) -->
-                        @if(!$isTelecaller || $isTeamLead)
-                        <div class="col-6 col-md-4 col-lg-2">
-                            <label for="telecaller_id" class="form-label">Telecaller</label>
-                            <select class="form-select form-select-sm" name="telecaller_id" id="telecaller_id_filter">
-                                <option value="">All Telecallers</option>
-                                @foreach($telecallers as $telecaller)
-                                <option value="{{ $telecaller->id }}" {{ request('telecaller_id') == $telecaller->id ? 'selected' : '' }}>
-                                    {{ $telecaller->name }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        @endif
+                    @if($showTeamTelecallerFilters ?? false)
+                    <div class="row g-3 align-items-end mt-2 pt-2 border-top">
+                        @include('admin.partials.team-telecaller-filters', [
+                            'showTeamTelecallerFilters' => true,
+                            'teams' => $teams ?? collect(),
+                            'selectedTeamIds' => $selectedTeamIds ?? [],
+                            'selectedTelecallerIds' => $selectedTelecallerIds ?? [],
+                            'filterTelecallers' => $filterTelecallers ?? collect(),
+                            'filterColClass' => 'col-12 col-md-6 col-lg-4',
+                        ])
+                    </div>
+                    @endif
 
+                    <div class="row g-3 align-items-end mt-2">
                         <!-- Lead Type (only for Admin/Super Admin, Senior Manager, General Manager) -->
                         @if($isAdminOrSuperAdmin || $isSeniorManager || $isGeneralManager)
                         <div class="col-6 col-md-4 col-lg-2">
@@ -151,12 +151,12 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="col-12 col-lg-2">
-                            <div class="d-flex gap-2 flex-wrap">
-                                <button type="submit" class="btn btn-primary btn-sm flex-fill flex-lg-grow-0">
+                        <div class="col-12 col-md-auto ms-md-auto">
+                            <div class="d-flex gap-2 flex-wrap justify-content-md-end">
+                                <button type="submit" class="btn btn-primary btn-sm">
                                     <i class="ti ti-filter me-1"></i> Filter
                                 </button>
-                                <a href="{{ route('leads.index') }}" class="btn btn-outline-secondary btn-sm flex-fill flex-lg-grow-0">
+                                <a href="{{ route('leads.index') }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="ti ti-x me-1"></i> Clear
                                 </a>
                             </div>
@@ -605,9 +605,12 @@ $columns = array_merge($columns, [
                     lead_source_id: $('#filter_lead_source_id').val() || '',
                     course_id: $('#course_id').val() || '',
                     rating: $('#rating').val() || '',
-                    telecaller_id: $('#telecaller_id_filter').val() || '',
                     search_key: getUrlParameter('search_key') || '{{ request('search_key') }}' || ''
                 };
+
+                if (window.TeamTelecallerFilters) {
+                    window.TeamTelecallerFilters.extendDataTableParams(params);
+                }
                 
                 if ($('#lead_type').length > 0) {
                     params.lead_type = $('#lead_type').val() || '';
@@ -625,6 +628,14 @@ $columns = array_merge($columns, [
                 const searchParams = new URLSearchParams();
                 Object.keys(params).forEach(function(key) {
                     const value = params[key];
+                    if (Array.isArray(value)) {
+                        value.forEach(function(item) {
+                            if (item !== undefined && item !== null && String(item).trim() !== '') {
+                                searchParams.append(key + '[]', item);
+                            }
+                        });
+                        return;
+                    }
                     if (value !== undefined && value !== null && String(value).trim() !== '') {
                         searchParams.append(key, value);
                     }
@@ -652,8 +663,17 @@ $columns = array_merge($columns, [
                 var params = new URLSearchParams();
                 
                 Object.keys(filters).forEach(function(key) {
-                    if (filters[key]) {
-                        params.append(key, filters[key]);
+                    const value = filters[key];
+                    if (Array.isArray(value)) {
+                        value.forEach(function(item) {
+                            if (item) {
+                                params.append(key + '[]', item);
+                            }
+                        });
+                        return;
+                    }
+                    if (value) {
+                        params.append(key, value);
                     }
                 });
                 
@@ -690,8 +710,8 @@ $columns = array_merge($columns, [
                 if (urlParams.get('rating')) {
                     $('#rating').val(urlParams.get('rating'));
                 }
-                if (urlParams.get('telecaller_id')) {
-                    $('#telecaller_id_filter').val(urlParams.get('telecaller_id'));
+                if (window.TeamTelecallerFilters) {
+                    window.TeamTelecallerFilters.loadFromUrl(urlParams);
                 }
             }
             
@@ -785,7 +805,7 @@ $columns = array_merge($columns, [
             });
             
             // Reload on filter change
-            $('#filter_lead_status_id, #filter_lead_source_id, #course_id, #rating, #telecaller_id_filter, #lead_type').on('change', function() {
+            $('#filter_lead_status_id, #filter_lead_source_id, #course_id, #rating, #filter_team_ids, #filter_telecaller_ids, #lead_type').on('change', function() {
                 updateUrlWithFilters();
                 // Reset mobile view state
                 mobileViewState.allData = [];

@@ -90,6 +90,16 @@ class LeadController extends Controller
         // Update telecallerList after filtering
         $telecallerList = $telecallers->pluck('name', 'id')->toArray();
 
+        $showTeamTelecallerFilters = \App\Helpers\TeamTelecallerFilterHelper::canUseTeamTelecallerFilters();
+        $teams = $showTeamTelecallerFilters
+            ? \App\Helpers\TeamTelecallerFilterHelper::getFilterTeams()
+            : collect();
+        $selectedTeamIds = \App\Helpers\TeamTelecallerFilterHelper::resolveTeamIds($request) ?? [];
+        $selectedTelecallerIds = \App\Helpers\TeamTelecallerFilterHelper::resolveTelecallerIds($request) ?? [];
+        $filterTelecallers = $showTeamTelecallerFilters
+            ? \App\Helpers\TeamTelecallerFilterHelper::getFilterTelecallers($selectedTeamIds ?: null)
+            : collect();
+
         // Get date filters
         $fromDate = $request->get('date_from', now()->subDays(7)->format('Y-m-d'));
         $toDate = $request->get('date_to', now()->format('Y-m-d'));
@@ -115,7 +125,8 @@ class LeadController extends Controller
             'leadStatusList', 'leadSourceList', 'courseName', 'telecallerList',
             'fromDate', 'toDate', 'isTelecaller', 'isTeamLead', 'hasB2BLeadRestrictions',
             'isAdminOrSuperAdmin', 'isTeamLeadRole', 'isGeneralManager', 'isSeniorManager', 'isTelecallerRole',
-            'isAcademicAssistant', 'isAdmissionCounsellor', 'hasLeadActionPermission'
+            'isAcademicAssistant', 'isAdmissionCounsellor', 'hasLeadActionPermission',
+            'showTeamTelecallerFilters', 'teams', 'selectedTeamIds', 'selectedTelecallerIds', 'filterTelecallers'
         ))->with('search_key', $request->search_key);
     }
 
@@ -272,9 +283,7 @@ class LeadController extends Controller
             $query->where('course_id', $request->course_id);
         }
 
-        if ($request->filled('telecaller_id')) {
-            $query->where('telecaller_id', $request->telecaller_id);
-        }
+        \App\Helpers\TeamTelecallerFilterHelper::applyLeadQueryFilters($query, $request);
 
         if ($request->filled('rating')) {
             $query->where('rating', $request->rating);
@@ -326,11 +335,7 @@ class LeadController extends Controller
         if ($currentUser) {
             // Senior Manager and General Manager: Can see all leads (no filtering)
             if ($isSeniorManager || $isGeneralManager || RoleHelper::is_admin_or_super_admin()) {
-                // No filtering - can see all leads
-                // Only apply telecaller filter if explicitly requested
-                if ($request->filled('telecaller_id')) {
-                    $query->where('telecaller_id', $request->telecaller_id);
-                }
+                // No role-based filtering - can see all leads
             } elseif (AuthHelper::isTeamLead() == 1) {
                 // Team Lead: Can see their own leads + their team members' leads
                 $teamId = $currentUser->team_id;
@@ -3275,6 +3280,7 @@ class LeadController extends Controller
 
     public function getTelecallersByTeam(Request $request)
     {
+        $teamIds = $request->input('team_ids');
         $teamId = $request->get('team_id');
         $isB2B = $request->get('is_b2b', 0);
         $currentUser = AuthHelper::getCurrentUser();
@@ -3282,51 +3288,36 @@ class LeadController extends Controller
         $isTelecaller = $currentUser && $currentUser->role_id == 3;
         $isSeniorManager = $currentUser && RoleHelper::is_senior_manager();
         $isGeneralManager = RoleHelper::is_general_manager();
-        
-        if (!$teamId) {
+
+        if ($teamIds === null && $teamId === null) {
             return response()->json(['telecallers' => []]);
         }
 
-        if ($teamId === 'all') {
-            // Get telecallers based on role
-            if ($isTeamLead && !$isSeniorManager) {
-                // Team Lead (not senior manager): Show only their team members
-                $userTeamId = $currentUser->team_id;
-                if ($userTeamId) {
-                    $teamMemberIds = AuthHelper::getTeamMemberIds($userTeamId);
-                    
-                    $teamMemberIds[] = AuthHelper::getCurrentUserId(); // Include team lead
-                    $query = User::whereIn('id', $teamMemberIds)
-                                      ->where('is_active', true)
-                                      ->with('team:id,name')
-                                      ->select('id', 'name', 'email', 'team_id');
-                    
-                    // Filter by is_b2b if requested
-                    if ($isB2B) {
-                        $query->where('is_b2b', 1);
-                    }
-                    
-                    $telecallers = $query->get();
-                } else {
-                    $telecallers = collect([$currentUser]); // Only themselves if no team
-                }
-            } elseif ($isTelecaller && !$isSeniorManager) {
-                // Regular Telecaller: Show only themselves
-                $telecallers = collect([$currentUser]);
-            } else {
-                // Admin/Super Admin/Senior Manager/General Manager: Show all telecallers (excluding marketing teams)
-                $query = User::nonMarketingTelecallers()
-                                  ->where('is_active', true)
-                                  ->with('team:id,name')
-                                  ->select('id', 'name', 'email', 'team_id');
-                
-                // Filter by is_b2b if requested
-                if ($isB2B) {
-                    $query->where('is_b2b', 1);
-                }
-                
-                $telecallers = $query->get();
+        if ($teamIds !== null) {
+            if (is_string($teamIds)) {
+                $teamIds = array_filter(explode(',', $teamIds));
             }
+
+            if ($teamIds === [] || (count($teamIds) === 1 && $teamIds[0] === 'all')) {
+                $teamId = 'all';
+            } else {
+                $teamId = null;
+            }
+        }
+
+        if ($teamId === 'all' || ($teamId === null && ! empty($teamIds))) {
+            if ($teamId === 'all') {
+                $telecallers = \App\Helpers\TeamTelecallerFilterHelper::getFilterTelecallers(null);
+            } else {
+                $normalizedTeamIds = array_values(array_filter(array_map('intval', (array) $teamIds)));
+                $telecallers = \App\Helpers\TeamTelecallerFilterHelper::getFilterTelecallers($normalizedTeamIds ?: null);
+            }
+
+            if ($isB2B) {
+                $telecallers = $telecallers->where('is_b2b', 1)->values();
+            }
+        } elseif (! $teamId) {
+            return response()->json(['telecallers' => []]);
         } else {
             // Get telecallers from specific team (with role filtering)
             $query = User::where('team_id', $teamId)
@@ -3355,6 +3346,10 @@ class LeadController extends Controller
                 // Admin/Super Admin/Senior Manager/General Manager: Show all
                 $telecallers = $query->get();
             }
+        }
+
+        if (! isset($telecallers)) {
+            $telecallers = collect();
         }
 
         $telecallers = $telecallers->map(function($user) {

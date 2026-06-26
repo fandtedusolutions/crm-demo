@@ -46,7 +46,7 @@ foreach ($files as $file) {
             1
         );
     }
-
+    
     if (preg_match('/<!-- \[ Mentor List \] start -->/s', $content) && !preg_match('/@include\([\'"]admin\.converted-leads\.partials\.mentor-list-nav/s', $content)) {
         $content = preg_replace(
             '/<!-- \[ Mentor List \] start -->.*?<!-- \[ Mentor List \] end -->/s',

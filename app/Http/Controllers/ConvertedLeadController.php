@@ -55,8 +55,25 @@ class ConvertedLeadController extends Controller
     {
         $courses = Course::where('is_active', 1)->orderBy('title')->get(['id', 'title']);
         $country_codes = get_country_code();
+        $showTeamTelecallerFilters = \App\Helpers\TeamTelecallerFilterHelper::canUseTeamTelecallerFilters();
+        $teams = $showTeamTelecallerFilters
+            ? \App\Helpers\TeamTelecallerFilterHelper::getFilterTeams()
+            : collect();
+        $selectedTeamIds = \App\Helpers\TeamTelecallerFilterHelper::resolveTeamIds($request) ?? [];
+        $selectedTelecallerIds = \App\Helpers\TeamTelecallerFilterHelper::resolveTelecallerIds($request) ?? [];
+        $filterTelecallers = $showTeamTelecallerFilters
+            ? \App\Helpers\TeamTelecallerFilterHelper::getFilterTelecallers($selectedTeamIds ?: null)
+            : collect();
 
-        return view('admin.converted-leads.index', compact('courses', 'country_codes'));
+        return view('admin.converted-leads.index', compact(
+            'courses',
+            'country_codes',
+            'showTeamTelecallerFilters',
+            'teams',
+            'selectedTeamIds',
+            'selectedTelecallerIds',
+            'filterTelecallers'
+        ));
     }
 
     /**
@@ -301,6 +318,8 @@ class ConvertedLeadController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
+
+        \App\Helpers\TeamTelecallerFilterHelper::applyConvertedLeadQueryFilters($query, $request);
 
         \App\Support\CourseFlagFieldSupport::applyListingFilter($query, $request);
     }
@@ -587,6 +606,8 @@ class ConvertedLeadController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('created_at', '<=', $request->date_to);
         }
+
+        \App\Helpers\TeamTelecallerFilterHelper::applyConvertedLeadQueryFilters($query, $request);
 
         // Get all matching records (no pagination for export)
         $convertedLeads = $query->orderBy('created_at', 'desc')->get();

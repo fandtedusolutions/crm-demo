@@ -87,6 +87,14 @@
                             </select>
                         </div>
                         @endif
+                        @include('admin.partials.team-telecaller-filters', [
+                            'showTeamTelecallerFilters' => $showTeamTelecallerFilters ?? false,
+                            'teams' => $teams ?? collect(),
+                            'selectedTeamIds' => $selectedTeamIds ?? [],
+                            'selectedTelecallerIds' => $selectedTelecallerIds ?? [],
+                            'filterTelecallers' => $filterTelecallers ?? collect(),
+                            'filterColClass' => 'col-12 col-sm-6 col-md-4 col-lg-3',
+                        ])
                         <div class="col-12 col-sm-6 col-md-2">
                             <label for="batch_id" class="form-label">Batch</label>
                             <select class="form-select" id="batch_id" name="batch_id" data-selected="{{ request('batch_id') }}">
@@ -541,7 +549,7 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
         let convertedLeadsTable = null;
 
         function getFilterParams() {
-            return {
+            const params = {
                 filter_search: ($('#search').val() || '').trim(),
                 course_id: $('#course_id').val() || '',
                 batch_id: $('#batch_id').val() || '',
@@ -555,6 +563,13 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
                 tma: $('#tma').val() || '',
                 is_b2b: $('#is_b2b').val() || ''
             };
+
+            if (window.TeamTelecallerFilters) {
+                params.team_ids = window.TeamTelecallerFilters.getSelectedTeamIds();
+                params.telecaller_ids = window.TeamTelecallerFilters.getSelectedTelecallerIds();
+            }
+
+            return params;
         }
 
         function updateUrlWithFilters() {
@@ -572,6 +587,9 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             if (f.id_card) params.append('id_card', f.id_card);
             if (f.tma) params.append('tma', f.tma);
             if (f.is_b2b) params.append('is_b2b', f.is_b2b);
+            if (window.TeamTelecallerFilters) {
+                window.TeamTelecallerFilters.appendParams(params);
+            }
             const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
             window.history.replaceState({ path: newUrl }, '', newUrl);
         }
@@ -590,6 +608,9 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             if (p.get('id_card')) $('#id_card').val(p.get('id_card'));
             if (p.get('tma')) $('#tma').val(p.get('tma'));
             if (p.get('is_b2b')) $('#is_b2b').val(p.get('is_b2b'));
+            if (window.TeamTelecallerFilters) {
+                window.TeamTelecallerFilters.loadFromUrl(p);
+            }
         }
 
         function reloadConvertedLeadsTable() {
@@ -708,6 +729,9 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             if (form) form.reset();
             $('#batch_id').html('<option value="">All Batches</option>');
             $('#admission_batch_id').html('<option value="">All Admission Batches</option>');
+            if (window.TeamTelecallerFilters) {
+                window.TeamTelecallerFilters.reset();
+            }
             window.history.replaceState({}, '', window.location.pathname);
             reloadConvertedLeadsTable();
         });
