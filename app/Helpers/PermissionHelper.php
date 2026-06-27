@@ -128,6 +128,10 @@ class PermissionHelper
             'profile/index',
         ];
 
+        if (RoleHelper::is_senior_manager()) {
+            $permissions[] = 'admin/call-analytics/index';
+        }
+
         return in_array($permission, $permissions);
     }
 

@@ -17,6 +17,7 @@ class CallAnalyticsController extends Controller
         return RoleHelper::is_admin_or_super_admin()
             || RoleHelper::is_post_sales()
             || RoleHelper::is_general_manager()
+            || RoleHelper::is_senior_manager()
             || RoleHelper::is_admission_counsellor()
             || RoleHelper::is_hod()
             || RoleHelper::is_academic_assistant();
