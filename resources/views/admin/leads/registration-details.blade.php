@@ -259,7 +259,7 @@
                                         <label class="info-label">Date of Birth</label>
                                         <p class="info-value" data-field="date_of_birth" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ $studentDetail->date_of_birth ? $studentDetail->date_of_birth->format('Y-m-d') : '' }}">
                                             {{ $studentDetail->date_of_birth ? $studentDetail->date_of_birth->format('M d, Y') : 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
@@ -278,7 +278,7 @@
                                         <label class="info-label">Gender</label>
                                         <p class="info-value" data-field="gender" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ $studentDetail->gender }}">
                                             {{ ucfirst($studentDetail->gender) }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{"male":"Male","female":"Female"}' title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
@@ -298,7 +298,7 @@
                                         <label class="info-label">Are you employed?</label>
                                         <p class="info-value" data-field="is_employed" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ $studentDetail->is_employed ? '1' : '0' }}">
                                             {{ $studentDetail->is_employed ? 'Yes' : 'No' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{"1":"Yes","0":"No"}' title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
@@ -388,7 +388,7 @@
                                         <label class="info-label">Father's Contact No.</label>
                                         <p class="info-value" data-field="father_contact" data-lead-detail-id="{{ $studentDetail->id }}" data-phone-code="{{ $studentDetail->father_contact_code }}" data-phone-number="{{ $studentDetail->father_contact_number }}">
                                             {{ \App\Helpers\PhoneNumberHelper::display($studentDetail->father_contact_code, $studentDetail->father_contact_number) }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-phone-field" title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
@@ -408,7 +408,7 @@
                                         <label class="info-label">Mother's Contact No.</label>
                                         <p class="info-value" data-field="mother_contact" data-lead-detail-id="{{ $studentDetail->id }}" data-phone-code="{{ $studentDetail->mother_contact_code }}" data-phone-number="{{ $studentDetail->mother_contact_number }}">
                                             {{ \App\Helpers\PhoneNumberHelper::display($studentDetail->mother_contact_code, $studentDetail->mother_contact_number) }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-phone-field" title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
@@ -547,7 +547,7 @@
                                         <label class="info-label">Subject</label>
                                         <p class="info-value" id="subject-value">
                                             {{ $studentDetail->subject->title ?? 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="subject_id" data-lead-detail-id="{{ $studentDetail->id }}" data-course-id="{{ $studentDetail->course_id }}" data-current-id="{{ $studentDetail->subject_id }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -564,7 +564,7 @@
                                         <label class="info-label">Batch</label>
                                         <p class="info-value" id="batch-value">
                                             {{ $studentDetail->batch->title ?? 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="batch_id" data-lead-detail-id="{{ $studentDetail->id }}" data-course-id="{{ $studentDetail->course_id }}" data-current-id="{{ $studentDetail->batch_id }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -582,7 +582,7 @@
                                         <label class="info-label">Course Type</label>
                                         <p class="info-value" data-field="course_type" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ isset($studentDetail->course_type) ? $studentDetail->course_type : '' }}">
                                             {{ isset($studentDetail->course_type) && $studentDetail->course_type ? $studentDetail->course_type : 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="course_type" data-lead-detail-id="{{ $studentDetail->id }}" data-field-type="select" data-options='{"UG":"UG","PG":"PG"}' title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -599,7 +599,7 @@
                                         <label class="info-label">EduMaster Course Name</label>
                                         <p class="info-value" data-field="edumaster_course_name" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ isset($studentDetail->edumaster_course_name) ? e($studentDetail->edumaster_course_name) : '' }}">
                                             {{ isset($studentDetail->edumaster_course_name) && $studentDetail->edumaster_course_name ? $studentDetail->edumaster_course_name : 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="edumaster_course_name" data-lead-detail-id="{{ $studentDetail->id }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -626,7 +626,7 @@
                                         <label class="info-label">Selected Courses</label>
                                         <p class="info-value" data-field="selected_courses" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ e($selectedCoursesDisplay) }}">
                                             {{ $selectedCoursesDisplay }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="selected_courses" data-lead-detail-id="{{ $studentDetail->id }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -643,7 +643,7 @@
                                         <label class="info-label">SSLC Back Year</label>
                                         <p class="info-value" data-field="sslc_back_year" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ isset($studentDetail->sslc_back_year) ? $studentDetail->sslc_back_year : '' }}">
                                             {{ isset($studentDetail->sslc_back_year) && $studentDetail->sslc_back_year ? $studentDetail->sslc_back_year : 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="sslc_back_year" data-lead-detail-id="{{ $studentDetail->id }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -660,7 +660,7 @@
                                         <label class="info-label">Plus Two Back Year</label>
                                         <p class="info-value" data-field="plustwo_back_year" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ isset($studentDetail->plustwo_back_year) ? $studentDetail->plustwo_back_year : '' }}">
                                             {{ isset($studentDetail->plustwo_back_year) && $studentDetail->plustwo_back_year ? $studentDetail->plustwo_back_year : 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="plustwo_back_year" data-lead-detail-id="{{ $studentDetail->id }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -677,7 +677,7 @@
                                         <label class="info-label">Plus Two Subject</label>
                                         <p class="info-value" data-field="plustwo_subject" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ isset($studentDetail->plustwo_subject) ? e($studentDetail->plustwo_subject) : '' }}">
                                             {{ isset($studentDetail->plustwo_subject) && $studentDetail->plustwo_subject ? $studentDetail->plustwo_subject : 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="plustwo_subject" data-lead-detail-id="{{ $studentDetail->id }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -694,7 +694,7 @@
                                         <label class="info-label">Back Year</label>
                                         <p class="info-value" data-field="back_year" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ isset($studentDetail->back_year) ? $studentDetail->back_year : '' }}">
                                             {{ isset($studentDetail->back_year) && $studentDetail->back_year ? $studentDetail->back_year : 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="back_year" data-lead-detail-id="{{ $studentDetail->id }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -711,7 +711,7 @@
                                         <label class="info-label">Degree Back Year</label>
                                         <p class="info-value" data-field="degree_back_year" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ isset($studentDetail->degree_back_year) ? $studentDetail->degree_back_year : '' }}">
                                             {{ isset($studentDetail->degree_back_year) && $studentDetail->degree_back_year ? $studentDetail->degree_back_year : 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="degree_back_year" data-lead-detail-id="{{ $studentDetail->id }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -729,7 +729,7 @@
                                         <label class="info-label">Sub Course</label>
                                         <p class="info-value" id="sub-course-value">
                                             {{ $studentDetail->subCourse->title ?? 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="sub_course_id" data-lead-detail-id="{{ $studentDetail->id }}" data-course-id="{{ $studentDetail->course_id }}" data-current-id="{{ $studentDetail->sub_course_id ?? '' }}" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -765,7 +765,7 @@
                                             $displayValue = ($classValue === 'sslc') ? 'SSLC' : (($classValue === 'plustwo') ? 'Plus Two' : ucfirst($studentDetail->class));
                                             @endphp
                                             {{ $displayValue }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{"sslc":"SSLC","plustwo":"Plus Two"}' title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
@@ -784,7 +784,7 @@
                                         <label class="info-label">Pass Year</label>
                                         <p class="info-value" data-field="passed_year" data-lead-detail-id="{{ $studentDetail->id }}">
                                             {{ $studentDetail->passed_year ?? 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" title="Edit"><i class="ti ti-edit"></i></button>
                                             @endif
                                         </p>
@@ -802,7 +802,7 @@
                                         <label class="info-label">Course Type</label>
                                         <p class="info-value" data-field="programme_type" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ $studentDetail->programme_type }}">
                                             {{ ucfirst($studentDetail->programme_type) }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{"online":"Online","offline":"Offline"}' title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
@@ -822,7 +822,7 @@
                                         <label class="info-label">Location</label>
                                         <p class="info-value" data-field="location" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ $studentDetail->location ?? '' }}">
                                             {{ $studentDetail->location ?? 'N/A' }}
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{"Ernakulam":"Ernakulam","Malappuram":"Malappuram"}' title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
@@ -854,7 +854,7 @@
                                             @else
                                             N/A
                                             @endif
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-outline-primary ms-2 edit-class-time-field" title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
@@ -896,7 +896,7 @@
                                             <a href="{{ Storage::url($certificate->certificate_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openSSLCVerificationModal({{ $certificate->id }}, '{{ $certificate->verification_status }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -935,7 +935,7 @@
                                             <a href="{{ Storage::url($studentDetail->sslc_certificate) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('sslc_certificate', '{{ $studentDetail->sslc_verification_status }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -947,7 +947,7 @@
                             @endif
 
                             <!-- Add SSLC Certificate Button - Always show if user has permission -->
-                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                             <div class="col-12">
                                 <div class="text-center">
                                     <button class="btn btn-outline-primary" onclick="openAddSSLCModal()">
@@ -988,7 +988,7 @@
                                             <a href="{{ Storage::url($studentDetail->plustwo_certificate ?? $studentDetail->plus_two_certificate) }}" target="_blank" class="btn btn-sm btn-outline-success">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('{{ $certificateField }}_certificate', '{{ $verificationStatus }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -1024,7 +1024,7 @@
                                             <a href="{{ Storage::url($studentDetail->ug_certificate) }}" target="_blank" class="btn btn-sm btn-outline-info">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('ug_certificate', '{{ $studentDetail->ug_verification_status }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -1061,7 +1061,7 @@
                                             <a href="{{ Storage::url($studentDetail->birth_certificate) }}" target="_blank" class="btn btn-sm btn-outline-info">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('birth_certificate', '{{ $studentDetail->birth_certificate_verification_status }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -1096,7 +1096,7 @@
                                             <a href="{{ Storage::url($studentDetail->passport_photo) }}" target="_blank" class="btn btn-sm btn-outline-warning">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('passport_photo', '{{ $studentDetail->passport_photo_verification_status }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -1132,7 +1132,7 @@
                                             <a href="{{ Storage::url($studentDetail->adhar_front) }}" target="_blank" class="btn btn-sm btn-outline-danger">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('adhar_front', '{{ $studentDetail->adhar_front_verification_status }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -1168,7 +1168,7 @@
                                             <a href="{{ Storage::url($studentDetail->adhar_back) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('adhar_back', '{{ $studentDetail->adhar_back_verification_status }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -1205,7 +1205,7 @@
                                             <a href="{{ Storage::url($studentDetail->signature) }}" target="_blank" class="btn btn-sm btn-outline-dark">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('signature', '{{ $studentDetail->signature_verification_status }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -1242,7 +1242,7 @@
                                             <a href="{{ Storage::url($studentDetail->other_document) }}" target="_blank" class="btn btn-sm btn-outline-info">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('other_document', '{{ $studentDetail->other_document_verification_status ?? 'pending' }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>
@@ -1266,7 +1266,7 @@
                                             </div>
                                         </div>
                                         <div class="document-actions">
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_admission_counsellor())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-primary w-100 w-md-auto" onclick="openUploadOtherDocumentModal()">
                                                 <i class="ti ti-upload me-1"></i><span class="d-none d-md-inline">Upload </span>Document
                                             </button>
@@ -1303,7 +1303,7 @@
                                             <a href="{{ Storage::url($studentDetail->post_graduation_certificate) }}" target="_blank" class="btn btn-sm btn-outline-success">
                                                 <i class="ti ti-eye me-1"></i>View
                                             </a>
-                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller())
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
                                             <button class="btn btn-sm btn-success" onclick="openVerificationModal('post_graduation_certificate', '{{ $studentDetail->post_graduation_certificate_verification_status ?? 'pending' }}')">
                                                 <i class="ti ti-check me-1"></i>Verify
                                             </button>

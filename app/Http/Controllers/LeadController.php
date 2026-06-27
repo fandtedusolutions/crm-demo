@@ -4778,7 +4778,8 @@ class LeadController extends Controller
             !RoleHelper::is_telecaller() &&
             !RoleHelper::is_academic_assistant() &&
             !RoleHelper::is_admission_counsellor() &&
-            !RoleHelper::is_general_manager()) {
+            !RoleHelper::is_general_manager() &&
+            !RoleHelper::is_senior_manager()) {
             return redirect()->route('leads.index')->with('message_danger', 'Access denied.');
         }
 
