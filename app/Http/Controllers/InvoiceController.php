@@ -21,7 +21,7 @@ class InvoiceController extends Controller
      */
     public function index(Request $request, $studentId)
     {
-        $student = ConvertedLead::with(['course', 'lead', 'leadDetail.university', 'batch', 'academicAssistant'])->findOrFail($studentId);
+        $student = ConvertedLead::with(['course', 'lead', 'lead.team', 'leadDetail.university', 'batch', 'academicAssistant'])->findOrFail($studentId);
         
         // Check permissions
         $this->checkStudentAccess($student);
@@ -547,31 +547,24 @@ class InvoiceController extends Controller
      */
     private function checkStudentAccess($student)
     {
-        $currentUserId = AuthHelper::getCurrentUserId();
+        $currentUser = AuthHelper::getCurrentUser();
+        if (!$currentUser) {
+            abort(403, 'Access denied.');
+        }
+
+        $currentUserId = $currentUser->id;
         $currentUserRole = AuthHelper::getCurrentUserRole();
-        
+
         // Senior Manager: Can access all students
         if (\App\Helpers\RoleHelper::is_senior_manager()) {
             return;
         }
-        
+
         // General Manager: Can access all students
         if (\App\Helpers\RoleHelper::is_general_manager()) {
             return;
         }
-        
-        // Team Lead: Can access students from their team
-        if (\App\Helpers\RoleHelper::is_team_lead()) {
-            $teamMemberIds = \App\Models\User::where('team_id', AuthHelper::getCurrentUserTeam())
-                ->pluck('id')
-                ->toArray();
-                
-            if (!in_array($student->created_by, $teamMemberIds)) {
-                abort(403, 'Access denied. You can only view students from your team.');
-            }
-            return;
-        }
-        
+
         switch ($currentUserRole) {
             case 1: // Super Admin
             case 2: // Admin
@@ -581,21 +574,44 @@ class InvoiceController extends Controller
             case 7: // Post Sales
                 // Can access all students
                 break;
-                
-            case 3: // Telecaller
-                // Can only access students they created
-                if ($student->created_by != $currentUserId) {
-                    abort(403, 'Access denied. You can only view students you created.');
+
+            case 3: // Telecaller (including team lead)
+                $lead = optional($student->lead);
+                if (!$lead) {
+                    abort(403, 'Access denied.');
+                }
+
+                if (\App\Helpers\RoleHelper::is_team_lead()) {
+                    $teamMemberIds = [];
+                    if ($currentUser->team_id) {
+                        $teamMemberIds = AuthHelper::getTeamMemberIds($currentUser->team_id);
+                    }
+                    $teamMemberIds[] = $currentUser->id;
+                    $teamMemberIds = array_unique(array_filter($teamMemberIds));
+
+                    if (!in_array((int) $lead->telecaller_id, $teamMemberIds, true)) {
+                        abort(403, 'Access denied. You can only view students from your team.');
+                    }
+                } elseif ((int) $lead->telecaller_id !== (int) $currentUserId) {
+                    abort(403, 'Access denied. You can only view students assigned to you.');
+                }
+
+                if ((int) ($currentUser->is_b2b ?? 0) === 1) {
+                    $leadTeamIsB2B = (int) (optional($lead->team)->is_b2b ?? 0) === 1;
+                    $leadIsB2B = (int) ($lead->is_b2b ?? 0) === 1;
+                    if (!($leadIsB2B || $leadTeamIsB2B)) {
+                        abort(403, 'Access denied.');
+                    }
                 }
                 break;
-                
+
             case 5: // Academic Assistant
                 // Can only access students assigned to them
                 if ($student->academic_assistant_id != $currentUserId) {
                     abort(403, 'Access denied. You can only view students assigned to you.');
                 }
                 break;
-                
+
             default:
                 abort(403, 'Access denied.');
         }

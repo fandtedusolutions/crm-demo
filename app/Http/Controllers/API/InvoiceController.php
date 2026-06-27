@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\ConvertedLead;
+use App\Helpers\AuthHelper;
 use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
@@ -28,7 +29,7 @@ class InvoiceController extends Controller
         }
 
         try {
-            $student = ConvertedLead::with(['course', 'lead'])->findOrFail($studentId);
+            $student = ConvertedLead::with(['course', 'lead', 'lead.team'])->findOrFail($studentId);
             
             // Check permissions (using authenticated user from request)
             $this->checkStudentAccess($student, $user);
@@ -118,42 +119,21 @@ class InvoiceController extends Controller
         $currentUserId = $user->id;
         $currentUserRole = $user->role_id;
         $isTeamLead = $user->is_team_lead == 1;
-        
+
         // Get role title for specific role checks
         $role = \App\Models\UserRole::find($currentUserRole);
         $roleTitle = $role ? $role->title : '';
-        
+
         // Senior Manager: Can access all students
         if ($currentUserRole == 3 && $user->is_senior_manager == 1) {
             return;
         }
-        
+
         // General Manager: Can access all students
         if ($roleTitle === 'General Manager') {
             return;
         }
-        
-        // Check team lead
-        if ($isTeamLead) {
-            // Team Lead: Can access students from their team
-            $teamId = $user->team_id;
-            if ($teamId) {
-                $teamMemberIds = \App\Models\User::where('team_id', $teamId)
-                    ->pluck('id')
-                    ->toArray();
-                    
-                if (!in_array($student->created_by, $teamMemberIds)) {
-                    abort(403, 'Access denied. You can only view students from your team.');
-                }
-            } else {
-                // If no team assigned, only show their own students
-                if ($student->created_by != $currentUserId) {
-                    abort(403, 'Access denied. You can only view students you created.');
-                }
-            }
-            return;
-        }
-        
+
         switch ($currentUserRole) {
             case 1: // Super Admin
             case 2: // Admin
@@ -162,21 +142,44 @@ class InvoiceController extends Controller
             case 7: // Post Sales
                 // Can access all students
                 break;
-                
+
             case 5: // Academic Assistant
                 // Can only access students assigned to them
                 if ($student->academic_assistant_id != $currentUserId) {
                     abort(403, 'Access denied. You can only view students assigned to you.');
                 }
                 break;
-                
-            case 3: // Telecaller
-                // Can only access students they created
-                if ($student->created_by != $currentUserId) {
-                    abort(403, 'Access denied. You can only view students you created.');
+
+            case 3: // Telecaller (including team lead)
+                $lead = optional($student->lead);
+                if (!$lead) {
+                    abort(403, 'Access denied.');
+                }
+
+                if ($isTeamLead) {
+                    $teamMemberIds = [];
+                    if ($user->team_id) {
+                        $teamMemberIds = AuthHelper::getTeamMemberIds($user->team_id);
+                    }
+                    $teamMemberIds[] = $user->id;
+                    $teamMemberIds = array_unique(array_filter($teamMemberIds));
+
+                    if (!in_array((int) $lead->telecaller_id, $teamMemberIds, true)) {
+                        abort(403, 'Access denied. You can only view students from your team.');
+                    }
+                } elseif ((int) $lead->telecaller_id !== (int) $currentUserId) {
+                    abort(403, 'Access denied. You can only view students assigned to you.');
+                }
+
+                if ((int) ($user->is_b2b ?? 0) === 1) {
+                    $leadTeamIsB2B = (int) (optional($lead->team)->is_b2b ?? 0) === 1;
+                    $leadIsB2B = (int) ($lead->is_b2b ?? 0) === 1;
+                    if (!($leadIsB2B || $leadTeamIsB2B)) {
+                        abort(403, 'Access denied.');
+                    }
                 }
                 break;
-                
+
             default:
                 abort(403, 'Access denied.');
         }
