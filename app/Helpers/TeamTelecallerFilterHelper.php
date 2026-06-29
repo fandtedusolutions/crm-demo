@@ -10,11 +10,22 @@ use Illuminate\Support\Collection;
 
 class TeamTelecallerFilterHelper
 {
+    public static function canSeeAllTeamTelecallerFilterOptions(): bool
+    {
+        return RoleHelper::is_admin_or_super_admin()
+            || RoleHelper::is_general_manager()
+            || RoleHelper::is_senior_manager();
+    }
+
     public static function canUseTeamTelecallerFilters(): bool
     {
         $currentUser = AuthHelper::getCurrentUser();
         if (! $currentUser) {
             return false;
+        }
+
+        if (self::canSeeAllTeamTelecallerFilterOptions()) {
+            return true;
         }
 
         $isTelecaller = (int) $currentUser->role_id === 3;
@@ -31,7 +42,6 @@ class TeamTelecallerFilterHelper
         $currentUser = AuthHelper::getCurrentUser();
         $isTeamLead = $currentUser && AuthHelper::isTeamLead();
         $isTelecaller = $currentUser && (int) $currentUser->role_id === 3;
-        $isSeniorManager = $currentUser && RoleHelper::is_senior_manager();
 
         $query = Team::query()
             ->nonMarketing()
@@ -41,7 +51,9 @@ class TeamTelecallerFilterHelper
             ])
             ->orderBy('name');
 
-        if (($isTeamLead || ($isTelecaller && ! $isSeniorManager)) && $currentUser?->team_id) {
+        if (! self::canSeeAllTeamTelecallerFilterOptions()
+            && ($isTeamLead || $isTelecaller)
+            && $currentUser?->team_id) {
             $query->where('id', $currentUser->team_id);
         }
 
@@ -83,7 +95,6 @@ class TeamTelecallerFilterHelper
         $currentUser = AuthHelper::getCurrentUser();
         $isTeamLead = $currentUser && AuthHelper::isTeamLead();
         $isTelecaller = $currentUser && (int) $currentUser->role_id === 3;
-        $isSeniorManager = $currentUser && RoleHelper::is_senior_manager();
 
         $query = User::query()
             ->where('role_id', 3)
@@ -92,12 +103,16 @@ class TeamTelecallerFilterHelper
             ->select('id', 'name', 'email', 'team_id', 'is_b2b')
             ->orderBy('name');
 
-        if ($isTeamLead && ! $isSeniorManager && $currentUser?->team_id) {
-            $teamMemberIds = AuthHelper::getTeamMemberIds($currentUser->team_id);
-            $teamMemberIds[] = AuthHelper::getCurrentUserId();
-            $query->whereIn('id', $teamMemberIds);
-        } elseif ($isTelecaller && ! $isSeniorManager && ! $isTeamLead) {
-            $query->where('id', AuthHelper::getCurrentUserId());
+        if (! self::canSeeAllTeamTelecallerFilterOptions()) {
+            if ($isTeamLead && $currentUser?->team_id) {
+                $teamMemberIds = AuthHelper::getTeamMemberIds($currentUser->team_id);
+                $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                $query->whereIn('id', $teamMemberIds);
+            } elseif ($isTelecaller && ! $isTeamLead) {
+                $query->where('id', AuthHelper::getCurrentUserId());
+            } else {
+                $query->nonMarketingTelecallers();
+            }
         } else {
             $query->nonMarketingTelecallers();
         }

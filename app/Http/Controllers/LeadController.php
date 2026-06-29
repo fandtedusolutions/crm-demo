@@ -3286,8 +3286,7 @@ class LeadController extends Controller
         $currentUser = AuthHelper::getCurrentUser();
         $isTeamLead = $currentUser && AuthHelper::isTeamLead();
         $isTelecaller = $currentUser && $currentUser->role_id == 3;
-        $isSeniorManager = $currentUser && RoleHelper::is_senior_manager();
-        $isGeneralManager = RoleHelper::is_general_manager();
+        $canSeeAllTeamTelecallerOptions = \App\Helpers\TeamTelecallerFilterHelper::canSeeAllTeamTelecallerFilterOptions();
 
         if ($teamIds === null && $teamId === null) {
             return response()->json(['telecallers' => []]);
@@ -3331,15 +3330,15 @@ class LeadController extends Controller
                 $query->where('is_b2b', 1);
             }
             
-            if ($isTeamLead && !$isSeniorManager) {
-                // Team Lead (not senior manager): Only show if it's their team
+            if ($isTeamLead && ! $canSeeAllTeamTelecallerOptions) {
+                // Team Lead (not elevated manager): Only show if it's their team
                 $userTeamId = $currentUser->team_id;
                 if ($teamId != $userTeamId) {
                     $telecallers = collect([]);
                 } else {
                     $telecallers = $query->get();
                 }
-            } elseif ($isTelecaller && !$isSeniorManager) {
+            } elseif ($isTelecaller && ! $canSeeAllTeamTelecallerOptions) {
                 // Regular Telecaller: Only show themselves
                 $telecallers = $query->where('id', $currentUser->id)->get();
             } else {
