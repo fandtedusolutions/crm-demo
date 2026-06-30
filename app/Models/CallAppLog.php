@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -40,6 +41,45 @@ class CallAppLog extends Model
         'started_at_ms' => 'integer',
         'end_at_ms' => 'integer',
     ];
+
+    /**
+     * Convert epoch milliseconds from the Call Tracker API to app-local datetime.
+     */
+    public static function dateTimeFromMilliseconds(?int $milliseconds): ?Carbon
+    {
+        if ($milliseconds === null || $milliseconds <= 0) {
+            return null;
+        }
+
+        return Carbon::createFromTimestampMs($milliseconds, config('app.timezone'));
+    }
+
+    /**
+     * Inclusive millisecond range for filtering by calendar dates in app timezone.
+     *
+     * @return array{0: int, 1: int}
+     */
+    public static function millisecondRangeForDates(string $startDate, string $endDate): array
+    {
+        $timezone = config('app.timezone');
+
+        return [
+            Carbon::parse($startDate, $timezone)->startOfDay()->getTimestampMs(),
+            Carbon::parse($endDate, $timezone)->endOfDay()->getTimestampMs(),
+        ];
+    }
+
+    public function getDisplayStartedAtAttribute(): ?Carbon
+    {
+        return self::dateTimeFromMilliseconds($this->started_at_ms)
+            ?? ($this->started_at ? $this->started_at->copy()->timezone(config('app.timezone')) : null);
+    }
+
+    public function getDisplayEndedAtAttribute(): ?Carbon
+    {
+        return self::dateTimeFromMilliseconds($this->end_at_ms)
+            ?? ($this->ended_at ? $this->ended_at->copy()->timezone(config('app.timezone')) : null);
+    }
 
     public function telecaller(): BelongsTo
     {

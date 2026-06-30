@@ -51,18 +51,11 @@ class CallSyncController extends Controller
         $skipped = 0;
 
         foreach ($validated['calls'] as $item) {
-            $startedAt = isset($item['started_at'])
-                ? Carbon::parse($item['started_at'])
-                : Carbon::createFromTimestampMs($item['started_at_ms']);
-
-            $endAtMs = $item['end_at_ms'] ?? null;
-            if ($endAtMs === null && !empty($item['duration_seconds'])) {
-                $endAtMs = $item['started_at_ms'] + ((int) $item['duration_seconds'] * 1000);
-            }
-
-            $endedAt = isset($item['ended_at'])
-                ? Carbon::parse($item['ended_at'])
-                : ($endAtMs ? Carbon::createFromTimestampMs($endAtMs) : null);
+            $timestamps = $this->resolveCallTimestamps($item);
+            $startedAtMs = $timestamps['started_at_ms'];
+            $startedAt = $timestamps['started_at'];
+            $endAtMs = $timestamps['end_at_ms'];
+            $endedAt = $timestamps['ended_at'];
 
             $remarks = $item['remarks'] ?? null;
             if ($remarks === null && $item['call_type'] === 'not_picked') {
@@ -83,7 +76,7 @@ class CallSyncController extends Controller
                     'call_type' => $item['call_type'],
                     'remarks' => $remarks,
                     'duration_seconds' => $item['duration_seconds'],
-                    'started_at_ms' => $item['started_at_ms'],
+                    'started_at_ms' => $startedAtMs,
                     'started_at' => $startedAt,
                     'end_at_ms' => $endAtMs,
                     'ended_at' => $endedAt,
@@ -100,6 +93,10 @@ class CallSyncController extends Controller
                 'device_call_id' => $call->device_call_id,
                 'server_call_id' => $call->id,
                 'status' => $call->wasRecentlyCreated ? 'created' : 'skipped',
+                'started_at_ms' => $call->started_at_ms,
+                'started_at' => $call->display_started_at?->toIso8601String(),
+                'end_at_ms' => $call->end_at_ms,
+                'ended_at' => $call->display_ended_at?->toIso8601String(),
                 'recording_upload_required' => $call->has_recording && !$call->recording_uploaded,
                 'recording_already_uploaded' => (bool) $call->recording_uploaded,
             ];
@@ -264,6 +261,7 @@ class CallSyncController extends Controller
                 continue;
             }
 
+            $recording = $call->recording;
             $storedPath = $recording?->storedStoragePath();
             $uploaded = (bool) $call->recording_uploaded && $storedPath !== null;
             $hasRecording = (bool) $call->has_recording;
@@ -328,6 +326,26 @@ class CallSyncController extends Controller
                 'pending_recordings' => $pendingRecordings,
             ],
         ]);
+    }
+
+    private function resolveCallTimestamps(array $item): array
+    {
+        $startedAtMs = (int) $item['started_at_ms'];
+        $startedAt = CallAppLog::dateTimeFromMilliseconds($startedAtMs);
+
+        $endAtMs = isset($item['end_at_ms']) ? (int) $item['end_at_ms'] : null;
+        if (($endAtMs === null || $endAtMs <= 0) && !empty($item['duration_seconds'])) {
+            $endAtMs = $startedAtMs + ((int) $item['duration_seconds'] * 1000);
+        }
+
+        $endedAt = $endAtMs ? CallAppLog::dateTimeFromMilliseconds($endAtMs) : null;
+
+        return [
+            'started_at_ms' => $startedAtMs,
+            'started_at' => $startedAt,
+            'end_at_ms' => $endAtMs,
+            'ended_at' => $endedAt,
+        ];
     }
 
     private function findCallForRecordingUpload(Request $request, int $telecallerId): ?CallAppLog

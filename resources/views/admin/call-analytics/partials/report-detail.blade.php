@@ -64,9 +64,10 @@
                                 <td class="text-center">{{ number_format($contact->call_count) }}</td>
                                 <td class="text-center">{{ \App\Models\CallAppLog::formatDuration((int) $contact->total_duration_seconds) }}</td>
                                 <td>
-                                    @if($contact->last_called_at)
-                                        <div>{{ \Carbon\Carbon::parse($contact->last_called_at)->format('d-m-Y') }}</div>
-                                        <small class="text-muted">{{ \Carbon\Carbon::parse($contact->last_called_at)->format('h:i A') }}</small>
+                                    @if($contact->last_started_at_ms)
+                                        @php($lastCalledAt = \App\Models\CallAppLog::dateTimeFromMilliseconds((int) $contact->last_started_at_ms))
+                                        <div>{{ $lastCalledAt?->format('d-m-Y') }}</div>
+                                        <small class="text-muted">{{ $lastCalledAt?->format('h:i A') }}</small>
                                     @else
                                         -
                                     @endif
@@ -143,8 +144,8 @@
                                 </td>
                                 <td>{{ $call->formatted_duration }}</td>
                                 <td>
-                                    <div>{{ $call->started_at?->format('d-m-Y') }}</div>
-                                    <small class="text-muted">{{ $call->started_at?->format('h:i A') }}</small>
+                                    <div>{{ $call->display_started_at?->format('d-m-Y') }}</div>
+                                    <small class="text-muted">{{ $call->display_started_at?->format('h:i A') }}</small>
                                 </td>
                                 <td>
                                     @include('admin.call-analytics.partials.recording-cell', ['call' => $call])

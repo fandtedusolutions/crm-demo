@@ -52,10 +52,12 @@ class CallAnalyticsController extends Controller
 
     private function applyFilters($query, array $filters)
     {
-        $query->whereBetween('started_at', [
-            $filters['start_date'] . ' 00:00:00',
-            $filters['end_date'] . ' 23:59:59',
-        ]);
+        [$startMs, $endMs] = CallAppLog::millisecondRangeForDates(
+            $filters['start_date'],
+            $filters['end_date']
+        );
+
+        $query->whereBetween('started_at_ms', [$startMs, $endMs]);
 
         if (!empty($filters['telecaller_id'])) {
             $query->where('telecaller_id', $filters['telecaller_id']);
@@ -128,14 +130,14 @@ class CallAnalyticsController extends Controller
                 DB::raw('MAX(phone_number) as phone_number'),
                 DB::raw('MAX(contact_name) as contact_name'),
                 DB::raw('COUNT(*) as call_count'),
-                DB::raw('MAX(started_at) as last_called_at'),
+                DB::raw('MAX(started_at_ms) as last_started_at_ms'),
                 DB::raw('SUM(duration_seconds) as total_duration_seconds'),
                 DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(telecaller_id ORDER BY started_at_ms DESC), ",", 1) as last_telecaller_id'),
                 DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(id ORDER BY started_at_ms DESC), ",", 1) as last_call_id'),
                 DB::raw("SUBSTRING_INDEX(GROUP_CONCAT(IF(recording_uploaded = 1, id, NULL) ORDER BY started_at_ms DESC SEPARATOR ','), ',', 1) as recording_call_id"),
             ])
             ->groupBy(DB::raw("REGEXP_REPLACE(phone_number, '[^0-9]', '')"))
-            ->orderByDesc('last_called_at')
+            ->orderByDesc('last_started_at_ms')
             ->paginate($perPage)
             ->withQueryString();
     }

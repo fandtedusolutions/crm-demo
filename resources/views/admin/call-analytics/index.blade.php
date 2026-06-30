@@ -264,13 +264,13 @@
                                     </td>
                                     <td>{{ $call->formatted_duration }}</td>
                                     <td data-order="{{ $call->started_at_ms }}">
-                                        <div>{{ $call->started_at?->format('d-m-Y') }}</div>
-                                        <small class="text-muted">{{ $call->started_at?->format('h:i A') }}</small>
+                                        <div>{{ $call->display_started_at?->format('d-m-Y') }}</div>
+                                        <small class="text-muted">{{ $call->display_started_at?->format('h:i A') }}</small>
                                     </td>
                                     <td data-order="{{ $call->end_at_ms ?? 0 }}">
-                                        @if($call->ended_at)
-                                            <div>{{ $call->ended_at->format('d-m-Y') }}</div>
-                                            <small class="text-muted">{{ $call->ended_at->format('h:i A') }}</small>
+                                        @if($call->display_ended_at)
+                                            <div>{{ $call->display_ended_at->format('d-m-Y') }}</div>
+                                            <small class="text-muted">{{ $call->display_ended_at->format('h:i A') }}</small>
                                         @else
                                             <span class="text-muted">-</span>
                                         @endif

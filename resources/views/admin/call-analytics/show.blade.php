@@ -65,11 +65,11 @@
                     </div>
                     <div class="col-md-6">
                         <label class="text-muted small">Call Date/Time</label>
-                        <div>{{ $call->started_at?->format('d-m-Y h:i A') }}</div>
+                        <div>{{ $call->display_started_at?->format('d-m-Y h:i A') }}</div>
                     </div>
                     <div class="col-md-6">
                         <label class="text-muted small">End Date/Time</label>
-                        <div>{{ $call->ended_at?->format('d-m-Y h:i A') ?: '-' }}</div>
+                        <div>{{ $call->display_ended_at?->format('d-m-Y h:i A') ?: '-' }}</div>
                     </div>
                     <div class="col-md-6">
                         <label class="text-muted small">Device Call ID</label>
