@@ -369,7 +369,14 @@
                         </tbody>
                     </table>
                 </div>
-                @if($calls->hasPages())<div class="p-3">{{ $calls->links() }}</div>@endif
+                @if($calls->hasPages())
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 border-top">
+                    <small class="text-muted mb-0">
+                        Showing {{ $calls->firstItem() }} to {{ $calls->lastItem() }} of {{ $calls->total() }} calls
+                    </small>
+                    {{ $calls->links('pagination::bootstrap-5') }}
+                </div>
+                @endif
                 @else
                 <p class="text-muted text-center py-4 mb-0">No calls found for this period.</p>
                 @endif
@@ -389,7 +396,7 @@
             <div class="card-body">
                 @if($leads->count() > 0)
                 <div class="table-responsive">
-                    <table class="table table-hover" id="leadsDataTable">
+                    <table class="table table-hover align-middle mb-0" id="telecallerDetailLeadsTable">
                         <thead class="table-light">
                             <tr>
                                 <th>#</th><th>Name</th><th>Type</th><th>Phone</th><th>Email</th>
@@ -413,7 +420,14 @@
                         </tbody>
                     </table>
                 </div>
-                @if($leads->hasPages())<div class="mt-3">{{ $leads->links() }}</div>@endif
+                @if($leads->hasPages())
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 px-1">
+                    <small class="text-muted mb-0">
+                        Showing {{ $leads->firstItem() }} to {{ $leads->lastItem() }} of {{ $leads->total() }} leads
+                    </small>
+                    {{ $leads->links('pagination::bootstrap-5') }}
+                </div>
+                @endif
                 @else
                 <p class="text-muted text-center py-4 mb-0">No leads found.</p>
                 @endif
@@ -436,10 +450,6 @@
 
     $(function () {
         toggleDetailCustomDates();
-
-        if ($('#leadsDataTable').length && !$.fn.DataTable.isDataTable('#leadsDataTable')) {
-            $('#leadsDataTable').DataTable({ pageLength: 25, order: [[8, 'desc']] });
-        }
     });
 })(jQuery);
 </script>
