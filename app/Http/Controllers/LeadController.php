@@ -3455,6 +3455,7 @@ class LeadController extends Controller
                 'telecaller_id' => $request->telecaller_id,
                 'lead_source_id' => $request->lead_source_id,
                 'lead_status_id' => 1, // Always set to 1 when reassigned
+                'created_at' => now(),
                 'updated_by' => AuthHelper::getCurrentUserId(),
             ]);
 
