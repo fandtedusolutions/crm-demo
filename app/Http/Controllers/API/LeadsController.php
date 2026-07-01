@@ -89,7 +89,9 @@ class LeadsController extends Controller
             $toDate = Carbon::parse($request->date_to)->endOfDay();
             $query->whereBetween('created_at', [$fromDate, $toDate]);
         }
-
+        Log::info('Date range filter', ['fromDate' => $fromDate, 'toDate' => $toDate]);
+        Log::info('Date range filter', ['fromDate' => $fromDate, 'toDate' => $toDate]);
+        Log::info('Date range filter', ['fromDate' => $fromDate, 'toDate' => $toDate]);
         // Order by created_at desc
         $query->orderBy('created_at', 'desc');
 
