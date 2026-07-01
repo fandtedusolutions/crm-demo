@@ -631,7 +631,7 @@ class RegistrationLeadsController extends Controller
             'payment_proofs.*.file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'payment_date' => 'nullable|date',
             'payment_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'custom_total_amount' => 'nullable|numeric|min:0',
+            'total_amount' => 'nullable|numeric|min:0',
         ];
 
         if ((int) $lead->course_id === 23) {
@@ -683,6 +683,13 @@ class RegistrationLeadsController extends Controller
             }
 
             if ((int) $lead->course_id !== 23) {
+                $invoiceTotal = $request->filled('total_amount') ? (float) $request->input('total_amount') : null;
+                $paymentAmount = (float) ($request->input('payment_amount') ?: 0);
+
+                if ($invoiceTotal !== null && $paymentAmount > $invoiceTotal) {
+                    $validator->errors()->add('payment_amount', 'Payment amount cannot exceed the total amount.');
+                }
+
                 return;
             }
 
@@ -696,9 +703,9 @@ class RegistrationLeadsController extends Controller
                 $validator->errors()->add('payment_pg_amount', 'At least one payment amount (PG/UG/Plus Two/SSLC) is required.');
             }
 
-            $customTotal = $request->filled('custom_total_amount') ? (float) $request->input('custom_total_amount') : null;
-            if ($customTotal !== null && $totalPaid > $customTotal) {
-                $validator->errors()->add('custom_total_amount', 'Total paid amount cannot exceed the total amount.');
+            $invoiceTotal = $request->filled('total_amount') ? (float) $request->input('total_amount') : null;
+            if ($invoiceTotal !== null && $totalPaid > $invoiceTotal) {
+                $validator->errors()->add('total_amount', 'Total paid amount cannot exceed the total amount.');
             }
 
             if ($pgPaid > 0 && !$request->hasFile('payment_pg_file')) {
@@ -772,7 +779,7 @@ class RegistrationLeadsController extends Controller
             $invoice = null;
             if ($lead->course_id) {
                 $invoiceController = new \App\Http\Controllers\InvoiceController();
-                $customTotalAmount = null;
+                $invoiceTotalAmount = null;
                 $feeBreakdown = null;
 
                 if ((int) $lead->course_id === 23) {
@@ -782,23 +789,23 @@ class RegistrationLeadsController extends Controller
                         'fee_plustwo_amount' => $request->filled('fee_plustwo_amount') ? (float) $request->input('fee_plustwo_amount') : null,
                         'fee_sslc_amount' => $request->filled('fee_sslc_amount') ? (float) $request->input('fee_sslc_amount') : null,
                     ];
-                    if ($request->filled('custom_total_amount')) {
-                        $customTotalAmount = (float) $request->input('custom_total_amount');
+                    if ($request->filled('total_amount')) {
+                        $invoiceTotalAmount = (float) $request->input('total_amount');
                     } else {
-                        $customTotalAmount =
+                        $invoiceTotalAmount =
                             (float) (($feeBreakdown['fee_pg_amount'] ?? 0)
                                 + ($feeBreakdown['fee_ug_amount'] ?? 0)
                                 + ($feeBreakdown['fee_plustwo_amount'] ?? 0)
                                 + ($feeBreakdown['fee_sslc_amount'] ?? 0));
                     }
-                } elseif ($request->filled('custom_total_amount')) {
-                    $customTotalAmount = (float) $request->input('custom_total_amount');
+                } elseif ($request->filled('total_amount')) {
+                    $invoiceTotalAmount = (float) $request->input('total_amount');
                 }
 
                 $invoice = $invoiceController->autoGenerate(
                     $convertedLead->id,
                     (int) $lead->course_id,
-                    $customTotalAmount,
+                    $invoiceTotalAmount,
                     $feeBreakdown,
                     $user->id
                 );

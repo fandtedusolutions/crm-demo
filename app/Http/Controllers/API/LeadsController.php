@@ -98,7 +98,6 @@ class LeadsController extends Controller
         // Pagination - lazy loading
         $perPage = $request->get('per_page', 15);
         $leads = $query->paginate($perPage);
-        Log::info('Last query: ' . $query->toSql());
 
         // Format leads data
         $formattedLeads = $leads->map(function ($lead) {

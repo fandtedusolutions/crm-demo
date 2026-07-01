@@ -116,12 +116,12 @@
                     @if($showTeamTelecallerFilters ?? false)
                     <div class="row g-3 align-items-end mt-2 pt-2 border-top">
                         @include('admin.partials.team-telecaller-filters', [
-                            'showTeamTelecallerFilters' => true,
-                            'teams' => $teams ?? collect(),
-                            'selectedTeamIds' => $selectedTeamIds ?? [],
-                            'selectedTelecallerIds' => $selectedTelecallerIds ?? [],
-                            'filterTelecallers' => $filterTelecallers ?? collect(),
-                            'filterColClass' => 'col-12 col-md-6 col-lg-4',
+                        'showTeamTelecallerFilters' => true,
+                        'teams' => $teams ?? collect(),
+                        'selectedTeamIds' => $selectedTeamIds ?? [],
+                        'selectedTelecallerIds' => $selectedTelecallerIds ?? [],
+                        'filterTelecallers' => $filterTelecallers ?? collect(),
+                        'filterColClass' => 'col-12 col-md-6 col-lg-4',
                         ])
                     </div>
                     @endif
@@ -142,12 +142,12 @@
 
                         <!-- B2B/In House Filter -->
                         <div class="col-6 col-md-4 col-lg-2">
-                             <label for="is_b2b" class="form-label">Type (B2B/In House)</label>
-                             <select class="form-select form-select-sm" name="is_b2b" id="is_b2b">
-                                 <option value="">All Types</option>
-                                 <option value="b2b" {{ request('is_b2b') == 'b2b' ? 'selected' : '' }}>B2B</option>
-                                 <option value="in_house" {{ request('is_b2b') == 'in_house' ? 'selected' : '' }}>In House</option>
-                             </select>
+                            <label for="is_b2b" class="form-label">Type (B2B/In House)</label>
+                            <select class="form-select form-select-sm" name="is_b2b" id="is_b2b">
+                                <option value="">All Types</option>
+                                <option value="b2b" {{ request('is_b2b') == 'b2b' ? 'selected' : '' }}>B2B</option>
+                                <option value="in_house" {{ request('is_b2b') == 'in_house' ? 'selected' : '' }}>In House</option>
+                            </select>
                         </div>
 
                         <!-- Action Buttons -->
@@ -301,11 +301,11 @@
                 <!-- Desktop Table View -->
                 <div class="d-none d-lg-block">
                     <div class="table-responsive" style="overflow-x: auto;">
-<table class="table table-hover" id="leadsTable" style="min-width: 1900px;">
+                        <table class="table table-hover" id="leadsTable" style="min-width: 1900px;">
                             <thead>
-@php
-$canViewFirstCreated = $isAdminOrSuperAdmin || $isGeneralManager;
-@endphp
+                                @php
+                                $canViewFirstCreated = $isAdminOrSuperAdmin || $isGeneralManager;
+                                @endphp
                                 <tr>
                                     <th>#</th>
                                     <th>Actions</th>
@@ -362,43 +362,43 @@ $canViewFirstCreated = $isAdminOrSuperAdmin || $isGeneralManager;
 @php
 // Build columns array for DataTables
 $columns = [
-    ['data' => 'index', 'name' => 'index', 'orderable' => false, 'searchable' => false],
-    ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],
+['data' => 'index', 'name' => 'index', 'orderable' => false, 'searchable' => false],
+['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],
 ];
 
 if ($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isTeamLeadRole || $isGeneralManager) {
-    $columns[] = ['data' => 'registration_details', 'name' => 'registration_details', 'orderable' => false, 'searchable' => false];
+$columns[] = ['data' => 'registration_details', 'name' => 'registration_details', 'orderable' => false, 'searchable' => false];
 }
 
 $columns = array_merge($columns, [
-    ['data' => 'created_at', 'name' => 'created_at'],
+['data' => 'created_at', 'name' => 'created_at'],
 ]);
 
 if ($canViewFirstCreated) {
-    $columns[] = ['data' => 'first_created_at', 'name' => 'first_created_at'];
+$columns[] = ['data' => 'first_created_at', 'name' => 'first_created_at'];
 }
 
 $columns[] = ['data' => 'type', 'name' => 'type'];
 $columns[] = ['data' => 'team', 'name' => 'team'];
 
 $columns = array_merge($columns, [
-    ['data' => 'name', 'name' => 'name'],
-    ['data' => 'profile', 'name' => 'profile', 'orderable' => false, 'searchable' => false],
-    ['data' => 'phone', 'name' => 'phone'],
-    ['data' => 'email', 'name' => 'email'],
-    ['data' => 'status', 'name' => 'status', 'orderable' => false, 'searchable' => false],
-    ['data' => 'interest', 'name' => 'interest', 'orderable' => false, 'searchable' => false],
-    ['data' => 'rating', 'name' => 'rating', 'orderable' => false, 'searchable' => false],
-    ['data' => 'source', 'name' => 'source'],
-    ['data' => 'course', 'name' => 'course'],
-    ['data' => 'telecaller', 'name' => 'telecaller'],
-    ['data' => 'place', 'name' => 'place'],
-    ['data' => 'followup_date', 'name' => 'followup_date'],
-    ['data' => 'last_reason', 'name' => 'last_reason', 'orderable' => false, 'searchable' => false],
-    ['data' => 'remarks', 'name' => 'remarks'],
-    ['data' => 'marketing_remarks', 'name' => 'marketing_remarks'],
-    ['data' => 'date', 'name' => 'date'],
-    ['data' => 'time', 'name' => 'time']
+['data' => 'name', 'name' => 'name'],
+['data' => 'profile', 'name' => 'profile', 'orderable' => false, 'searchable' => false],
+['data' => 'phone', 'name' => 'phone'],
+['data' => 'email', 'name' => 'email'],
+['data' => 'status', 'name' => 'status', 'orderable' => false, 'searchable' => false],
+['data' => 'interest', 'name' => 'interest', 'orderable' => false, 'searchable' => false],
+['data' => 'rating', 'name' => 'rating', 'orderable' => false, 'searchable' => false],
+['data' => 'source', 'name' => 'source'],
+['data' => 'course', 'name' => 'course'],
+['data' => 'telecaller', 'name' => 'telecaller'],
+['data' => 'place', 'name' => 'place'],
+['data' => 'followup_date', 'name' => 'followup_date'],
+['data' => 'last_reason', 'name' => 'last_reason', 'orderable' => false, 'searchable' => false],
+['data' => 'remarks', 'name' => 'remarks'],
+['data' => 'marketing_remarks', 'name' => 'marketing_remarks'],
+['data' => 'date', 'name' => 'date'],
+['data' => 'time', 'name' => 'time']
 ]);
 @endphp
 
@@ -554,30 +554,38 @@ $columns = array_merge($columns, [
             margin-bottom: 0.5rem;
         }
     }
-    
+
     /* Copy link button styling */
     .copy-link-btn {
         transition: all 0.3s ease;
     }
-    
+
     .copy-link-btn:hover {
         transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
-    
+
     .copy-link-btn.btn-success {
         animation: pulse 0.6s ease-in-out;
     }
-    
+
     .copy-link-btn.processing {
         pointer-events: none;
         opacity: 0.7;
     }
-    
+
     @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+
+        100% {
+            transform: scale(1);
+        }
     }
 </style>
 <script>
@@ -588,14 +596,14 @@ $columns = array_merge($columns, [
         // ULTRA-OPTIMIZED DataTables for 410+ leads - Performance Critical
         // Prevent global initialization for this table
         $('#leadsTable').removeClass('data_table_basic');
-        
+
         // Use setTimeout to defer initialization and allow page to render first
         setTimeout(function() {
             // Destroy existing instance if any
             if ($.fn.DataTable.isDataTable('#leadsTable')) {
                 $('#leadsTable').DataTable().destroy();
             }
-            
+
             // Get filter values from form
             function getFilterParams() {
                 var params = {
@@ -605,25 +613,26 @@ $columns = array_merge($columns, [
                     lead_source_id: $('#filter_lead_source_id').val() || '',
                     course_id: $('#course_id').val() || '',
                     rating: $('#rating').val() || '',
-                    search_key: getUrlParameter('search_key') || '{{ request('search_key') }}' || ''
+                    search_key: getUrlParameter('search_key') || '{{ request('
+                    search_key ') }}' || ''
                 };
 
                 if (window.TeamTelecallerFilters) {
                     window.TeamTelecallerFilters.extendDataTableParams(params);
                 }
-                
+
                 if ($('#lead_type').length > 0) {
                     params.lead_type = $('#lead_type').val() || '';
                 }
 
                 // Add is_b2b filter
-                 if ($('#is_b2b').length > 0) {
-                     params.is_b2b = $('#is_b2b').val() || '';
-                 }
-                
+                if ($('#is_b2b').length > 0) {
+                    params.is_b2b = $('#is_b2b').val() || '';
+                }
+
                 return params;
             }
-            
+
             function buildQueryString(params) {
                 const searchParams = new URLSearchParams();
                 Object.keys(params).forEach(function(key) {
@@ -648,7 +657,7 @@ $columns = array_merge($columns, [
                 const exportUrl = queryString ? `${exportBaseUrl}?${queryString}` : exportBaseUrl;
                 $('.js-export-excel').attr('href', exportUrl);
             }
-            
+
             // Get URL parameter
             function getUrlParameter(name) {
                 name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -656,12 +665,12 @@ $columns = array_merge($columns, [
                 var results = regex.exec(location.search);
                 return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
             }
-            
+
             // Update URL with filter parameters
             function updateUrlWithFilters() {
                 var filters = getFilterParams();
                 var params = new URLSearchParams();
-                
+
                 Object.keys(filters).forEach(function(key) {
                     const value = filters[key];
                     if (Array.isArray(value)) {
@@ -676,22 +685,24 @@ $columns = array_merge($columns, [
                         params.append(key, value);
                     }
                 });
-                
+
                 updateExportButtons(filters);
-                
+
                 var newUrl = window.location.pathname;
                 if (params.toString()) {
                     newUrl += '?' + params.toString();
                 }
-                
+
                 // Update URL without reloading page
-                window.history.pushState({path: newUrl}, '', newUrl);
+                window.history.pushState({
+                    path: newUrl
+                }, '', newUrl);
             }
-            
+
             // Load filters from URL on page load
             function loadFiltersFromUrl() {
                 var urlParams = new URLSearchParams(window.location.search);
-                
+
                 if (urlParams.get('date_from')) {
                     $('#date_from').val(urlParams.get('date_from'));
                 }
@@ -714,14 +725,14 @@ $columns = array_merge($columns, [
                     window.TeamTelecallerFilters.loadFromUrl(urlParams);
                 }
             }
-            
+
             // Load filters from URL on page load
             loadFiltersFromUrl();
             updateExportButtons(getFilterParams());
 
             // Store last JSON response for mobile view
             var lastJsonResponse = null;
-            
+
             // Initialize with AJAX - maximum performance optimizations
             var leadsTable = $('#leadsTable').DataTable({
                 processing: true,
@@ -745,8 +756,13 @@ $columns = array_merge($columns, [
                     }
                 },
                 pageLength: 25,
-                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-                order: [[3, 'desc']], // Sort by created_at (column 3)
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                order: [
+                    [3, 'desc']
+                ], // Sort by created_at (column 3)
                 dom: "Bfrtip",
                 buttons: ["csv", "excel", "print", "pdf"],
                 stateSave: true,
@@ -760,16 +776,24 @@ $columns = array_merge($columns, [
                 drawCallback: function(settings) {
                     // Initialize tooltips for visible rows
                     var api = this.api();
-                    $(api.rows({page: 'current'}).nodes()).find('[data-bs-toggle="tooltip"]').tooltip();
-                    
+                    $(api.rows({
+                        page: 'current'
+                    }).nodes()).find('[data-bs-toggle="tooltip"]').tooltip();
+
                     // Re-initialize copy link buttons
-                    $(api.rows({page: 'current'}).nodes()).find('.copy-link-btn').off('click').on('click', handleCopyLink);
-                    
+                    $(api.rows({
+                        page: 'current'
+                    }).nodes()).find('.copy-link-btn').off('click').on('click', handleCopyLink);
+
                     // Re-initialize voxbay call buttons
-                    $(api.rows({page: 'current'}).nodes()).find('.voxbay-call-btn').off('click').on('click', function() {
+                    /*
+                    $(api.rows({
+                        page: 'current'
+                    }).nodes()).find('.voxbay-call-btn').off('click').on('click', function() {
                         // Existing voxbay call handler
                     });
-                    
+                    */
+
                     // Load mobile view data on first draw only
                     if (lastJsonResponse && settings.iDraw === 1) {
                         loadMobileView(lastJsonResponse);
@@ -792,7 +816,7 @@ $columns = array_merge($columns, [
                     }
                 }
             });
-            
+
             // Reload table when filters change
             $('#dateFilterForm').on('submit', function(e) {
                 e.preventDefault();
@@ -803,7 +827,7 @@ $columns = array_merge($columns, [
                 mobileViewState.hasMore = true;
                 leadsTable.ajax.reload();
             });
-            
+
             // Reload on filter change
             $('#filter_lead_status_id, #filter_lead_source_id, #course_id, #rating, #filter_team_ids, #filter_telecaller_ids, #lead_type').on('change', function() {
                 updateUrlWithFilters();
@@ -813,33 +837,33 @@ $columns = array_merge($columns, [
                 mobileViewState.hasMore = true;
                 leadsTable.ajax.reload();
             });
-            
+
             // Handle copy link functionality
             function handleCopyLink(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 if ($(this).hasClass('processing')) {
                     return false;
                 }
-                
+
                 $(this).addClass('processing');
                 const url = $(this).data('url');
                 const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
-                
+
                 const tempInput = document.createElement('input');
                 tempInput.value = fullUrl;
                 document.body.appendChild(tempInput);
                 tempInput.select();
                 tempInput.setSelectionRange(0, 99999);
-                
+
                 try {
                     document.execCommand('copy');
                     const originalIcon = $(this).find('i').attr('class');
                     $(this).find('i').removeClass().addClass('ti ti-check');
                     $(this).removeClass('btn-outline-info btn-info').addClass('btn-success');
                     showToast('Registration link copied to clipboard!', 'success');
-                    
+
                     setTimeout(() => {
                         $(this).find('i').removeClass().addClass(originalIcon);
                         $(this).removeClass('btn-success').addClass('btn-outline-info');
@@ -850,10 +874,10 @@ $columns = array_merge($columns, [
                     showToast('Failed to copy link. Please try again.', 'error');
                     $(this).removeClass('processing');
                 }
-                
+
                 document.body.removeChild(tempInput);
             }
-            
+
             // Mobile view pagination state
             var mobileViewState = {
                 currentPage: 1,
@@ -863,21 +887,21 @@ $columns = array_merge($columns, [
                 isLoading: false,
                 hasMore: true
             };
-            
+
             // Load all mobile view data from server
             function loadAllMobileViewData(page = 1, append = false) {
                 if (mobileViewState.isLoading) return;
-                
+
                 mobileViewState.isLoading = true;
                 mobileViewState.currentPage = page;
                 const container = $('#mobileLeadsContainer');
-                
+
                 if (!append) {
                     container.empty();
                     mobileViewState.allData = [];
                     mobileViewState.currentPage = 1;
                 }
-                
+
                 // Show loading indicator only on first load
                 if (!append) {
                     container.html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2 text-muted">Loading leads...</p></div>');
@@ -888,20 +912,26 @@ $columns = array_merge($columns, [
                         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Loading...');
                     }
                 }
-                
+
                 // Prepare request data
                 const requestData = {
                     draw: page,
                     start: (page - 1) * mobileViewState.pageSize,
                     length: mobileViewState.pageSize,
-                    order: [{column: 3, dir: 'desc'}],
-                    search: {value: '', regex: false}
+                    order: [{
+                        column: 3,
+                        dir: 'desc'
+                    }],
+                    search: {
+                        value: '',
+                        regex: false
+                    }
                 };
-                
+
                 // Merge with filter parameters
                 const filters = getFilterParams();
                 $.extend(requestData, filters);
-                
+
                 // Make AJAX request to load all data
                 $.ajax({
                     url: '{{ route('leads.data') }}',
@@ -909,17 +939,17 @@ $columns = array_merge($columns, [
                     data: requestData,
                     success: function(response) {
                         mobileViewState.isLoading = false;
-                        
+
                         if (!response || !response.data) {
                             if (!append && mobileViewState.allData.length === 0) {
                                 container.html('<div class="text-center py-4"><div class="text-muted"><i class="ti ti-inbox f-48 mb-3 d-block"></i><h5>No leads found</h5><p>Try adjusting your filters or add a new lead.</p></div></div>');
                             }
                             return;
                         }
-                        
+
                         // Update total records
                         mobileViewState.totalRecords = response.recordsFiltered || response.recordsTotal || 0;
-                        
+
                         // Process and store data
                         if (response.data && Array.isArray(response.data)) {
                             response.data.forEach(function(row) {
@@ -938,13 +968,13 @@ $columns = array_merge($columns, [
                                 }
                             });
                         }
-                        
+
                         // Check if there's more data to load
                         mobileViewState.hasMore = mobileViewState.allData.length < mobileViewState.totalRecords;
-                        
+
                         // Render all loaded data
                         renderMobileViewCards();
-                        
+
                         // Always show load more button if there's more data
                         if (mobileViewState.hasMore && mobileViewState.totalRecords > mobileViewState.allData.length) {
                             // Small delay to ensure rendering is complete
@@ -965,29 +995,29 @@ $columns = array_merge($columns, [
                     }
                 });
             }
-            
+
             // Render all mobile view cards
             function renderMobileViewCards() {
                 const container = $('#mobileLeadsContainer');
-                
+
                 // Only clear on first page load
                 if (mobileViewState.currentPage === 1) {
                     container.empty();
                 }
-                
+
                 if (mobileViewState.allData.length === 0 && !mobileViewState.isLoading) {
                     container.html('<div class="text-center py-4"><div class="text-muted"><i class="ti ti-inbox f-48 mb-3 d-block"></i><h5>No leads found</h5><p>Try adjusting your filters or add a new lead.</p></div></div>');
                     return;
                 }
-                
+
                 // Remove existing info before rendering (but keep load more button)
                 container.find('.mobile-view-info').remove();
-                
+
                 // Clear existing cards only on first page
                 if (mobileViewState.currentPage === 1) {
                     container.find('.card[data-lead-id]').remove();
                 }
-                
+
                 // Render all cards (avoid duplicates by checking data-lead-id)
                 mobileViewState.allData.forEach(function(item) {
                     // Check if card already exists to avoid duplicates
@@ -1003,19 +1033,21 @@ $columns = array_merge($columns, [
                         }
                     }
                 });
-                
+
                 // Initialize tooltips and event handlers for mobile cards
                 container.find('[data-bs-toggle="tooltip"]').tooltip();
                 container.find('.copy-link-btn').off('click').on('click', handleCopyLink);
                 // Re-bind voxbay call buttons for mobile cards
+                /*
                 container.find('.voxbay-call-btn').off('click').on('click', function() {
                     // Voxbay handler will be triggered via document delegation
                 });
-                
+                */
+
                 // Show record count
                 updateMobileViewInfo();
             }
-            
+
             // Show load more button
             function showLoadMoreButton() {
                 const container = $('#mobileLeadsContainer');
@@ -1023,18 +1055,18 @@ $columns = array_merge($columns, [
                     console.error('Mobile container not found');
                     return;
                 }
-                
+
                 // Calculate remaining records
                 const remaining = mobileViewState.totalRecords - mobileViewState.allData.length;
-                
+
                 if (remaining <= 0) {
                     // Remove button if no more records
                     $('.load-more-mobile-btn').parent().remove();
                     return;
                 }
-                
+
                 const existingButton = container.find('.load-more-mobile-btn');
-                
+
                 if (existingButton.length > 0) {
                     // Update existing button
                     existingButton.html('<i class="ti ti-arrow-down me-2"></i>Load More (' + remaining + ' remaining)');
@@ -1045,7 +1077,7 @@ $columns = array_merge($columns, [
                     container.append(loadMoreHtml);
                 }
             }
-            
+
             // Load more mobile data
             window.loadMoreMobileData = function() {
                 if (mobileViewState.hasMore && !mobileViewState.isLoading) {
@@ -1055,7 +1087,7 @@ $columns = array_merge($columns, [
                     loadAllMobileViewData(nextPage, true);
                 }
             };
-            
+
             // Update mobile view info
             function updateMobileViewInfo() {
                 const infoHtml = '<div class="alert alert-info mb-3 mobile-view-info"><small><i class="ti ti-info-circle me-1"></i>Showing ' + mobileViewState.allData.length + ' of ' + mobileViewState.totalRecords + ' leads</small></div>';
@@ -1067,14 +1099,14 @@ $columns = array_merge($columns, [
                     container.prepend(infoHtml);
                 }
             }
-            
+
             // Load mobile view with current page data (for initial display)
             function loadMobileView(jsonData) {
                 if (!jsonData || !jsonData.data) return;
-                
+
                 // Update total records
                 const newTotalRecords = jsonData.recordsFiltered || jsonData.recordsTotal || 0;
-                
+
                 // Always reload if total records changed or if we haven't loaded anything yet
                 if (mobileViewState.totalRecords !== newTotalRecords || mobileViewState.allData.length === 0) {
                     mobileViewState.totalRecords = newTotalRecords;
@@ -1082,7 +1114,7 @@ $columns = array_merge($columns, [
                     mobileViewState.currentPage = 1;
                     mobileViewState.hasMore = true;
                     mobileViewState.isLoading = false;
-                    
+
                     // Load all data for mobile view - start with first page
                     if (mobileViewState.totalRecords > 0) {
                         loadAllMobileViewData(1, false);
@@ -1092,7 +1124,7 @@ $columns = array_merge($columns, [
                     }
                 }
             }
-            
+
             // Render mobile card HTML
             function renderMobileCard(data, index) {
                 // Validate data
@@ -1100,16 +1132,16 @@ $columns = array_merge($columns, [
                     console.error('Invalid data in renderMobileCard:', data);
                     return '';
                 }
-                
+
                 // Add data attribute to track lead ID and avoid duplicates
                 let cardHtml = '<div class="card mb-2" data-lead-id="' + (data.id || '') + '">';
-                
-                const profileStatusClass = (data.profile && data.profile.status === 'incomplete') ? 'bg-danger' : 
-                    ((data.profile && data.profile.status === 'partial') ? 'bg-warning' : 
-                    ((data.profile && data.profile.status === 'almost_complete') ? 'bg-info' : 'bg-success'));
-                
+
+                const profileStatusClass = (data.profile && data.profile.status === 'incomplete') ? 'bg-danger' :
+                    ((data.profile && data.profile.status === 'partial') ? 'bg-warning' :
+                        ((data.profile && data.profile.status === 'almost_complete') ? 'bg-info' : 'bg-success'));
+
                 cardHtml += '<div class="card-body p-3">';
-                
+
                 // Header
                 cardHtml += '<div class="d-flex align-items-start justify-content-between mb-2">';
                 cardHtml += '<div class="d-flex align-items-center flex-grow-1">';
@@ -1123,7 +1155,7 @@ $columns = array_merge($columns, [
                 cardHtml += '<h6 class="mb-0 fw-bold f-14">' + escapeHtml(title) + '</h6>';
                 cardHtml += '<small class="text-muted f-11">#' + (index || '') + '</small>';
                 cardHtml += '</div></div>';
-                
+
                 // Action buttons
                 cardHtml += '<div class="d-flex gap-1">';
                 const viewRoute = (data.routes && data.routes.view) ? data.routes.view : '#';
@@ -1137,7 +1169,7 @@ $columns = array_merge($columns, [
                     cardHtml += '<a href="javascript:void(0);" class="btn btn-sm btn-outline-danger" onclick="delete_modal(\'' + deleteRoute + '\')" title="Delete Lead"><i class="ti ti-trash f-12"></i></a>';
                 }
                 cardHtml += '</div></div>';
-                
+
                 // Profile completeness
                 cardHtml += '<div class="mb-2">';
                 const profileCompleteness = (data.profile && data.profile.completeness) ? data.profile.completeness : 0;
@@ -1161,7 +1193,7 @@ $columns = array_merge($columns, [
                     cardHtml += '</div>';
                 }
                 cardHtml += '</div>';
-                
+
                 // Lead details
                 cardHtml += '<div class="row g-1 mb-2">';
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-phone f-12 text-muted me-1"></i><small class="text-muted f-11">' + escapeHtml(data.phone || '-') + '</small></div></div>';
@@ -1191,7 +1223,7 @@ $columns = array_merge($columns, [
                     const remarksText = data.remarks.length > 50 ? data.remarks.substring(0, 50) + '...' : data.remarks;
                     cardHtml += '<div class="col-12"><div class="d-flex align-items-start"><i class="ti ti-note f-12 text-muted me-1 mt-1"></i><small class="text-muted f-11" title="' + escapeHtml(data.remarks) + '">' + escapeHtml(remarksText) + '</small></div></div>';
                 }
-                
+
                 // Registration details
                 if (data.student_details) {
                     cardHtml += '<div class="col-12 mt-2"><div class="border-top pt-2">';
@@ -1245,9 +1277,9 @@ $columns = array_merge($columns, [
                     cardHtml += '</div>';
                     cardHtml += '</div></div>';
                 }
-                
+
                 cardHtml += '</div>';
-                
+
                 // Action buttons
                 cardHtml += '<div class="d-flex gap-1 flex-wrap justify-content-between">';
                 cardHtml += '<div class="d-flex gap-1">';
@@ -1266,9 +1298,11 @@ $columns = array_merge($columns, [
                 cardHtml += '</div>';
                 cardHtml += '<div class="d-flex gap-1">';
                 // Call button
+                /*
                 if (data.permissions && data.permissions.can_call && data.permissions.telecaller_id > 0) {
                     cardHtml += '<button class="btn btn-sm btn-outline-success voxbay-call-btn" data-lead-id="' + data.id + '" data-telecaller-id="' + data.permissions.telecaller_id + '" title="Call Lead"><i class="ti ti-phone f-12"></i></button>';
                 }
+                */
                 // WhatsApp button
                 if (data.code && data.phone_number) {
                     const phoneNumber = (data.code + data.phone_number).replace(/\D/g, '');
@@ -1278,16 +1312,18 @@ $columns = array_merge($columns, [
                     cardHtml += '<a href="' + whatsappUrl + '" target="_blank" class="btn btn-sm btn-success" title="WhatsApp"><i class="ti ti-brand-whatsapp f-12"></i></a>';
                 }
                 // Call Logs button - show to everyone, including admission counsellor and post sales
+                /*
                 if (data.permissions && data.permissions.can_view_call_logs) {
                     cardHtml += '<a href="' + callLogsRoute + '" class="btn btn-sm btn-info" title="View Call Logs"><i class="ti ti-phone-call f-12"></i></a>';
                 }
+                */
                 cardHtml += '</div></div>';
-                
+
                 cardHtml += '</div></div>';
-                
+
                 return cardHtml;
             }
-            
+
             function escapeHtml(text) {
                 if (!text) return '';
                 const map = {
@@ -1321,58 +1357,58 @@ $columns = array_merge($columns, [
 
         // Action buttons are now directly accessible without dropdown
         // All functionality is handled by onclick attributes on the buttons
-        
+
         // Copy link functionality for all registration forms
         // Remove any existing event listeners first to prevent double execution
         $('.copy-link-btn').off('click').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             // Prevent double execution by checking if already processing
             if ($(this).hasClass('processing')) {
                 return false;
             }
-            
+
             // Mark as processing
             $(this).addClass('processing');
-            
+
             const url = $(this).data('url');
             // Check if URL already contains protocol (http/https)
             const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
-            
+
             // Create a temporary input element
             const tempInput = document.createElement('input');
             tempInput.value = fullUrl;
             document.body.appendChild(tempInput);
-            
+
             // Select and copy the text
             tempInput.select();
             tempInput.setSelectionRange(0, 99999); // For mobile devices
-            
+
             try {
                 document.execCommand('copy');
-                
+
                 // Show success feedback
                 const originalIcon = $(this).find('i').attr('class');
                 $(this).find('i').removeClass().addClass('ti ti-check');
                 $(this).removeClass('btn-outline-info btn-info').addClass('btn-success');
-                
+
                 // Show toast notification
                 showToast('Registration link copied to clipboard!', 'success');
-                
+
                 // Reset button after 2 seconds
                 setTimeout(() => {
                     $(this).find('i').removeClass().addClass(originalIcon);
                     $(this).removeClass('btn-success').addClass('btn-outline-info');
                     $(this).removeClass('processing'); // Remove processing flag
                 }, 2000);
-                
+
             } catch (err) {
                 console.error('Failed to copy: ', err);
                 showToast('Failed to copy link. Please try again.', 'error');
                 $(this).removeClass('processing'); // Remove processing flag on error
             }
-            
+
             // Remove the temporary input
             document.body.removeChild(tempInput);
         });
@@ -1392,20 +1428,20 @@ $columns = array_merge($columns, [
                 </div>
             </div>
         `);
-        
+
         // Add to toast container or create one
         let toastContainer = $('.toast-container');
         if (toastContainer.length === 0) {
             toastContainer = $('<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>');
             $('body').append(toastContainer);
         }
-        
+
         toastContainer.append(toast);
-        
+
         // Initialize and show toast
         const bsToast = new bootstrap.Toast(toast[0]);
         bsToast.show();
-        
+
         // Remove toast element after it's hidden
         toast.on('hidden.bs.toast', function() {
             $(this).remove();

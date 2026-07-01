@@ -1243,6 +1243,7 @@ class LeadController extends Controller
             $html .= '<a href="https://docs.google.com/forms/d/e/1FAIpQLSchtc8xlKUJehZNmzoKTkRvwLwk4-SGjzKSHM2UFToAhgdTlQ/viewform?usp=sf_link" target="_blank" class="btn btn-sm btn-outline-info" title="Demo Conduction Form"><i class="ti ti-file-text"></i></a>';
         }
         
+        /*
         if ($lead->phone && is_telecaller()) {
             $currentUserId = session('user_id') ?? (\App\Helpers\AuthHelper::getCurrentUserId() ?? 0);
             if ($currentUserId > 0) {
@@ -1251,6 +1252,7 @@ class LeadController extends Controller
         }
         
         $html .= '<a href="' . route('leads.call-logs', $lead) . '" class="btn btn-sm btn-outline-info" title="View Call Logs"><i class="ti ti-phone-call"></i></a>';
+        */
         
         // WhatsApp button
         if ($lead->phone && $lead->code) {
