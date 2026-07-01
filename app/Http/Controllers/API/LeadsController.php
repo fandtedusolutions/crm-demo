@@ -88,7 +88,6 @@ class LeadsController extends Controller
             $fromDate = Carbon::parse($request->date_from)->startOfDay();
             $toDate = Carbon::parse($request->date_to)->endOfDay();
             $query->whereBetween('created_at', [$fromDate, $toDate]);
-            Log::info('Date range filter', ['fromDate' => $fromDate, 'toDate' => $toDate]);
         }
         // Order by created_at desc
         $query->orderBy('created_at', 'desc');
@@ -99,6 +98,7 @@ class LeadsController extends Controller
         // Pagination - lazy loading
         $perPage = $request->get('per_page', 15);
         $leads = $query->paginate($perPage);
+        Log::info('Last query: ' . $query->toSql());
 
         // Format leads data
         $formattedLeads = $leads->map(function ($lead) {
