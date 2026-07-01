@@ -267,8 +267,7 @@ class LeadController extends Controller
         $toDate = $request->get('date_to', now()->format('Y-m-d'));
         
         if (!$request->filled('search_key')) {
-            // Use direct whereBetween for better performance than scope
-            $query->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
+            $query->filterByListDateRange($fromDate, $toDate);
         }
 
         if ($request->filled('lead_status_id')) {

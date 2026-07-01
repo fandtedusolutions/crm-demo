@@ -290,9 +290,36 @@ class Lead extends Model
         return $query->where('telecaller_id', $telecallerId);
     }
 
+    /**
+     * Filter leads by record created_at (not first_created_at).
+     */
     public function scopeByDateRange($query, $fromDate, $toDate)
     {
-        return $query->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
+        return $query->filterByListDateRange($fromDate, $toDate);
+    }
+
+    /**
+     * Date-range filter for leads list/report queries — always uses created_at.
+     */
+    public function scopeFilterByListDateRange($query, ?string $fromDate = null, ?string $toDate = null)
+    {
+        if (empty($fromDate) && empty($toDate)) {
+            return $query;
+        }
+
+        if (!empty($fromDate) && !empty($toDate)) {
+            return $query->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
+        }
+
+        if (!empty($fromDate)) {
+            $query->whereDate('created_at', '>=', $fromDate);
+        }
+
+        if (!empty($toDate)) {
+            $query->whereDate('created_at', '<=', $toDate);
+        }
+
+        return $query;
     }
 
     public function scopeNotConverted($query)

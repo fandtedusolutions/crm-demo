@@ -83,11 +83,9 @@ class LeadsController extends Controller
             });
         }
 
-        // Date range filter
-        if ($request->filled('date_from') && $request->filled('date_to')) {
-            $fromDate = Carbon::parse($request->date_from)->startOfDay();
-            $toDate = Carbon::parse($request->date_to)->endOfDay();
-            $query->whereBetween('created_at', [$fromDate, $toDate]);
+        // Date range filter — uses leads.created_at (not first_created_at)
+        if ($request->filled('date_from') || $request->filled('date_to')) {
+            $query->filterByListDateRange($request->date_from, $request->date_to);
         }
 
         // Order by created_at desc

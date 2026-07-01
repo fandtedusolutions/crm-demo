@@ -33,10 +33,13 @@ class HomeController extends Controller
             ], 401);
         }
 
-        // Get date ranges
+        // Get date ranges (all lead date counts use created_at, not first_created_at)
         $today = Carbon::today();
+        $todayStr = $today->format('Y-m-d');
         $weekStart = Carbon::now()->startOfWeek();
         $weekEnd = Carbon::now()->endOfWeek();
+        $weekStartStr = $weekStart->format('Y-m-d');
+        $weekEndStr = $weekEnd->format('Y-m-d');
 
         // Base query for leads (excluding soft deleted)
         $baseLeadQuery = Lead::query();
@@ -47,9 +50,9 @@ class HomeController extends Controller
         // Total leads count
         $totalLead = (clone $baseLeadQuery)->count();
 
-        // This week total leads
+        // This week total leads (by created_at)
         $thisWeekTotalLead = (clone $baseLeadQuery)
-            ->whereBetween('created_at', [$weekStart, $weekEnd])
+            ->filterByListDateRange($weekStartStr, $weekEndStr)
             ->count();
 
         // Converted leads count (all time) - with role-based filtering
@@ -67,9 +70,9 @@ class HomeController extends Controller
             ? round(($actualConvertedLeads / $totalLead) * 100, 2) 
             : 0;
 
-        // Today's leads
+        // Today's leads count (by created_at)
         $todaysLead = (clone $baseLeadQuery)
-            ->whereDate('created_at', $today)
+            ->filterByListDateRange($todayStr, $todayStr)
             ->count();
 
         // Active leads (not converted)
@@ -79,7 +82,7 @@ class HomeController extends Controller
         // Get all converted lead IDs (not filtered by role) to check conversion status
         $allConvertedLeadIds = ConvertedLead::pluck('lead_id')->toArray();
         $activeThisWeekLead = (clone $baseLeadQuery)
-            ->whereBetween('created_at', [$weekStart, $weekEnd])
+            ->filterByListDateRange($weekStartStr, $weekEndStr)
             ->whereNotIn('id', $allConvertedLeadIds)
             ->count();
 
