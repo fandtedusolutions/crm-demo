@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class CallAppLog extends Model
 {
@@ -66,6 +69,138 @@ class CallAppLog extends Model
         return [
             Carbon::parse($startDate, $timezone)->startOfDay()->getTimestampMs(),
             Carbon::parse($endDate, $timezone)->endOfDay()->getTimestampMs(),
+        ];
+    }
+
+    /**
+     * Filter call_app_logs rows by call date (started_at_ms) in app timezone.
+     */
+    public function scopeForReportPeriod(Builder $query, string $fromDate, string $toDate): Builder
+    {
+        [$startMs, $endMs] = self::millisecondRangeForDates($fromDate, $toDate);
+
+        return $query->whereBetween('started_at_ms', [$startMs, $endMs]);
+    }
+
+    /**
+     * @param  array<int>  $telecallerIds
+     */
+    public function scopeForTelecallers(Builder $query, array $telecallerIds): Builder
+    {
+        if ($telecallerIds === []) {
+            return $query->whereRaw('0 = 1');
+        }
+
+        return $query->whereIn('telecaller_id', $telecallerIds);
+    }
+
+    /**
+     * Aggregate columns used by telecaller performance / call analytics reports.
+     *
+     * @return array<int, mixed>
+     */
+    public static function telecallerAggregateColumns(): array
+    {
+        return [
+            'telecaller_id',
+            DB::raw('COUNT(*) as total_calls'),
+            DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_calls"),
+            DB::raw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls"),
+            DB::raw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls"),
+            DB::raw("SUM(CASE WHEN call_type = 'not_picked' OR remarks = 'Not Picked' THEN 1 ELSE 0 END) as not_picked_calls"),
+            DB::raw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls"),
+            DB::raw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls"),
+            DB::raw('SUM(duration_seconds) as total_duration_seconds'),
+            DB::raw('SUM(CASE WHEN has_recording = 1 THEN 1 ELSE 0 END) as with_recording'),
+            DB::raw('SUM(CASE WHEN recording_uploaded = 1 THEN 1 ELSE 0 END) as recordings_uploaded'),
+        ];
+    }
+
+    public static function countDistinctConnectedContacts(Builder $query): int
+    {
+        return (int) (clone $query)
+            ->select(DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_count"))
+            ->value('connected_count');
+    }
+
+    /**
+     * Per-telecaller call stats from call_app_logs.
+     *
+     * @param  array<int>  $telecallerIds
+     */
+    public static function aggregateByTelecaller(string $fromDate, string $toDate, array $telecallerIds): Collection
+    {
+        if ($telecallerIds === []) {
+            return collect();
+        }
+
+        return static::query()
+            ->forReportPeriod($fromDate, $toDate)
+            ->forTelecallers($telecallerIds)
+            ->select(static::telecallerAggregateColumns())
+            ->groupBy('telecaller_id')
+            ->get()
+            ->keyBy('telecaller_id');
+    }
+
+    /**
+     * Grand totals from call_app_logs for a set of telecallers.
+     *
+     * @param  array<int>  $telecallerIds
+     * @return array<string, int>
+     */
+    public static function grandTotalsForTelecallers(string $fromDate, string $toDate, array $telecallerIds): array
+    {
+        if ($telecallerIds === []) {
+            return static::emptyReportTotals();
+        }
+
+        $query = static::query()
+            ->forReportPeriod($fromDate, $toDate)
+            ->forTelecallers($telecallerIds);
+
+        $aggregates = (clone $query)
+            ->selectRaw('COUNT(*) as total_calls')
+            ->selectRaw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls")
+            ->selectRaw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls")
+            ->selectRaw("SUM(CASE WHEN call_type = 'not_picked' OR remarks = 'Not Picked' THEN 1 ELSE 0 END) as not_picked_calls")
+            ->selectRaw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls")
+            ->selectRaw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls")
+            ->selectRaw('SUM(duration_seconds) as total_duration_seconds')
+            ->selectRaw('SUM(CASE WHEN has_recording = 1 THEN 1 ELSE 0 END) as with_recording')
+            ->selectRaw('SUM(CASE WHEN recording_uploaded = 1 THEN 1 ELSE 0 END) as recordings_uploaded')
+            ->first();
+
+        return [
+            'total_calls' => (int) ($aggregates->total_calls ?? 0),
+            'connected_calls' => static::countDistinctConnectedContacts($query),
+            'incoming_calls' => (int) ($aggregates->incoming_calls ?? 0),
+            'outgoing_calls' => (int) ($aggregates->outgoing_calls ?? 0),
+            'not_picked_calls' => (int) ($aggregates->not_picked_calls ?? 0),
+            'missed_calls' => (int) ($aggregates->missed_calls ?? 0),
+            'rejected_calls' => (int) ($aggregates->rejected_calls ?? 0),
+            'total_duration_seconds' => (int) ($aggregates->total_duration_seconds ?? 0),
+            'with_recording' => (int) ($aggregates->with_recording ?? 0),
+            'recordings_uploaded' => (int) ($aggregates->recordings_uploaded ?? 0),
+        ];
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    public static function emptyReportTotals(): array
+    {
+        return [
+            'total_calls' => 0,
+            'connected_calls' => 0,
+            'incoming_calls' => 0,
+            'outgoing_calls' => 0,
+            'not_picked_calls' => 0,
+            'missed_calls' => 0,
+            'rejected_calls' => 0,
+            'total_duration_seconds' => 0,
+            'with_recording' => 0,
+            'recordings_uploaded' => 0,
         ];
     }
 

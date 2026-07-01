@@ -11,7 +11,10 @@ use App\Models\User;
 use App\Models\Country;
 use App\Models\Course;
 use App\Helpers\AuthHelper;
+use App\Helpers\DateRangeHelper;
+use App\Support\TelecallerPerformanceReportBuilder;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 
 class LeadReportController extends Controller
 {
@@ -36,7 +39,7 @@ class LeadReportController extends Controller
             'lead_status' => $this->getLeadStatusReport($fromDate, $toDate),
             'lead_source' => $this->getLeadSourceReport($fromDate, $toDate),
             'team' => $this->getTeamReport($fromDate, $toDate),
-            'telecaller' => $this->getTelecallerReport($fromDate, $toDate),
+            'telecaller' => $this->getTelecallerReport($fromDate, $toDate)['rows'],
             'b2b' => $this->getB2BReport($fromDate, $toDate),
         ];
 
@@ -163,8 +166,7 @@ class LeadReportController extends Controller
             abort(403, 'Access denied. Only team leads can access telecaller reports.');
         }
 
-        $fromDate = $request->get('date_from', Carbon::now()->subDays(7)->format('Y-m-d'));
-        $toDate = $request->get('date_to', Carbon::now()->format('Y-m-d'));
+        [$fromDate, $toDate, $dateRange] = $this->resolveTelecallerReportDates($request);
         $telecallerId = $request->get('telecaller_id');
         $teamId = $request->get('team_id');
 
@@ -202,10 +204,12 @@ class LeadReportController extends Controller
         }
 
         // Get reports data
+        $telecallerReportData = $this->getTelecallerReport($fromDate, $toDate, $teamId, $telecallerId ? (int) $telecallerId : null);
         $reports = [
-            'telecaller' => $this->getTelecallerReport($fromDate, $toDate, $teamId),
+            'telecaller' => $telecallerReportData['rows'],
             'monthly' => $this->getMonthlyReport($fromDate, $toDate),
         ];
+        $reportSummary = $telecallerReportData['summary'];
 
         // Get leads data for the detailed view with optional telecaller filter
         $leadsQuery = Lead::with(['leadStatus:id,title,color', 'leadSource:id,title', 'telecaller:id,name', 'team:id,name'])
@@ -222,7 +226,66 @@ class LeadReportController extends Controller
         $this->applyRoleBasedFilter($leadsQuery);
         $leads = $leadsQuery->orderBy('created_at', 'desc')->paginate(20);
 
-        return view('admin.reports.telecaller', compact('reports', 'leads', 'fromDate', 'toDate', 'telecallers', 'telecallerId', 'teamId'));
+        return view('admin.reports.telecaller', compact(
+            'reports',
+            'leads',
+            'fromDate',
+            'toDate',
+            'dateRange',
+            'telecallers',
+            'telecallerId',
+            'teamId',
+            'reportSummary'
+        ));
+    }
+
+    public function telecallerCallAnalytics(Request $request, User $user): JsonResponse
+    {
+        if (AuthHelper::isTelecaller() && !\App\Helpers\RoleHelper::is_team_lead()) {
+            return response()->json(['status' => false, 'message' => 'Access denied.'], 403);
+        }
+
+        if (!$this->canViewTelecallerInReport($user)) {
+            return response()->json(['status' => false, 'message' => 'Access denied for this telecaller.'], 403);
+        }
+
+        $dateRange = $request->get('date_range');
+        if (!$dateRange && ($request->filled('date_from') || $request->filled('date_to'))) {
+            $dateRange = DateRangeHelper::PRESET_CUSTOM;
+        }
+
+        $dates = DateRangeHelper::resolve(
+            $dateRange,
+            $request->get('date_from') ?: $request->get('start_date'),
+            $request->get('date_to') ?: $request->get('end_date')
+        );
+
+        $fromDate = $dates['start_date'];
+        $toDate = $dates['end_date'];
+
+        $stats = TelecallerPerformanceReportBuilder::callAnalyticsForTelecaller($user->id, $fromDate, $toDate);
+        $calls = TelecallerPerformanceReportBuilder::recentCallsForTelecaller($user->id, $fromDate, $toDate);
+
+        return response()->json([
+            'status' => true,
+            'telecaller' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone,
+            ],
+            'period' => [
+                'date_range' => $dates['date_range'],
+                'start_date' => $fromDate,
+                'end_date' => $toDate,
+                'label' => DateRangeHelper::displayPeriod($dates),
+            ],
+            'stats' => $stats,
+            'calls' => $calls,
+            'full_report_url' => route('admin.call-analytics.report.telecaller', array_merge(
+                ['telecaller' => $user->id],
+                DateRangeHelper::queryParams($dates)
+            )),
+        ]);
     }
 
     public function b2bReport(Request $request)
@@ -368,106 +431,14 @@ class LeadReportController extends Controller
         return $teams->sortByDesc('count')->values();
     }
 
-    private function getTelecallerReport($fromDate, $toDate, $teamId = null)
+    private function getTelecallerReport($fromDate, $toDate, $teamId = null, ?int $telecallerId = null)
     {
-        $currentUser = AuthHelper::getCurrentUser();
-        $telecallers = collect();
-
-        if ($currentUser && \App\Helpers\RoleHelper::is_team_lead()) {
-            // Team Lead: Show their team members
-            $userTeamId = $currentUser->team_id;
-            if ($userTeamId) {
-                $allTelecallers = User::where('role_id', 3)
-                    ->where('team_id', $userTeamId)
-                    ->select('id', 'name', 'phone', 'team_id')
-                    ->get();
-
-                foreach ($allTelecallers as $telecaller) {
-                    // Get lead count for this telecaller in the date range
-                    $leadCountQuery = Lead::where('telecaller_id', $telecaller->id)
-                        ->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
-                    $this->applyRoleBasedFilter($leadCountQuery);
-                    $leadCount = $leadCountQuery->count();
-
-                    // Get team name for this telecaller
-                    $team = Team::where('id', $telecaller->team_id)->first();
-                    $teamName = $team ? $team->name : null;
-
-                    // Create telecaller object with count
-                    $telecallerData = (object)[
-                        'id' => $telecaller->id,
-                        'name' => $telecaller->name,
-                        'phone' => $telecaller->phone,
-                        'team_name' => $teamName,
-                        'count' => $leadCount
-                    ];
-
-                    $telecallers->push($telecallerData);
-                }
-            }
-        }
-        elseif ($currentUser && AuthHelper::isTelecaller()) {
-            // Telecaller: Only show their own data
-            $telecaller = $currentUser;
-
-            // Get lead count for this telecaller in the date range
-            $leadCountQuery = Lead::where('telecaller_id', $telecaller->id)
-                ->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
-            $this->applyRoleBasedFilter($leadCountQuery);
-            $leadCount = $leadCountQuery->count();
-
-            // Get team name for this telecaller
-            $team = Team::where('id', $telecaller->team_id)->first();
-            $teamName = $team ? $team->name : null;
-
-            // Create telecaller object with count
-            $telecallerData = (object)[
-                'id' => $telecaller->id,
-                'name' => $telecaller->name,
-                'phone' => $telecaller->phone,
-                'team_name' => $teamName,
-                'count' => $leadCount
-            ];
-
-            $telecallers->push($telecallerData);
-        }
-        else {
-            // Admin/Super Admin: Show all telecallers
-            $telecallersQuery = User::where('role_id', 3)
-                ->select('id', 'name', 'phone', 'team_id');
-
-            if ($teamId) {
-                $telecallersQuery->where('team_id', $teamId);
-            }
-
-            $allTelecallers = $telecallersQuery->get();
-
-            foreach ($allTelecallers as $telecaller) {
-                // Get lead count for this telecaller in the date range
-                $leadCountQuery = Lead::where('telecaller_id', $telecaller->id)
-                    ->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
-                $this->applyRoleBasedFilter($leadCountQuery);
-                $leadCount = $leadCountQuery->count();
-
-                // Get team name for this telecaller
-                $team = Team::where('id', $telecaller->team_id)->first();
-                $teamName = $team ? $team->name : null;
-
-                // Create telecaller object with count
-                $telecallerData = (object)[
-                    'id' => $telecaller->id,
-                    'name' => $telecaller->name,
-                    'phone' => $telecaller->phone,
-                    'team_name' => $teamName,
-                    'count' => $leadCount
-                ];
-
-                $telecallers->push($telecallerData);
-            }
-        }
-
-        // Sort by lead count descending and return
-        return $telecallers->sortByDesc('count')->values();
+        return TelecallerPerformanceReportBuilder::build(
+            $fromDate,
+            $toDate,
+            $teamId ? (int) $teamId : null,
+            $telecallerId
+        );
     }
 
     private function getCountryReport($fromDate, $toDate)
@@ -783,15 +754,15 @@ class LeadReportController extends Controller
      */
     public function exportTelecallerExcel(Request $request)
     {
-        $fromDate = $request->get('date_from', Carbon::now()->subDays(7)->format('Y-m-d'));
-        $toDate = $request->get('date_to', Carbon::now()->format('Y-m-d'));
+        [$fromDate, $toDate] = $this->resolveTelecallerReportDates($request);
         $telecallerId = $request->get('telecaller_id');
         $teamId = $request->get('team_id');
 
-        // Get telecaller report data
+        $telecallerReportData = $this->getTelecallerReport($fromDate, $toDate, $teamId, $telecallerId ? (int) $telecallerId : null);
         $reports = [
-            'telecaller' => $this->getTelecallerReport($fromDate, $toDate, $teamId),
+            'telecaller' => $telecallerReportData['rows'],
         ];
+        $reportSummary = $telecallerReportData['summary'];
 
         // Get leads data for the detailed view with optional telecaller filter
         $leadsQuery = Lead::with(['leadStatus:id,title,color', 'leadSource:id,title', 'telecaller:id,name'])
@@ -808,7 +779,7 @@ class LeadReportController extends Controller
         $this->applyRoleBasedFilter($leadsQuery);
         $leads = $leadsQuery->orderBy('created_at', 'desc')->get();
 
-        $export = new \App\Exports\TelecallerReportExport($reports, $fromDate, $toDate);
+        $export = new \App\Exports\TelecallerPerformanceReportExport($reports['telecaller'], $reportSummary, $fromDate, $toDate);
         $spreadsheet = $export->export();
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
@@ -828,15 +799,15 @@ class LeadReportController extends Controller
      */
     public function exportTelecallerPdf(Request $request)
     {
-        $fromDate = $request->get('date_from', Carbon::now()->subDays(7)->format('Y-m-d'));
-        $toDate = $request->get('date_to', Carbon::now()->format('Y-m-d'));
+        [$fromDate, $toDate] = $this->resolveTelecallerReportDates($request);
         $telecallerId = $request->get('telecaller_id');
         $teamId = $request->get('team_id');
 
-        // Get telecaller report data
+        $telecallerReportData = $this->getTelecallerReport($fromDate, $toDate, $teamId, $telecallerId ? (int) $telecallerId : null);
         $reports = [
-            'telecaller' => $this->getTelecallerReport($fromDate, $toDate, $teamId),
+            'telecaller' => $telecallerReportData['rows'],
         ];
+        $reportSummary = $telecallerReportData['summary'];
 
         // Get leads data for the detailed view with optional telecaller filter
         $leadsQuery = Lead::with(['leadStatus:id,title,color', 'leadSource:id,title', 'telecaller:id,name'])
@@ -855,6 +826,7 @@ class LeadReportController extends Controller
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.reports.exports.telecaller-pdf', [
             'reports' => $reports,
+            'reportSummary' => $reportSummary,
             'fromDate' => $fromDate,
             'toDate' => $toDate,
             'reportType' => 'Telecaller Report',
@@ -878,7 +850,7 @@ class LeadReportController extends Controller
             'lead_status' => $this->getLeadStatusReport($fromDate, $toDate),
             'lead_source' => $this->getLeadSourceReport($fromDate, $toDate),
             'team' => $this->getTeamReport($fromDate, $toDate),
-            'telecaller' => $this->getTelecallerReport($fromDate, $toDate),
+            'telecaller' => $this->getTelecallerReport($fromDate, $toDate)['rows'],
         ];
 
         $export = new \App\Exports\MainReportsExport($reports, $fromDate, $toDate);
@@ -909,7 +881,7 @@ class LeadReportController extends Controller
             'lead_status' => $this->getLeadStatusReport($fromDate, $toDate),
             'lead_source' => $this->getLeadSourceReport($fromDate, $toDate),
             'team' => $this->getTeamReport($fromDate, $toDate),
-            'telecaller' => $this->getTelecallerReport($fromDate, $toDate),
+            'telecaller' => $this->getTelecallerReport($fromDate, $toDate)['rows'],
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.reports.exports.main-reports-pdf', [
@@ -922,6 +894,52 @@ class LeadReportController extends Controller
 
         $pdf->setPaper('A4', 'landscape');
         return $pdf->download('main_reports_' . $fromDate . '_to_' . $toDate . '.pdf');
+    }
+
+    private function resolveTelecallerReportDates(Request $request): array
+    {
+        $dateRange = $request->get('date_range');
+        if (!$dateRange && ($request->filled('date_from') || $request->filled('date_to'))) {
+            $dateRange = DateRangeHelper::PRESET_CUSTOM;
+        }
+
+        $dates = DateRangeHelper::resolve(
+            $dateRange,
+            $request->get('date_from') ?: $request->get('start_date'),
+            $request->get('date_to') ?: $request->get('end_date')
+        );
+
+        return [$dates['start_date'], $dates['end_date'], $dates['date_range']];
+    }
+
+    private function canViewTelecallerInReport(User $telecaller): bool
+    {
+        if ((int) $telecaller->role_id !== 3) {
+            return false;
+        }
+
+        $currentUser = AuthHelper::getCurrentUser();
+        if (!$currentUser) {
+            return true;
+        }
+
+        if (\App\Helpers\RoleHelper::is_team_lead()) {
+            $teamId = $currentUser->team_id;
+            if (!$teamId) {
+                return (int) $telecaller->id === (int) AuthHelper::getCurrentUserId();
+            }
+
+            $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+            $teamMemberIds[] = AuthHelper::getCurrentUserId();
+
+            return in_array((int) $telecaller->id, array_map('intval', $teamMemberIds), true);
+        }
+
+        if (AuthHelper::isTelecaller()) {
+            return (int) $telecaller->id === (int) AuthHelper::getCurrentUserId();
+        }
+
+        return true;
     }
 
     /**
