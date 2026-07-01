@@ -130,7 +130,7 @@
                         <i class="ti ti-external-link f-12"></i>
                     </a>
                 </div>
-                <h4 class="mb-2">{{ $todaysLeads->count() ?? 0 }}</h4>
+                <h4 class="mb-2">{{ $todaysLeadsCount ?? 0 }}</h4>
                 <div class="d-flex align-items-center">
                     <span class="badge bg-light-success border border-success me-2">
                         <i class="ti ti-calendar"></i> {{ now()->format('M d') }}

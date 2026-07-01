@@ -90,4 +90,22 @@ class DateRangeHelper
 
         return array_filter($params, fn ($value) => $value !== null && $value !== '');
     }
+
+    public static function formatDisplay(?string $date): string
+    {
+        if (empty($date)) {
+            return '';
+        }
+
+        return Carbon::parse($date)->format('d-m-Y');
+    }
+
+    public static function displayPeriod(array $filters, string $separator = ' · '): string
+    {
+        $label = self::options()[$filters['date_range'] ?? self::defaultPreset()] ?? 'Custom';
+        $start = self::formatDisplay($filters['start_date'] ?? null);
+        $end = self::formatDisplay($filters['end_date'] ?? null);
+
+        return $label . $separator . $start . ' to ' . $end;
+    }
 }

@@ -1,30 +1,28 @@
 @extends('layouts.mantis')
 
-@section('title', 'Call Analytics')
+@section('title', 'Call Analytics - ' . $telecaller->name)
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('assets/css/call-analytics.css') }}">
 <style>
-    #callAnalyticsTable th:nth-child(1),  #callAnalyticsTable td:nth-child(1)  { min-width: 45px; }
-    #callAnalyticsTable th:nth-child(2),  #callAnalyticsTable td:nth-child(2)  { min-width: 55px; }
-    #callAnalyticsTable th:nth-child(3),  #callAnalyticsTable td:nth-child(3)  { min-width: 160px; }
-    #callAnalyticsTable th:nth-child(4),  #callAnalyticsTable td:nth-child(4)  { min-width: 130px; }
-    #callAnalyticsTable th:nth-child(5),  #callAnalyticsTable td:nth-child(5)  { min-width: 120px; }
-    #callAnalyticsTable th:nth-child(6),  #callAnalyticsTable td:nth-child(6)  { min-width: 90px; }
-    #callAnalyticsTable th:nth-child(7),  #callAnalyticsTable td:nth-child(7)  { min-width: 100px; }
-    #callAnalyticsTable th:nth-child(8),  #callAnalyticsTable td:nth-child(8)  { min-width: 75px; }
-    #callAnalyticsTable th:nth-child(9),  #callAnalyticsTable td:nth-child(9)  { min-width: 105px; }
-    #callAnalyticsTable th:nth-child(10), #callAnalyticsTable td:nth-child(10) { min-width: 105px; }
-    #callAnalyticsTable th:nth-child(11), #callAnalyticsTable td:nth-child(11) { min-width: 260px; }
-    #callAnalyticsTable th:nth-child(12), #callAnalyticsTable td:nth-child(12) { min-width: 150px; }
-    #callAnalyticsTable th:nth-child(13), #callAnalyticsTable td:nth-child(13) { min-width: 70px; }
+    #telecallerCallsTable th:nth-child(1),  #telecallerCallsTable td:nth-child(1)  { min-width: 45px; }
+    #telecallerCallsTable th:nth-child(2),  #telecallerCallsTable td:nth-child(2)  { min-width: 55px; }
+    #telecallerCallsTable th:nth-child(3),  #telecallerCallsTable td:nth-child(3)  { min-width: 130px; }
+    #telecallerCallsTable th:nth-child(4),  #telecallerCallsTable td:nth-child(4)  { min-width: 120px; }
+    #telecallerCallsTable th:nth-child(5),  #telecallerCallsTable td:nth-child(5)  { min-width: 90px; }
+    #telecallerCallsTable th:nth-child(6),  #telecallerCallsTable td:nth-child(6)  { min-width: 100px; }
+    #telecallerCallsTable th:nth-child(7),  #telecallerCallsTable td:nth-child(7)  { min-width: 75px; }
+    #telecallerCallsTable th:nth-child(8),  #telecallerCallsTable td:nth-child(8)  { min-width: 105px; }
+    #telecallerCallsTable th:nth-child(9),  #telecallerCallsTable td:nth-child(9)  { min-width: 105px; }
+    #telecallerCallsTable th:nth-child(10), #telecallerCallsTable td:nth-child(10) { min-width: 260px; }
+    #telecallerCallsTable th:nth-child(11), #telecallerCallsTable td:nth-child(11) { min-width: 150px; }
+    #telecallerCallsTable th:nth-child(12), #telecallerCallsTable td:nth-child(12) { min-width: 70px; }
 </style>
 @endpush
 
 @section('content')
 @php
     use App\Helpers\DateRangeHelper;
-    $tabQuery = \Illuminate\Support\Arr::except($queryParams, ['telecaller_id', 'call_type', 'search', 'metric']);
 @endphp
 
 <div class="page-header">
@@ -32,21 +30,46 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Call Analytics</h5>
-                    <p class="m-b-0 text-muted">Call activity synced from Call Tracker mobile app</p>
+                    <h5 class="m-b-10">Telecaller Detail</h5>
+                    <p class="m-b-0 text-muted">Individual call log and performance summary</p>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                    <li class="breadcrumb-item">Call Analytics</li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.call-analytics.index') }}">Call Analytics</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.call-analytics.report', DateRangeHelper::queryParams($filters)) }}">Report</a></li>
+                    <li class="breadcrumb-item">{{ $telecaller->name }}</li>
                 </ul>
             </div>
         </div>
     </div>
 </div>
 
-@include('admin.call-analytics.partials.nav-tabs', ['activeTab' => 'index', 'tabQuery' => $tabQuery])
+{{-- Telecaller profile --}}
+<div class="ca-telecaller-profile no-print">
+    <div class="avtar avtar-l rounded-circle bg-light-primary flex-shrink-0">
+        <i class="ti ti-user text-primary"></i>
+    </div>
+    <div class="flex-grow-1">
+        <h5 class="mb-1">{{ $telecaller->name }}</h5>
+        <div class="profile-meta">
+            <i class="ti ti-mail f-12 me-1"></i>{{ $telecaller->email }}
+            @if($telecaller->phone)
+                <span class="mx-2">|</span>
+                <i class="ti ti-phone f-12 me-1"></i>{{ $telecaller->phone }}
+            @endif
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-shrink-0">
+        <a href="{{ route('admin.call-analytics.report', DateRangeHelper::queryParams($filters)) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="ti ti-arrow-left me-1"></i> Back to Report
+        </a>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+            <i class="ti ti-printer me-1"></i> Print
+        </button>
+    </div>
+</div>
 
 {{-- Filters --}}
 <div class="row mb-3 no-print">
@@ -56,20 +79,9 @@
                 <h5 class="mb-0"><i class="ti ti-filter me-2"></i>Search &amp; Filters</h5>
             </div>
             <div class="card-body">
-                <form method="GET" action="{{ route('admin.call-analytics.index') }}">
+                <form method="GET" action="{{ route('admin.call-analytics.report.telecaller', $telecaller->id) }}">
                     <div class="row g-3 align-items-end">
                         @include('admin.call-analytics.partials.date-range-filter')
-                        <div class="col-md-2">
-                            <label class="form-label">Telecaller</label>
-                            <select name="telecaller_id" class="form-select form-select-sm">
-                                <option value="">All Telecallers</option>
-                                @foreach($telecallers as $telecaller)
-                                    <option value="{{ $telecaller->id }}" {{ (string) $filters['telecaller_id'] === (string) $telecaller->id ? 'selected' : '' }}>
-                                        {{ $telecaller->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
                         <div class="col-md-2">
                             <label class="form-label">Call Type</label>
                             <select name="call_type" class="form-select form-select-sm">
@@ -87,7 +99,7 @@
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="ti ti-search me-1"></i> Apply
                             </button>
-                            <a href="{{ route('admin.call-analytics.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{{ route('admin.call-analytics.report.telecaller', $telecaller->id) }}" class="btn btn-outline-secondary btn-sm">
                                 <i class="ti ti-refresh me-1"></i> Reset
                             </a>
                         </div>
@@ -98,7 +110,7 @@
     </div>
 </div>
 
-@include('admin.call-analytics.partials.active-filters', ['filters' => $filters, 'telecallers' => $telecallers])
+@include('admin.call-analytics.partials.active-filters', ['filters' => $filters])
 
 @include('admin.call-analytics.partials.stats-cards')
 
@@ -112,20 +124,16 @@
                     <span class="badge bg-light-primary border border-primary ca-period-badge">
                         {{ DateRangeHelper::displayPeriod($filters) }}
                     </span>
-                    <span class="badge bg-light text-dark border">{{ $calls->total() }} {{ $calls->total() === 1 ? 'record' : 'records' }}</span>
+                    <span class="badge bg-light text-dark border">{{ $calls->total() }} {{ $calls->total() === 1 ? 'call' : 'calls' }}</span>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print()">
-                    <i class="ti ti-printer me-1"></i> Print
-                </button>
             </div>
             <div class="card-body">
                 <div class="ca-table-scroll">
-                    <table class="table table-hover mb-0" id="callAnalyticsTable">
+                    <table class="table table-hover mb-0" id="telecallerCallsTable">
                         <thead>
                             <tr>
                                 <th>#</th>
                                 <th></th>
-                                <th>Telecaller</th>
                                 <th>Phone</th>
                                 <th>Contact</th>
                                 <th>Type</th>
@@ -143,20 +151,9 @@
                                 <tr>
                                     <td class="text-muted">{{ $calls->firstItem() + $index }}</td>
                                     <td>
-                                        <a href="{{ route('admin.call-analytics.show', $call->id) }}" class="btn btn-outline-primary btn-sm ca-btn-icon" title="View details">
+                                        <a href="{{ route('admin.call-analytics.show', $call->id) }}" class="btn btn-outline-primary btn-sm ca-btn-icon" title="View">
                                             <i class="ti ti-eye"></i>
                                         </a>
-                                    </td>
-                                    <td>
-                                        <div class="ca-telecaller-cell">
-                                            <div class="avtar avtar-s rounded-circle bg-light-primary flex-shrink-0">
-                                                <i class="ti ti-user text-primary f-12"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-semibold">{{ $call->telecaller?->name ?? 'N/A' }}</div>
-                                                <small class="text-muted">{{ $call->telecaller?->email }}</small>
-                                            </div>
-                                        </div>
                                     </td>
                                     <td class="fw-medium">{{ $call->phone_number }}</td>
                                     <td>{{ $call->contact_name ?: '-' }}</td>
@@ -187,7 +184,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="13">
+                                    <td colspan="12">
                                         <div class="ca-empty-state">
                                             <i class="ti ti-phone-off"></i>
                                             <p>No call logs found for the selected filters.</p>
@@ -213,11 +210,11 @@
 @include('admin.call-analytics.partials.recording-scripts')
 <script>
     $(function () {
-        if ($.fn.DataTable && $('#callAnalyticsTable tbody tr').length > 0 && !$('#callAnalyticsTable tbody tr td[colspan]').length) {
-            $('#callAnalyticsTable').DataTable({
+        if ($.fn.DataTable && $('#telecallerCallsTable tbody tr').length > 0 && !$('#telecallerCallsTable tbody tr td[colspan]').length) {
+            $('#telecallerCallsTable').DataTable({
                 paging: false, searching: false, ordering: true, info: false,
-                order: [[8, 'desc']],
-                columnDefs: [{ orderable: false, targets: [0, 1, 10] }]
+                order: [[7, 'desc']],
+                columnDefs: [{ orderable: false, targets: [0, 1, 9] }]
             });
         }
     });

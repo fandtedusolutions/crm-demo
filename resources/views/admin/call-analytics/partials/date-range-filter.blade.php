@@ -5,7 +5,7 @@
 @endphp
 
 <div class="col-md-2">
-    <label class="form-label fw-semibold">Date Range</label>
+    <label class="form-label">Date Range</label>
     <select name="date_range" class="form-select form-select-sm js-call-analytics-date-range">
         @foreach(DateRangeHelper::options() as $value => $label)
             <option value="{{ $value }}" {{ ($filters['date_range'] ?? DateRangeHelper::defaultPreset()) === $value ? 'selected' : '' }}>
@@ -15,12 +15,12 @@
     </select>
 </div>
 <div class="col-md-2 js-call-analytics-custom-dates" style="{{ $isCustomRange ? '' : 'display:none;' }}">
-    <label class="form-label fw-semibold">From Date</label>
+    <label class="form-label">From Date</label>
     <input type="date" name="start_date" class="form-control form-control-sm js-call-analytics-start-date"
            value="{{ $filters['start_date'] }}">
 </div>
 <div class="col-md-2 js-call-analytics-custom-dates" style="{{ $isCustomRange ? '' : 'display:none;' }}">
-    <label class="form-label fw-semibold">To Date</label>
+    <label class="form-label">To Date</label>
     <input type="date" name="end_date" class="form-control form-control-sm js-call-analytics-end-date"
            value="{{ $filters['end_date'] }}">
 </div>

@@ -30,6 +30,44 @@ class CallAnalyticsController extends Controller
         }
     }
 
+    private function buildQueryParams(array $filters, array $extra = []): array
+    {
+        return array_filter(array_merge(
+            DateRangeHelper::queryParams($filters),
+            array_filter([
+                'telecaller_id' => $filters['telecaller_id'] ?? null,
+                'call_type' => $filters['call_type'] ?? null,
+                'search' => $filters['search'] ?? null,
+                'metric' => $filters['metric'] ?? null,
+            ], fn ($value) => $value !== null && $value !== ''),
+            $extra
+        ), fn ($value) => $value !== null && $value !== '');
+    }
+
+    private function buildTelecallerReportQueryParams(array $filters): array
+    {
+        return array_filter(array_merge(
+            DateRangeHelper::queryParams($filters),
+            array_filter([
+                'call_type' => $filters['call_type'] ?? null,
+                'search' => $filters['search'] ?? null,
+            ], fn ($value) => $value !== null && $value !== '')
+        ), fn ($value) => $value !== null && $value !== '');
+    }
+
+    private function computeCallStats($baseQuery): array
+    {
+        $statsQuery = clone $baseQuery;
+
+        return [
+            'total_calls' => (clone $statsQuery)->count(),
+            'connected_calls' => $this->countConnectedCalls($statsQuery),
+            'total_duration_seconds' => (int) (clone $statsQuery)->sum('duration_seconds'),
+            'with_recording' => (clone $statsQuery)->where('has_recording', true)->count(),
+            'recordings_uploaded' => (clone $statsQuery)->where('recording_uploaded', true)->count(),
+        ];
+    }
+
     private function getFilterParams(Request $request): array
     {
         $dateRange = $request->get('date_range');
@@ -122,7 +160,7 @@ class CallAnalyticsController extends Controller
         };
     }
 
-    private function getConnectedContacts($query, int $perPage = 25)
+    private function getConnectedContacts($query, array $queryParams, int $perPage = 25)
     {
         return (clone $query)
             ->select([
@@ -139,7 +177,7 @@ class CallAnalyticsController extends Controller
             ->groupBy(DB::raw("REGEXP_REPLACE(phone_number, '[^0-9]', '')"))
             ->orderByDesc('last_started_at_ms')
             ->paginate($perPage)
-            ->withQueryString();
+            ->appends($queryParams);
     }
 
     private function attachRecordingCallsToContacts($contacts)
@@ -177,7 +215,7 @@ class CallAnalyticsController extends Controller
         return $contacts;
     }
 
-    private function getReportDetail(Request $request, array $filters): ?array
+    private function getReportDetail(array $filters, array $queryParams): ?array
     {
         $metric = $filters['metric'] ?? null;
         if (empty($metric)) {
@@ -189,7 +227,7 @@ class CallAnalyticsController extends Controller
 
         if ($metric === 'connected') {
             $contacts = $this->attachRecordingCallsToContacts(
-                $this->getConnectedContacts($detailQuery)
+                $this->getConnectedContacts($detailQuery, $queryParams)
             );
             $telecallerIds = $contacts->getCollection()
                 ->pluck('last_telecaller_id')
@@ -215,7 +253,7 @@ class CallAnalyticsController extends Controller
                 ->with(['telecaller', 'recording'])
                 ->orderByDesc('started_at_ms')
                 ->paginate(25)
-                ->withQueryString(),
+                ->appends($queryParams),
         ];
     }
 
@@ -246,30 +284,25 @@ class CallAnalyticsController extends Controller
         $this->denyUnlessAllowed();
 
         $filters = $this->getFilterParams($request);
+        $queryParams = $this->buildQueryParams($filters);
         $telecallers = $this->getTelecallers();
 
         $baseQuery = CallAppLog::query()->with(['telecaller', 'recording']);
         $this->applyFilters($baseQuery, $filters);
 
-        $statsQuery = clone $baseQuery;
-        $stats = [
-            'total_calls' => (clone $statsQuery)->count(),
-            'connected_calls' => $this->countConnectedCalls($statsQuery),
-            'total_duration_seconds' => (int) (clone $statsQuery)->sum('duration_seconds'),
-            'with_recording' => (clone $statsQuery)->where('has_recording', true)->count(),
-            'recordings_uploaded' => (clone $statsQuery)->where('recording_uploaded', true)->count(),
-        ];
+        $stats = $this->computeCallStats($baseQuery);
 
         $calls = $baseQuery
             ->orderByDesc('started_at_ms')
             ->paginate(25)
-            ->withQueryString();
+            ->appends($queryParams);
 
         return view('admin.call-analytics.index', compact(
             'calls',
             'telecallers',
             'filters',
-            'stats'
+            'stats',
+            'queryParams'
         ));
     }
 
@@ -278,6 +311,15 @@ class CallAnalyticsController extends Controller
         $this->denyUnlessAllowed();
 
         $filters = $this->getFilterParams($request);
+
+        if (!empty($filters['telecaller_id']) && empty($filters['metric'])) {
+            return redirect()->route('admin.call-analytics.report.telecaller', array_merge(
+                ['telecaller' => $filters['telecaller_id']],
+                $this->buildTelecallerReportQueryParams($filters)
+            ));
+        }
+
+        $queryParams = $this->buildQueryParams($filters);
         $telecallers = $this->getTelecallers();
 
         $query = CallAppLog::query();
@@ -318,7 +360,7 @@ class CallAnalyticsController extends Controller
             'recordings_uploaded' => $rows->sum('recordings_uploaded'),
         ];
 
-        $detail = $this->getReportDetail($request, $filters);
+        $detail = $this->getReportDetail($filters, $queryParams);
         $activeTelecaller = !empty($filters['telecaller_id'])
             ? $telecallerMap->get((int) $filters['telecaller_id']) ?? User::find($filters['telecaller_id'])
             : null;
@@ -330,7 +372,36 @@ class CallAnalyticsController extends Controller
             'filters',
             'grandTotals',
             'detail',
-            'activeTelecaller'
+            'activeTelecaller',
+            'queryParams'
+        ));
+    }
+
+    public function telecallerReport(Request $request, User $telecaller)
+    {
+        $this->denyUnlessAllowed();
+
+        $filters = $this->getFilterParams($request);
+        $filters['telecaller_id'] = $telecaller->id;
+
+        $filterQueryParams = $this->buildTelecallerReportQueryParams($filters);
+
+        $baseQuery = CallAppLog::query()->with(['telecaller', 'recording']);
+        $this->applyFilters($baseQuery, $filters);
+
+        $stats = $this->computeCallStats($baseQuery);
+
+        $calls = (clone $baseQuery)
+            ->orderByDesc('started_at_ms')
+            ->paginate(25)
+            ->appends($filterQueryParams);
+
+        return view('admin.call-analytics.telecaller-report', compact(
+            'telecaller',
+            'filters',
+            'stats',
+            'calls',
+            'filterQueryParams'
         ));
     }
 

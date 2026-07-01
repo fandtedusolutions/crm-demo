@@ -51,6 +51,7 @@ class DashboardController extends Controller
             'recentActivities' => $this->getRecentActivities(),
             'weeklyStats' => $this->getWeeklyStats(),
             'todaysLeads' => $this->getTodaysLeads(),
+            'todaysLeadsCount' => $this->getTodaysLeadsCount(),
             'todaysConvertedLeads' => $this->getTodaysConvertedLeads(),
             'saleCount' => $this->getSaleCount(),
             'weeklySaleCount' => $this->getWeeklySaleCount(),
@@ -335,26 +336,44 @@ class DashboardController extends Controller
     private function getRecentLeads()
     {
         $query = Lead::with(['leadStatus', 'leadSource'])
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(10);
-        
+
         return $this->applyRoleBasedFilter($query)->get();
     }
 
     /**
-     * Get today's leads based on user role
+     * Get today's leads based on user role (last 10 added today).
      */
     private function getTodaysLeads()
     {
         $today = now()->startOfDay();
         $tomorrow = now()->addDay()->startOfDay();
-        
+
         $query = Lead::with(['leadStatus', 'leadSource', 'telecaller'])
             ->where('created_at', '>=', $today)
             ->where('created_at', '<', $tomorrow)
-            ->orderBy('created_at', 'desc');
-        
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(10);
+
         return $this->applyRoleBasedFilter($query)->get();
+    }
+
+    /**
+     * Get total count of today's leads for dashboard stats.
+     */
+    private function getTodaysLeadsCount()
+    {
+        $today = now()->startOfDay();
+        $tomorrow = now()->addDay()->startOfDay();
+
+        $query = Lead::query()
+            ->where('created_at', '>=', $today)
+            ->where('created_at', '<', $tomorrow);
+
+        return $this->applyRoleBasedFilter($query)->count();
     }
 
     /**
