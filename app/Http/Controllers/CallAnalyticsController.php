@@ -352,7 +352,15 @@ class CallAnalyticsController extends Controller
             ])
             ->groupBy('telecaller_id')
             ->orderByDesc('total_calls')
-            ->get();
+            ->get()
+            ->map(function ($row) {
+                $row->attended_calls = CallAppLog::attendedCallCount(
+                    (int) $row->incoming_calls,
+                    (int) $row->outgoing_calls
+                );
+
+                return $row;
+            });
 
         $telecallerMap = User::whereIn('id', $rows->pluck('telecaller_id'))
             ->get(['id', 'name', 'email', 'phone'])
@@ -361,9 +369,9 @@ class CallAnalyticsController extends Controller
         $grandTotals = [
             'total_calls' => $rows->sum('total_calls'),
             'connected_calls' => $this->countConnectedCalls($query),
-            'attended_calls' => $rows->sum('attended_calls'),
-            'incoming_calls' => $rows->sum('incoming_calls'),
-            'outgoing_calls' => $rows->sum('outgoing_calls'),
+            'incoming_calls' => $incomingTotal = (int) $rows->sum('incoming_calls'),
+            'outgoing_calls' => $outgoingTotal = (int) $rows->sum('outgoing_calls'),
+            'attended_calls' => CallAppLog::attendedCallCount($incomingTotal, $outgoingTotal),
             'not_picked_calls' => $rows->sum('not_picked_calls'),
             'missed_calls' => $rows->sum('missed_calls'),
             'rejected_calls' => $rows->sum('rejected_calls'),

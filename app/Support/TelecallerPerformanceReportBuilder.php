@@ -31,6 +31,9 @@ class TelecallerPerformanceReportBuilder
             $activeLeads = (int) ($leads->active_leads ?? 0);
             $convertedLeads = (int) ($leads->converted_leads ?? 0);
 
+            $incomingCalls = (int) ($calls->incoming_calls ?? 0);
+            $outgoingCalls = (int) ($calls->outgoing_calls ?? 0);
+
             return (object) [
                 'id' => $telecaller->id,
                 'name' => $telecaller->name,
@@ -43,9 +46,9 @@ class TelecallerPerformanceReportBuilder
                 'conversion_rate' => $totalLeads > 0 ? round(($convertedLeads / $totalLeads) * 100, 1) : 0.0,
                 'total_calls' => (int) ($calls->total_calls ?? 0),
                 'connected_calls' => (int) ($calls->connected_calls ?? 0),
-                'attended_calls' => (int) ($calls->attended_calls ?? 0),
-                'incoming_calls' => (int) ($calls->incoming_calls ?? 0),
-                'outgoing_calls' => (int) ($calls->outgoing_calls ?? 0),
+                'attended_calls' => CallAppLog::attendedCallCount($incomingCalls, $outgoingCalls),
+                'incoming_calls' => $incomingCalls,
+                'outgoing_calls' => $outgoingCalls,
                 'not_picked_calls' => (int) ($calls->not_picked_calls ?? 0),
                 'missed_calls' => (int) ($calls->missed_calls ?? 0),
                 'rejected_calls' => (int) ($calls->rejected_calls ?? 0),
@@ -256,12 +259,15 @@ class TelecallerPerformanceReportBuilder
             ->selectRaw('SUM(CASE WHEN recording_uploaded = 1 THEN 1 ELSE 0 END) as recordings_uploaded')
             ->first();
 
+        $incomingCalls = (int) ($aggregates->incoming_calls ?? 0);
+        $outgoingCalls = (int) ($aggregates->outgoing_calls ?? 0);
+
         return [
             'total_calls' => (int) ($aggregates->total_calls ?? 0),
             'connected_calls' => CallAppLog::countDistinctConnectedContacts($query),
-            'attended_calls' => (int) ($aggregates->attended_calls ?? 0),
-            'incoming_calls' => (int) ($aggregates->incoming_calls ?? 0),
-            'outgoing_calls' => (int) ($aggregates->outgoing_calls ?? 0),
+            'attended_calls' => CallAppLog::attendedCallCount($incomingCalls, $outgoingCalls),
+            'incoming_calls' => $incomingCalls,
+            'outgoing_calls' => $outgoingCalls,
             'not_picked_calls' => (int) ($aggregates->not_picked_calls ?? 0),
             'missed_calls' => (int) ($aggregates->missed_calls ?? 0),
             'rejected_calls' => (int) ($aggregates->rejected_calls ?? 0),
@@ -280,12 +286,15 @@ class TelecallerPerformanceReportBuilder
     {
         $stats = self::callStatsByTelecaller($fromDate, $toDate, [$telecallerId])->get($telecallerId);
 
+        $incomingCalls = (int) ($stats->incoming_calls ?? 0);
+        $outgoingCalls = (int) ($stats->outgoing_calls ?? 0);
+
         return [
             'total_calls' => (int) ($stats->total_calls ?? 0),
             'connected_calls' => (int) ($stats->connected_calls ?? 0),
-            'attended_calls' => (int) ($stats->attended_calls ?? 0),
-            'incoming_calls' => (int) ($stats->incoming_calls ?? 0),
-            'outgoing_calls' => (int) ($stats->outgoing_calls ?? 0),
+            'attended_calls' => CallAppLog::attendedCallCount($incomingCalls, $outgoingCalls),
+            'incoming_calls' => $incomingCalls,
+            'outgoing_calls' => $outgoingCalls,
             'not_picked_calls' => (int) ($stats->not_picked_calls ?? 0),
             'missed_calls' => (int) ($stats->missed_calls ?? 0),
             'rejected_calls' => (int) ($stats->rejected_calls ?? 0),

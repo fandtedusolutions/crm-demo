@@ -273,6 +273,7 @@
                                 <th class="text-end">Conv.%</th>
                                 <th class="text-end" title="From call_app_logs">Calls</th>
                                 <th class="text-end" title="Unique contacts from call_app_logs">Connected</th>
+                                <th class="text-end" title="Incoming + Outgoing calls">Attended</th>
                                 <th class="text-end" title="Incoming calls from call_app_logs">In</th>
                                 <th class="text-end" title="Outgoing calls from call_app_logs">Out</th>
                                 <th class="text-end">Talk</th>
@@ -302,6 +303,7 @@
                                 <td class="text-end">{{ $telecaller->conversion_rate }}%</td>
                                 <td class="text-end">{{ number_format($telecaller->total_calls) }}</td>
                                 <td class="text-end">{{ number_format($telecaller->connected_calls) }}</td>
+                                <td class="text-end fw-semibold">{{ number_format($telecaller->attended_calls) }}</td>
                                 <td class="text-end">{{ number_format($telecaller->incoming_calls) }}</td>
                                 <td class="text-end">{{ number_format($telecaller->outgoing_calls) }}</td>
                                 <td class="text-end">{{ \App\Models\CallAppLog::formatDuration((int) $telecaller->total_duration_seconds) }}</td>
@@ -332,6 +334,7 @@
                                 <td class="text-end">{{ $reportSummary['conversion_rate'] ?? 0 }}%</td>
                                 <td class="text-end">{{ number_format($callTotals['total_calls'] ?? 0) }}</td>
                                 <td class="text-end">{{ number_format($callTotals['connected_calls'] ?? 0) }}</td>
+                                <td class="text-end">{{ number_format($callTotals['attended_calls'] ?? 0) }}</td>
                                 <td class="text-end">{{ number_format($callTotals['incoming_calls'] ?? 0) }}</td>
                                 <td class="text-end">{{ number_format($callTotals['outgoing_calls'] ?? 0) }}</td>
                                 <td class="text-end">{{ \App\Models\CallAppLog::formatDuration((int) ($callTotals['total_duration_seconds'] ?? 0)) }}</td>
@@ -565,7 +568,7 @@
                 pageLength: 25,
                 order: [[3, 'desc']],
                 columnDefs: [
-                    { orderable: false, targets: [0, 12] }
+                    { orderable: false, targets: [0, 13] }
                 ],
             });
         }

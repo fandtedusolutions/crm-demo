@@ -101,17 +101,17 @@ class CallAppLog extends Model
 
     public static function attendedCallsAggregateSql(): string
     {
-        return 'SUM(CASE WHEN call_type IN (\'incoming\', \'outgoing\') AND NOT '
-            . self::notPickedSqlCondition()
-            . ' THEN 1 ELSE 0 END) as attended_calls';
+        return "SUM(CASE WHEN call_type IN ('incoming', 'outgoing') THEN 1 ELSE 0 END) as attended_calls";
+    }
+
+    public static function attendedCallCount(int $incoming, int $outgoing): int
+    {
+        return $incoming + $outgoing;
     }
 
     public function scopeAttended(Builder $query): Builder
     {
-        return $query->whereIn('call_type', ['incoming', 'outgoing'])
-            ->where(function ($q) {
-                $q->whereNull('remarks')->orWhere('remarks', '!=', 'Not Picked');
-            });
+        return $query->whereIn('call_type', ['incoming', 'outgoing']);
     }
 
     /**
@@ -193,12 +193,15 @@ class CallAppLog extends Model
             ->selectRaw('SUM(CASE WHEN recording_uploaded = 1 THEN 1 ELSE 0 END) as recordings_uploaded')
             ->first();
 
+        $incomingCalls = (int) ($aggregates->incoming_calls ?? 0);
+        $outgoingCalls = (int) ($aggregates->outgoing_calls ?? 0);
+
         return [
             'total_calls' => (int) ($aggregates->total_calls ?? 0),
             'connected_calls' => static::countDistinctConnectedContacts($query),
-            'attended_calls' => (int) ($aggregates->attended_calls ?? 0),
-            'incoming_calls' => (int) ($aggregates->incoming_calls ?? 0),
-            'outgoing_calls' => (int) ($aggregates->outgoing_calls ?? 0),
+            'attended_calls' => static::attendedCallCount($incomingCalls, $outgoingCalls),
+            'incoming_calls' => $incomingCalls,
+            'outgoing_calls' => $outgoingCalls,
             'not_picked_calls' => (int) ($aggregates->not_picked_calls ?? 0),
             'missed_calls' => (int) ($aggregates->missed_calls ?? 0),
             'rejected_calls' => (int) ($aggregates->rejected_calls ?? 0),

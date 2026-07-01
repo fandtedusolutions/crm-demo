@@ -24,7 +24,7 @@ class TelecallerPerformanceReportExport
         $row = 1;
         $sheet->setCellValue('A' . $row, 'Telecaller Performance Report');
         $sheet->getStyle('A' . $row)->getFont()->setBold(true)->setSize(16);
-        $sheet->mergeCells('A' . $row . ':P' . $row);
+        $sheet->mergeCells('A' . $row . ':Q' . $row);
         $row += 2;
 
         $sheet->setCellValue('A' . $row, 'Report Period: ' . \Carbon\Carbon::parse($this->fromDate)->format('M d, Y') . ' to ' . \Carbon\Carbon::parse($this->toDate)->format('M d, Y'));
@@ -38,6 +38,7 @@ class TelecallerPerformanceReportExport
             'Conversion Rate' => ($this->summary['conversion_rate'] ?? 0) . '%',
             'Total Calls' => $calls['total_calls'] ?? 0,
             'Connected (Unique)' => $calls['connected_calls'] ?? 0,
+            'Attended (In + Out)' => $calls['attended_calls'] ?? 0,
             'Incoming Calls' => $calls['incoming_calls'] ?? 0,
             'Outgoing Calls' => $calls['outgoing_calls'] ?? 0,
         ];
@@ -53,7 +54,7 @@ class TelecallerPerformanceReportExport
 
         $headers = [
             'S.No', 'Telecaller', 'Phone', 'Team', 'Total Leads', 'Active Leads', 'Converted Leads', 'Conv. %',
-            'Total Calls', 'Connected (Unique)', 'Incoming', 'Outgoing', 'Not Picked', 'Missed', 'Rejected', 'Talk Time',
+            'Total Calls', 'Connected (Unique)', 'Attended', 'Incoming', 'Outgoing', 'Not Picked', 'Missed', 'Rejected', 'Talk Time',
         ];
         $col = 'A';
         foreach ($headers as $header) {
@@ -75,16 +76,17 @@ class TelecallerPerformanceReportExport
             $sheet->setCellValue('H' . $row, $telecaller->conversion_rate . '%');
             $sheet->setCellValue('I' . $row, $telecaller->total_calls);
             $sheet->setCellValue('J' . $row, $telecaller->connected_calls);
-            $sheet->setCellValue('K' . $row, $telecaller->incoming_calls);
-            $sheet->setCellValue('L' . $row, $telecaller->outgoing_calls);
-            $sheet->setCellValue('M' . $row, $telecaller->not_picked_calls);
-            $sheet->setCellValue('N' . $row, $telecaller->missed_calls);
-            $sheet->setCellValue('O' . $row, $telecaller->rejected_calls);
-            $sheet->setCellValue('P' . $row, CallAppLog::formatDuration((int) $telecaller->total_duration_seconds));
+            $sheet->setCellValue('K' . $row, $telecaller->attended_calls);
+            $sheet->setCellValue('L' . $row, $telecaller->incoming_calls);
+            $sheet->setCellValue('M' . $row, $telecaller->outgoing_calls);
+            $sheet->setCellValue('N' . $row, $telecaller->not_picked_calls);
+            $sheet->setCellValue('O' . $row, $telecaller->missed_calls);
+            $sheet->setCellValue('P' . $row, $telecaller->rejected_calls);
+            $sheet->setCellValue('Q' . $row, CallAppLog::formatDuration((int) $telecaller->total_duration_seconds));
             $row++;
         }
 
-        foreach (range('A', 'P') as $column) {
+        foreach (range('A', 'Q') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 

@@ -44,6 +44,7 @@
                 <th class="text-end">Converted</th>
                 <th class="text-end">Total Calls</th>
                 <th class="text-end">Connected</th>
+                <th class="text-end">Attended</th>
                 <th class="text-end">Incoming</th>
                 <th class="text-end">Outgoing</th>
                 <th class="text-end">Not Picked</th>
@@ -62,6 +63,7 @@
                     <td class="text-end">{{ number_format($telecaller->converted_leads) }}</td>
                     <td class="text-end">{{ number_format($telecaller->total_calls) }}</td>
                     <td class="text-end">{{ number_format($telecaller->connected_calls) }}</td>
+                    <td class="text-end">{{ number_format($telecaller->attended_calls) }}</td>
                     <td class="text-end">{{ number_format($telecaller->incoming_calls) }}</td>
                     <td class="text-end">{{ number_format($telecaller->outgoing_calls) }}</td>
                     <td class="text-end">{{ number_format($telecaller->not_picked_calls) }}</td>
