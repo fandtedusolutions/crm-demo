@@ -162,7 +162,7 @@
                                 <th>#</th>
                                 <th>Telecaller</th>
                                 <th class="text-center">Total Calls</th>
-                                <th class="text-center">Connected Calls</th>
+                                <th class="text-center">Connected Calls<br><small class="text-muted fw-normal">(Unique calls only)</small></th>
                                 <th class="text-center">Incoming</th>
                                 <th class="text-center">Outgoing</th>
                                 <th class="text-center">Not Picked</th>

@@ -4511,6 +4511,13 @@ class LeadController extends Controller
             }
 
             if ((int) $lead->course_id !== 23) {
+                $customTotal = $request->filled('custom_total_amount') ? (float) $request->input('custom_total_amount') : null;
+                $paymentAmount = (float) ($request->input('payment_amount') ?: 0);
+
+                if ($customTotal !== null && $paymentAmount > $customTotal) {
+                    $validator->errors()->add('payment_amount', 'Payment amount cannot exceed the total amount.');
+                }
+
                 return;
             }
 
@@ -4630,6 +4637,10 @@ class LeadController extends Controller
                 $customTotalAmount = null;
                 $feeBreakdown = null;
 
+                if ($request->filled('custom_total_amount')) {
+                    $customTotalAmount = (float) $request->input('custom_total_amount');
+                }
+
                 if ((int) $lead->course_id === 23) {
                     $feeBreakdown = [
                         'fee_pg_amount' => $request->filled('fee_pg_amount') ? (float) $request->input('fee_pg_amount') : null,
@@ -4638,18 +4649,13 @@ class LeadController extends Controller
                         'fee_sslc_amount' => $request->filled('fee_sslc_amount') ? (float) $request->input('fee_sslc_amount') : null,
                     ];
 
-                    if ($request->filled('custom_total_amount')) {
-                        $customTotalAmount = (float) $request->input('custom_total_amount');
-                    } else {
+                    if ($customTotalAmount === null) {
                         $customTotalAmount =
                             (float) (($feeBreakdown['fee_pg_amount'] ?? 0)
                                 + ($feeBreakdown['fee_ug_amount'] ?? 0)
                                 + ($feeBreakdown['fee_plustwo_amount'] ?? 0)
                                 + ($feeBreakdown['fee_sslc_amount'] ?? 0));
                     }
-                } elseif ($request->filled('custom_total_amount')) {
-                    // Backward compatible: allow custom total (if ever used)
-                    $customTotalAmount = (float) $request->input('custom_total_amount');
                 }
 
                 $invoice = $invoiceController->autoGenerate($convertedLead->id, $lead->course_id, $customTotalAmount, $feeBreakdown);

@@ -162,7 +162,11 @@
                         @endif
                     </small>
 
-                    <br><strong class="text-primary" id="course_total_preview">Total: ₹{{ number_format($totalAmount, 2) }}</strong>
+                    <div class="mt-2">
+                        <label for="custom_total_amount" class="form-label mb-1">Total Amount</label>
+                        <input type="number" class="form-control" name="custom_total_amount" id="custom_total_amount" step="0.01" min="0" value="{{ number_format($totalAmount, 2, '.', '') }}">
+                        <small class="text-muted" id="course_total_preview">Auto-calculated from course, batch, and university fees. You can override this amount.</small>
+                    </div>
                 </div>
                 @endif
             </div>
@@ -197,13 +201,6 @@
 
                         <div id="payment_fields" style="display: none;" class="col-12">
                             <div class="row g-3">
-                                <div class="col-lg-6">
-                                    <div class="p-1">
-                                        <label for="modal_total_amount_display" class="form-label">Total Amount</label>
-                                        <input type="text" class="form-control" id="modal_total_amount_display" readonly>
-                                    </div>
-                                </div>
-
                                 @if($lead->course_id == 23)
                                 <div class="col-12">
                                     <div class="alert alert-info mb-0">
@@ -383,7 +380,6 @@
         // Cache jQuery objects
         const $paymentCheckbox = $('#modal_payment_collected');
         const $paymentFields = $('#payment_fields');
-        const $totalAmountDisplay = $('#modal_total_amount_display');
         const $convertBtn = $('#convertLeadBtn');
 
         const totalAmountValue = @json($totalAmount);
@@ -399,6 +395,7 @@
         const $batchAmountPreview = $('#batch_amount_preview');
         const $courseTotalPreview = $('#course_total_preview');
         const $course23TotalInput = $('#course23_custom_total_amount');
+        const $customTotalInput = $('#custom_total_amount');
         const $course23FeePg = $('#course23_fee_pg_amount');
         const $course23FeeUg = $('#course23_fee_ug_amount');
         const $course23FeePlustwo = $('#course23_fee_plustwo_amount');
@@ -409,6 +406,7 @@
         const $assetIdInput = $('#asset_id');
         const $assetIdRequiredMarker = $('#asset_id_required_marker');
         const mobileAddonAmount = 1000;
+        let totalManuallyEdited = false;
 
         @if(!$course || !$course->title)
         // Hide payment section if no course is available
@@ -428,40 +426,36 @@
             });
         }
 
-        function getSelectedTotalAmount() {
+        function getComputedTotalAmount() {
             let totalAmount = 0;
-            if (isCourse23 && $course23TotalInput.length) {
-                totalAmount = toNumber($course23TotalInput.val());
-            } else {
-                const selectedOption = $batchSelect.find('option:selected');
-                let batchAmount = 0;
+            const selectedOption = $batchSelect.find('option:selected');
+            let batchAmount = 0;
 
-                if (selectedOption.length && selectedOption.val()) {
-                    const amount = toNumber(selectedOption.data('amount'));
-                    const sslcAmount = toNumber(selectedOption.data('sslc-amount'));
-                    const plustwoAmount = toNumber(selectedOption.data('plustwo-amount'));
-                    const b2bAmount = toNumber(selectedOption.data('b2b-amount'));
+            if (selectedOption.length && selectedOption.val()) {
+                const amount = toNumber(selectedOption.data('amount'));
+                const sslcAmount = toNumber(selectedOption.data('sslc-amount'));
+                const plustwoAmount = toNumber(selectedOption.data('plustwo-amount'));
+                const b2bAmount = toNumber(selectedOption.data('b2b-amount'));
 
-                    if (isB2BLead) {
-                        batchAmount = b2bAmount;
-                    } else if (courseId == 16) {
-                        if (studentClass === 'sslc' && sslcAmount > 0) {
-                            batchAmount = sslcAmount;
-                        } else if (plustwoAmount > 0) {
-                            batchAmount = plustwoAmount;
-                        } else {
-                            batchAmount = amount;
-                        }
+                if (isB2BLead) {
+                    batchAmount = b2bAmount;
+                } else if (courseId == 16) {
+                    if (studentClass === 'sslc' && sslcAmount > 0) {
+                        batchAmount = sslcAmount;
+                    } else if (plustwoAmount > 0) {
+                        batchAmount = plustwoAmount;
                     } else {
                         batchAmount = amount;
                     }
-                }
-
-                if (isB2BLead) {
-                    totalAmount = batchAmount;
                 } else {
-                    totalAmount = baseCourseAmount + batchAmount + baseUniversityAmount;
+                    batchAmount = amount;
                 }
+            }
+
+            if (isB2BLead) {
+                totalAmount = batchAmount;
+            } else {
+                totalAmount = baseCourseAmount + batchAmount + baseUniversityAmount;
             }
 
             if ($needMobileCheckbox.is(':checked')) {
@@ -469,6 +463,18 @@
             }
 
             return totalAmount;
+        }
+
+        function getSelectedTotalAmount() {
+            if (isCourse23 && $course23TotalInput.length) {
+                return toNumber($course23TotalInput.val());
+            }
+
+            if (totalManuallyEdited && $customTotalInput.length) {
+                return toNumber($customTotalInput.val());
+            }
+
+            return getComputedTotalAmount();
         }
 
         function toggleNeedMobileFields() {
@@ -516,13 +522,14 @@
             setTimeout(togglePaymentFields, 10);
         });
         $needMobileCheckbox.on('change', function() {
+            if (!isCourse23) {
+                totalManuallyEdited = false;
+            }
             toggleNeedMobileFields();
         });
 
         // For course 23, keep payment total synced with entered total
         if (isCourse23) {
-            let totalManuallyEdited = false;
-
             $course23TotalInput.on('input', function() {
                 totalManuallyEdited = true;
                 updateTotalAmount();
@@ -536,10 +543,15 @@
                 }
                 updateTotalAmount();
             });
-        } else {
+        } else if ($customTotalInput.length) {
+            $customTotalInput.on('input', function() {
+                totalManuallyEdited = true;
+                updateTotalAmount();
+            });
+
             // Set max payment amount (single payment flow)
             $paymentAmountInput.on('input', function() {
-                const totalAmount = toNumber($totalAmountDisplay.val());
+                const totalAmount = getSelectedTotalAmount();
                 if (toNumber($(this).val()) > totalAmount) {
                     $(this).val(totalAmount);
                 }
@@ -549,17 +561,25 @@
         function updateTotalAmount() {
             @if($course && $course->title)
             let amount = getSelectedTotalAmount();
-            $totalAmountDisplay.val(formatINR(amount));
-            if ($courseTotalPreview.length) {
-                $courseTotalPreview.text('Total: ' + formatINR(amount));
+
+            if (!isCourse23 && $customTotalInput.length && (!totalManuallyEdited || !$customTotalInput.val())) {
+                amount = getComputedTotalAmount();
+                $customTotalInput.val(amount.toFixed(2));
             }
-            if (!isCourse23) {
+
+            if ($courseTotalPreview.length && !isCourse23) {
+                $courseTotalPreview.text('Current total: ' + formatINR(amount));
+            }
+
+            if (!isCourse23 && $paymentAmountInput.length) {
                 $paymentAmountInput.attr('max', amount);
                 $paymentAmountInput.data('total-amount', amount);
             }
             @else
             // No course information available
-            $totalAmountDisplay.val('');
+            if ($customTotalInput.length) {
+                $customTotalInput.val('');
+            }
             @endif
         }
 
@@ -568,6 +588,7 @@
         updateTotalAmount();
         toggleNeedMobileFields();
         $batchSelect.on('change', function() {
+            totalManuallyEdited = false;
             const selectedOption = $(this).find('option:selected');
             if ($batchAmountPreview.length && selectedOption.length && selectedOption.val()) {
                 const title = selectedOption.text();
@@ -861,8 +882,16 @@
                         isValid = false;
                     }
                 } else {
-                    if (!$paymentAmountInput.val() || parseFloat($paymentAmountInput.val()) <= 0) {
+                    const paymentAmount = toNumber($paymentAmountInput.val());
+                    const totalAmount = getSelectedTotalAmount();
+
+                    if (!$paymentAmountInput.val() || paymentAmount <= 0) {
                         errors['payment_amount'] = ['The payment amount field is required and must be greater than 0.'];
+                        isValid = false;
+                    }
+
+                    if (totalAmount > 0 && paymentAmount > totalAmount) {
+                        errors['payment_amount'] = ['Payment amount cannot exceed the total amount.'];
                         isValid = false;
                     }
 

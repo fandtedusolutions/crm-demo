@@ -486,6 +486,10 @@ class InvoiceController extends Controller
                         }
                     }
                 }
+
+                if ($customTotalAmount !== null) {
+                    $totalAmount = (float) $customTotalAmount;
+                }
             }
             
             $invoice = $this->createInvoiceWithUniqueNumber([
