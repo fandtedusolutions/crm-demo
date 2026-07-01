@@ -149,7 +149,7 @@ class CallAnalyticsController extends Controller
     private function getMetricLabel(?string $metric): string
     {
         return match ($metric) {
-            'connected' => 'Connected Contacts',
+            'connected' => 'Connected (unique calls)',
             'incoming' => 'Incoming Calls',
             'outgoing' => 'Outgoing Calls',
             'not_picked' => 'Not Picked Calls',
