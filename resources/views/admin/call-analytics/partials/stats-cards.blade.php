@@ -19,7 +19,7 @@
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <h6 class="mb-2 f-w-400 text-muted">Connected <small class="text-muted">(unique calls)</small></h6>
+                        <h6 class="mb-2 f-w-400 text-muted">Connected <span class="fw-normal">(unique)</span></h6>
                         <h4 class="mb-0 text-success">{{ number_format($stats['connected_calls']) }}</h4>
                     </div>
                     <div class="stat-icon icon-success">

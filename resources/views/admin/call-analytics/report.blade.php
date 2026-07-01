@@ -126,7 +126,7 @@
                                 <th>#</th>
                                 <th>Telecaller</th>
                                 <th class="text-center">Total</th>
-                                <th class="text-center">Connected <small class="text-muted fw-normal">(unique calls)</small></th>
+                                <th class="text-center">Connected <span class="text-muted fw-normal text-lowercase">(unique)</span></th>
                                 <th class="text-center">Incoming</th>
                                 <th class="text-center">Outgoing</th>
                                 <th class="text-center">Not Picked</th>
