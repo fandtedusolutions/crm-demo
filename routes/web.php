@@ -776,6 +776,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/reports/team', [App\Http\Controllers\LeadReportController::class, 'teamReport'])->name('reports.team');
         Route::get('/reports/telecaller', [App\Http\Controllers\LeadReportController::class, 'telecallerReport'])->name('reports.telecaller');
         Route::get('/reports/telecaller/{user}/call-analytics', [App\Http\Controllers\LeadReportController::class, 'telecallerCallAnalytics'])->name('reports.telecaller.call-analytics')->whereNumber('user');
+        Route::get('/reports/telecaller/{user}', [App\Http\Controllers\LeadReportController::class, 'telecallerDetailReport'])->name('reports.telecaller.detail')->whereNumber('user');
         Route::get('/reports/b2b', [App\Http\Controllers\LeadReportController::class, 'b2bReport'])->name('reports.b2b');
 
         // Voxbay Call Logs Report routes

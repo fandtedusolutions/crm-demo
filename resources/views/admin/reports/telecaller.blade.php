@@ -287,8 +287,11 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="tr-telecaller-avatar"><i class="ti ti-user"></i></div>
                                         <div>
-                                            <div class="fw-semibold">{{ $telecaller->name }}</div>
-                                            <small class="text-muted">{{ $telecaller->phone ?? 'N/A' }}</small>
+                                            <a href="{{ route('admin.reports.telecaller.detail', array_merge(['user' => $telecaller->id], request()->only(['date_range', 'date_from', 'date_to']))) }}"
+                                               class="fw-semibold text-decoration-none">
+                                                {{ $telecaller->name }}
+                                            </a>
+                                            <small class="text-muted d-block">{{ $telecaller->phone ?? 'N/A' }}</small>
                                         </div>
                                     </div>
                                 </td>
@@ -303,13 +306,19 @@
                                 <td class="text-end">{{ number_format($telecaller->outgoing_calls) }}</td>
                                 <td class="text-end">{{ \App\Models\CallAppLog::formatDuration((int) $telecaller->total_duration_seconds) }}</td>
                                 <td class="text-center no-print">
-                                    <button type="button"
-                                        class="btn btn-primary tr-action-btn js-open-call-analytics"
-                                        data-telecaller-id="{{ $telecaller->id }}"
-                                        data-telecaller-name="{{ $telecaller->name }}"
-                                        title="View call analytics">
-                                        <i class="ti ti-chart-dots me-1"></i>Call Analytics
-                                    </button>
+                                    <div class="d-flex gap-1 justify-content-center flex-wrap">
+                                        <a href="{{ route('admin.reports.telecaller.detail', array_merge(['user' => $telecaller->id], request()->only(['date_range', 'date_from', 'date_to']))) }}"
+                                           class="btn btn-outline-primary tr-action-btn" title="View full report">
+                                            <i class="ti ti-report-analytics me-1"></i>Details
+                                        </a>
+                                        <button type="button"
+                                            class="btn btn-primary tr-action-btn js-open-call-analytics"
+                                            data-telecaller-id="{{ $telecaller->id }}"
+                                            data-telecaller-name="{{ $telecaller->name }}"
+                                            title="View call analytics">
+                                            <i class="ti ti-chart-dots me-1"></i>Calls
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach

@@ -296,6 +296,40 @@ class TelecallerPerformanceReportBuilder
         ];
     }
 
+    public static function leadStatusBreakdownForTelecaller(int $telecallerId, string $fromDate, string $toDate): Collection
+    {
+        $query = Lead::query()
+            ->select('lead_statuses.id', 'lead_statuses.title', 'lead_statuses.color')
+            ->selectRaw('COUNT(leads.id) as count')
+            ->join('lead_statuses', 'leads.lead_status_id', '=', 'lead_statuses.id')
+            ->where('leads.telecaller_id', $telecallerId)
+            ->whereBetween('leads.created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
+
+        self::applyRoleBasedLeadFilter($query);
+
+        return $query
+            ->groupBy('lead_statuses.id', 'lead_statuses.title', 'lead_statuses.color')
+            ->orderByDesc('count')
+            ->get();
+    }
+
+    public static function leadSourceBreakdownForTelecaller(int $telecallerId, string $fromDate, string $toDate): Collection
+    {
+        $query = Lead::query()
+            ->select('lead_sources.id', 'lead_sources.title')
+            ->selectRaw('COUNT(leads.id) as count')
+            ->join('lead_sources', 'leads.lead_source_id', '=', 'lead_sources.id')
+            ->where('leads.telecaller_id', $telecallerId)
+            ->whereBetween('leads.created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
+
+        self::applyRoleBasedLeadFilter($query);
+
+        return $query
+            ->groupBy('lead_sources.id', 'lead_sources.title')
+            ->orderByDesc('count')
+            ->get();
+    }
+
     public static function recentCallsForTelecaller(int $telecallerId, string $fromDate, string $toDate, int $limit = 50): array
     {
         return CallAppLog::query()

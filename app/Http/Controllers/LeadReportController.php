@@ -13,6 +13,7 @@ use App\Models\Course;
 use App\Helpers\AuthHelper;
 use App\Helpers\DateRangeHelper;
 use App\Support\TelecallerPerformanceReportBuilder;
+use App\Models\CallAppLog;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 
@@ -236,6 +237,69 @@ class LeadReportController extends Controller
             'telecallerId',
             'teamId',
             'reportSummary'
+        ));
+    }
+
+    public function telecallerDetailReport(Request $request, User $user)
+    {
+        if (AuthHelper::isTelecaller() && !\App\Helpers\RoleHelper::is_team_lead()) {
+            abort(403, 'Access denied. Only team leads can access telecaller reports.');
+        }
+
+        if ((int) $user->role_id !== 3 || !$this->canViewTelecallerInReport($user)) {
+            abort(403, 'Access denied for this telecaller.');
+        }
+
+        [$fromDate, $toDate, $dateRange] = $this->resolveTelecallerReportDates($request);
+
+        $user->load(['team:id,name']);
+
+        $reportData = $this->getTelecallerReport($fromDate, $toDate, null, $user->id);
+        $telecallerRow = $reportData['rows']->first();
+
+        $leadSummary = [
+            'total_leads' => (int) ($telecallerRow->total_leads ?? 0),
+            'active_leads' => (int) ($telecallerRow->active_leads ?? 0),
+            'converted_leads' => (int) ($telecallerRow->converted_leads ?? 0),
+            'conversion_rate' => (float) ($telecallerRow->conversion_rate ?? 0),
+        ];
+
+        $statusBreakdown = TelecallerPerformanceReportBuilder::leadStatusBreakdownForTelecaller($user->id, $fromDate, $toDate);
+        $sourceBreakdown = TelecallerPerformanceReportBuilder::leadSourceBreakdownForTelecaller($user->id, $fromDate, $toDate);
+        $callStats = TelecallerPerformanceReportBuilder::callAnalyticsForTelecaller($user->id, $fromDate, $toDate);
+
+        $filterQueryParams = array_filter([
+            'date_range' => $dateRange,
+            'date_from' => $dateRange === DateRangeHelper::PRESET_CUSTOM ? $fromDate : null,
+            'date_to' => $dateRange === DateRangeHelper::PRESET_CUSTOM ? $toDate : null,
+        ], fn ($value) => $value !== null && $value !== '');
+
+        $calls = CallAppLog::query()
+            ->forReportPeriod($fromDate, $toDate)
+            ->where('telecaller_id', $user->id)
+            ->orderByDesc('started_at_ms')
+            ->paginate(25)
+            ->appends($filterQueryParams);
+
+        $leadsQuery = Lead::with(['leadStatus:id,title,color', 'leadSource:id,title'])
+            ->where('telecaller_id', $user->id)
+            ->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
+
+        $this->applyRoleBasedFilter($leadsQuery);
+        $leads = $leadsQuery->orderBy('created_at', 'desc')->paginate(20)->appends($filterQueryParams);
+
+        return view('admin.reports.telecaller-detail', compact(
+            'user',
+            'fromDate',
+            'toDate',
+            'dateRange',
+            'leadSummary',
+            'statusBreakdown',
+            'sourceBreakdown',
+            'callStats',
+            'calls',
+            'leads',
+            'filterQueryParams'
         ));
     }
 
