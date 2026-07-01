@@ -43,6 +43,7 @@ class TelecallerPerformanceReportBuilder
                 'conversion_rate' => $totalLeads > 0 ? round(($convertedLeads / $totalLeads) * 100, 1) : 0.0,
                 'total_calls' => (int) ($calls->total_calls ?? 0),
                 'connected_calls' => (int) ($calls->connected_calls ?? 0),
+                'attended_calls' => (int) ($calls->attended_calls ?? 0),
                 'incoming_calls' => (int) ($calls->incoming_calls ?? 0),
                 'outgoing_calls' => (int) ($calls->outgoing_calls ?? 0),
                 'not_picked_calls' => (int) ($calls->not_picked_calls ?? 0),
@@ -244,9 +245,10 @@ class TelecallerPerformanceReportBuilder
 
         $aggregates = (clone $query)
             ->selectRaw('COUNT(*) as total_calls')
+            ->selectRaw(CallAppLog::attendedCallsAggregateSql())
             ->selectRaw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls")
             ->selectRaw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls")
-            ->selectRaw("SUM(CASE WHEN call_type = 'not_picked' OR remarks = 'Not Picked' THEN 1 ELSE 0 END) as not_picked_calls")
+            ->selectRaw('SUM(CASE WHEN ' . CallAppLog::notPickedSqlCondition() . ' THEN 1 ELSE 0 END) as not_picked_calls')
             ->selectRaw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls")
             ->selectRaw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls")
             ->selectRaw('SUM(duration_seconds) as total_duration_seconds')
@@ -257,6 +259,7 @@ class TelecallerPerformanceReportBuilder
         return [
             'total_calls' => (int) ($aggregates->total_calls ?? 0),
             'connected_calls' => CallAppLog::countDistinctConnectedContacts($query),
+            'attended_calls' => (int) ($aggregates->attended_calls ?? 0),
             'incoming_calls' => (int) ($aggregates->incoming_calls ?? 0),
             'outgoing_calls' => (int) ($aggregates->outgoing_calls ?? 0),
             'not_picked_calls' => (int) ($aggregates->not_picked_calls ?? 0),
@@ -280,6 +283,7 @@ class TelecallerPerformanceReportBuilder
         return [
             'total_calls' => (int) ($stats->total_calls ?? 0),
             'connected_calls' => (int) ($stats->connected_calls ?? 0),
+            'attended_calls' => (int) ($stats->attended_calls ?? 0),
             'incoming_calls' => (int) ($stats->incoming_calls ?? 0),
             'outgoing_calls' => (int) ($stats->outgoing_calls ?? 0),
             'not_picked_calls' => (int) ($stats->not_picked_calls ?? 0),

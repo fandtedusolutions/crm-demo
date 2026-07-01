@@ -127,6 +127,7 @@
                                 <th>Telecaller</th>
                                 <th class="text-center">Total</th>
                                 <th class="text-center">Connected <span class="text-muted fw-normal text-lowercase">(unique)</span></th>
+                                <th class="text-center">Attended</th>
                                 <th class="text-center">Incoming</th>
                                 <th class="text-center">Outgoing</th>
                                 <th class="text-center">Not Picked</th>
@@ -163,6 +164,9 @@
                                         <a href="{{ $reportMetricUrl('connected', $row->telecaller_id) }}" class="report-metric-link {{ $isActiveMetric('connected', $row->telecaller_id) ? 'is-active' : '' }}">{{ number_format($row->connected_calls) }}</a>
                                     </td>
                                     <td class="text-center">
+                                        <a href="{{ $reportMetricUrl('attended', $row->telecaller_id) }}" class="report-metric-link {{ $isActiveMetric('attended', $row->telecaller_id) ? 'is-active' : '' }}">{{ number_format($row->attended_calls) }}</a>
+                                    </td>
+                                    <td class="text-center">
                                         <a href="{{ $reportMetricUrl('incoming', $row->telecaller_id) }}" class="report-metric-link {{ $isActiveMetric('incoming', $row->telecaller_id) ? 'is-active' : '' }}">{{ number_format($row->incoming_calls) }}</a>
                                     </td>
                                     <td class="text-center">
@@ -188,7 +192,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="13">
+                                    <td colspan="14">
                                         <div class="ca-empty-state">
                                             <i class="ti ti-chart-bar"></i>
                                             <p>No report data found for the selected filters.</p>
@@ -203,6 +207,7 @@
                                 <td colspan="2"><strong>Grand Total</strong></td>
                                 <td class="text-center"><a href="{{ $reportMetricUrl('total') }}" class="report-metric-link {{ $isActiveMetric('total') ? 'is-active' : '' }}">{{ number_format($grandTotals['total_calls']) }}</a></td>
                                 <td class="text-center"><a href="{{ $reportMetricUrl('connected') }}" class="report-metric-link {{ $isActiveMetric('connected') ? 'is-active' : '' }}">{{ number_format($grandTotals['connected_calls']) }}</a></td>
+                                <td class="text-center"><a href="{{ $reportMetricUrl('attended') }}" class="report-metric-link {{ $isActiveMetric('attended') ? 'is-active' : '' }}">{{ number_format($grandTotals['attended_calls']) }}</a></td>
                                 <td class="text-center"><a href="{{ $reportMetricUrl('incoming') }}" class="report-metric-link {{ $isActiveMetric('incoming') ? 'is-active' : '' }}">{{ number_format($grandTotals['incoming_calls']) }}</a></td>
                                 <td class="text-center"><a href="{{ $reportMetricUrl('outgoing') }}" class="report-metric-link {{ $isActiveMetric('outgoing') ? 'is-active' : '' }}">{{ number_format($grandTotals['outgoing_calls']) }}</a></td>
                                 <td class="text-center"><a href="{{ $reportMetricUrl('not_picked') }}" class="report-metric-link {{ $isActiveMetric('not_picked') ? 'is-active' : '' }}">{{ number_format($grandTotals['not_picked_calls']) }}</a></td>

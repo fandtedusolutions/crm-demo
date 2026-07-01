@@ -94,6 +94,26 @@ class CallAppLog extends Model
         return $query->whereIn('telecaller_id', $telecallerIds);
     }
 
+    public static function notPickedSqlCondition(): string
+    {
+        return "(call_type = 'not_picked' OR remarks = 'Not Picked')";
+    }
+
+    public static function attendedCallsAggregateSql(): string
+    {
+        return 'SUM(CASE WHEN call_type IN (\'incoming\', \'outgoing\') AND NOT '
+            . self::notPickedSqlCondition()
+            . ' THEN 1 ELSE 0 END) as attended_calls';
+    }
+
+    public function scopeAttended(Builder $query): Builder
+    {
+        return $query->whereIn('call_type', ['incoming', 'outgoing'])
+            ->where(function ($q) {
+                $q->whereNull('remarks')->orWhere('remarks', '!=', 'Not Picked');
+            });
+    }
+
     /**
      * Aggregate columns used by telecaller performance / call analytics reports.
      *
@@ -105,9 +125,10 @@ class CallAppLog extends Model
             'telecaller_id',
             DB::raw('COUNT(*) as total_calls'),
             DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_calls"),
+            DB::raw(self::attendedCallsAggregateSql()),
             DB::raw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls"),
             DB::raw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls"),
-            DB::raw("SUM(CASE WHEN call_type = 'not_picked' OR remarks = 'Not Picked' THEN 1 ELSE 0 END) as not_picked_calls"),
+            DB::raw('SUM(CASE WHEN ' . self::notPickedSqlCondition() . ' THEN 1 ELSE 0 END) as not_picked_calls'),
             DB::raw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls"),
             DB::raw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls"),
             DB::raw('SUM(duration_seconds) as total_duration_seconds'),
@@ -161,9 +182,10 @@ class CallAppLog extends Model
 
         $aggregates = (clone $query)
             ->selectRaw('COUNT(*) as total_calls')
+            ->selectRaw(self::attendedCallsAggregateSql())
             ->selectRaw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls")
             ->selectRaw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls")
-            ->selectRaw("SUM(CASE WHEN call_type = 'not_picked' OR remarks = 'Not Picked' THEN 1 ELSE 0 END) as not_picked_calls")
+            ->selectRaw('SUM(CASE WHEN ' . self::notPickedSqlCondition() . ' THEN 1 ELSE 0 END) as not_picked_calls')
             ->selectRaw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls")
             ->selectRaw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls")
             ->selectRaw('SUM(duration_seconds) as total_duration_seconds')
@@ -174,6 +196,7 @@ class CallAppLog extends Model
         return [
             'total_calls' => (int) ($aggregates->total_calls ?? 0),
             'connected_calls' => static::countDistinctConnectedContacts($query),
+            'attended_calls' => (int) ($aggregates->attended_calls ?? 0),
             'incoming_calls' => (int) ($aggregates->incoming_calls ?? 0),
             'outgoing_calls' => (int) ($aggregates->outgoing_calls ?? 0),
             'not_picked_calls' => (int) ($aggregates->not_picked_calls ?? 0),
@@ -193,6 +216,7 @@ class CallAppLog extends Model
         return [
             'total_calls' => 0,
             'connected_calls' => 0,
+            'attended_calls' => 0,
             'incoming_calls' => 0,
             'outgoing_calls' => 0,
             'not_picked_calls' => 0,

@@ -232,6 +232,7 @@
 <div class="row g-2 mb-4">
     @foreach([
         ['label' => 'Connected (unique)', 'val' => $callTotals['connected_calls'] ?? 0],
+        ['label' => 'Total Attended', 'val' => $callTotals['attended_calls'] ?? 0],
         ['label' => 'Incoming', 'val' => $callTotals['incoming_calls'] ?? 0],
         ['label' => 'Outgoing', 'val' => $callTotals['outgoing_calls'] ?? 0],
         ['label' => 'Not Picked', 'val' => $callTotals['not_picked_calls'] ?? 0],
@@ -431,6 +432,7 @@
         const items = [
             { label: 'Total Calls', val: stats.total_calls, icon: 'ti-phone-call', cls: 'icon-primary' },
             { label: 'Connected (unique)', val: stats.connected_calls, icon: 'ti-phone-check', cls: 'icon-success' },
+            { label: 'Total Attended', val: stats.attended_calls, icon: 'ti-phone-incoming', cls: 'icon-primary' },
             { label: 'Incoming', val: stats.incoming_calls, icon: 'ti-phone-incoming', cls: 'icon-info' },
             { label: 'Outgoing', val: stats.outgoing_calls, icon: 'ti-phone-outgoing', cls: 'icon-primary' },
             { label: 'Not Picked', val: stats.not_picked_calls, icon: 'ti-phone-off', cls: 'icon-muted' },

@@ -34,6 +34,22 @@
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
+                        <h6 class="mb-2 f-w-400 text-muted">Total Attended</h6>
+                        <h4 class="mb-0 text-primary">{{ number_format($stats['attended_calls'] ?? 0) }}</h4>
+                        <small class="text-muted">Incoming + outgoing, excl. Not Picked</small>
+                    </div>
+                    <div class="stat-icon icon-primary">
+                        <i class="ti ti-phone-incoming"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg">
+        <div class="card ca-stat-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
                         <h6 class="mb-2 f-w-400 text-muted">Talk Time</h6>
                         <h4 class="mb-0">{{ \App\Models\CallAppLog::formatDuration($stats['total_duration_seconds']) }}</h4>
                     </div>

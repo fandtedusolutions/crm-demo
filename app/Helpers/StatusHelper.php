@@ -42,9 +42,9 @@ class StatusHelper
      * @param int $statusId
      * @return string
      */
-    public static function getLeadStatusColorClass($statusId)
+    public static function getLeadStatusColorClass($statusId = null)
     {
-        switch ($statusId) {
+        switch ((int) $statusId) {
             case 1: // Un Touched Leads
                 return 'bg-primary text-white';
             case 2: // Follow-up

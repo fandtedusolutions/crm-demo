@@ -117,13 +117,13 @@
                     </div>
                     <div class="col-lg-3 col-md-6 col-sm-6">
                         <div class="text-center p-3 border rounded">
-                            <h3 class="text-success mb-2">{{ $reports['lead_source']->max('count') }}</h3>
+                            <h3 class="text-success mb-2">{{ $reports['lead_source']->max('count') ?? 0 }}</h3>
                             <p class="text-muted mb-0 fw-medium">Highest Source</p>
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6 col-sm-6">
                         <div class="text-center p-3 border rounded">
-                            <h3 class="text-warning mb-2">{{ round($reports['lead_source']->avg('count'), 1) }}</h3>
+                            <h3 class="text-warning mb-2">{{ $reports['lead_source']->isNotEmpty() ? round($reports['lead_source']->avg('count'), 1) : 0 }}</h3>
                             <p class="text-muted mb-0 fw-medium">Average per Source</p>
                         </div>
                     </div>
@@ -265,7 +265,7 @@
                             <tbody>
                                 @foreach($leads as $lead)
                                     <tr>
-                                        <td>{{ $loop->iteration }}</td>
+                                        <td>{{ $leads->firstItem() + $loop->index }}</td>
                                         <td>{{ $lead->title }}</td>
                                         <td>
                                             @if($lead->is_b2b)
@@ -277,7 +277,7 @@
                                         <td>{{ $lead->phone }}</td>
                                         <td>{{ $lead->email ?? '-' }}</td>
                                         <td>
-                                            <span class="badge {{ \App\Helpers\StatusHelper::getLeadStatusColorClass($lead->leadStatus->id) }}">
+                                            <span class="badge {{ \App\Helpers\StatusHelper::getLeadStatusColorClass($lead->leadStatus?->id) }}">
                                                 {{ $lead->leadStatus->title ?? 'Unknown' }}
                                             </span>
                                         </td>
@@ -292,6 +292,11 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($leads->hasPages())
+                        <div class="mt-3">
+                            {{ $leads->links('pagination::bootstrap-5') }}
+                        </div>
+                    @endif
                 @else
                     <div class="text-center text-muted py-4">
                         <i class="ti ti-users f-48 mb-3"></i>
@@ -401,7 +406,7 @@ $(document).ready(function() {
         responsive: true,
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-        order: [[7, 'desc']], // Sort by created date descending
+        order: [[8, 'desc']], // Sort by created date descending
         columnDefs: [
             { orderable: false, targets: [0] } // Disable sorting on # column
         ],

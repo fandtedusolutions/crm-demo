@@ -62,6 +62,7 @@ class CallAnalyticsController extends Controller
         return [
             'total_calls' => (clone $statsQuery)->count(),
             'connected_calls' => $this->countConnectedCalls($statsQuery),
+            'attended_calls' => $this->countAttendedCalls($statsQuery),
             'total_duration_seconds' => (int) (clone $statsQuery)->sum('duration_seconds'),
             'with_recording' => (clone $statsQuery)->where('has_recording', true)->count(),
             'recordings_uploaded' => (clone $statsQuery)->where('recording_uploaded', true)->count(),
@@ -129,6 +130,9 @@ class CallAnalyticsController extends Controller
             case 'outgoing':
                 $query->where('call_type', 'outgoing');
                 break;
+            case 'attended':
+                $query->attended();
+                break;
             case 'not_picked':
                 $query->where(function ($q) {
                     $q->where('call_type', 'not_picked')
@@ -152,6 +156,7 @@ class CallAnalyticsController extends Controller
             'connected' => 'Connected Contacts',
             'incoming' => 'Incoming Calls',
             'outgoing' => 'Outgoing Calls',
+            'attended' => 'Attended Calls',
             'not_picked' => 'Not Picked Calls',
             'missed' => 'Missed Calls',
             'rejected' => 'Rejected Calls',
@@ -264,6 +269,11 @@ class CallAnalyticsController extends Controller
             ->value('connected_count');
     }
 
+    private function countAttendedCalls($query): int
+    {
+        return (int) (clone $query)->attended()->count();
+    }
+
     private function getTelecallers()
     {
         $activeIds = CallAppLog::query()->distinct()->pluck('telecaller_id');
@@ -330,9 +340,10 @@ class CallAnalyticsController extends Controller
                 'telecaller_id',
                 DB::raw('COUNT(*) as total_calls'),
                 DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_calls"),
+                DB::raw(CallAppLog::attendedCallsAggregateSql()),
                 DB::raw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls"),
                 DB::raw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls"),
-                DB::raw("SUM(CASE WHEN call_type = 'not_picked' OR remarks = 'Not Picked' THEN 1 ELSE 0 END) as not_picked_calls"),
+                DB::raw('SUM(CASE WHEN ' . CallAppLog::notPickedSqlCondition() . ' THEN 1 ELSE 0 END) as not_picked_calls'),
                 DB::raw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls"),
                 DB::raw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls"),
                 DB::raw('SUM(duration_seconds) as total_duration_seconds'),
@@ -350,6 +361,7 @@ class CallAnalyticsController extends Controller
         $grandTotals = [
             'total_calls' => $rows->sum('total_calls'),
             'connected_calls' => $this->countConnectedCalls($query),
+            'attended_calls' => $rows->sum('attended_calls'),
             'incoming_calls' => $rows->sum('incoming_calls'),
             'outgoing_calls' => $rows->sum('outgoing_calls'),
             'not_picked_calls' => $rows->sum('not_picked_calls'),

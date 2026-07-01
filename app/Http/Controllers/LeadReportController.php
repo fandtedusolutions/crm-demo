@@ -107,7 +107,7 @@ class LeadReportController extends Controller
         }
 
         $this->applyRoleBasedFilter($leadsQuery);
-        $leads = $leadsQuery->orderBy('created_at', 'desc')->get();
+        $leads = $leadsQuery->orderBy('created_at', 'desc')->paginate(25)->withQueryString();
 
         return view('admin.reports.lead-source', compact('reports', 'leads', 'fromDate', 'toDate', 'leadSources', 'leadSourceId'));
     }
@@ -466,43 +466,33 @@ class LeadReportController extends Controller
 
     private function getMonthlyReport($fromDate, $toDate)
     {
-        $months = [];
-        $startDate = Carbon::parse($fromDate);
-        $endDate = Carbon::parse($toDate);
+        $query = Lead::query()
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month_key")
+            ->selectRaw("MIN(DATE_FORMAT(created_at, '%b %Y')) as month")
+            ->selectRaw('COUNT(*) as total_leads')
+            ->selectRaw('SUM(CASE WHEN is_converted = 1 THEN 1 ELSE 0 END) as converted')
+            ->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
 
-        // Generate all months in the range
-        while ($startDate->lte($endDate)) {
-            $monthKey = $startDate->format('Y-m');
-            $monthName = $startDate->format('M Y');
+        $this->applyRoleBasedFilter($query);
 
-            // Get total leads for this month
-            $totalLeadsQuery = Lead::whereYear('created_at', $startDate->year)
-                ->whereMonth('created_at', $startDate->month);
-            $this->applyRoleBasedFilter($totalLeadsQuery);
-            $totalLeads = $totalLeadsQuery->count();
+        return $query
+            ->groupBy('month_key')
+            ->orderBy('month_key')
+            ->get()
+            ->map(function ($row) {
+                $totalLeads = (int) $row->total_leads;
+                $convertedLeads = (int) $row->converted;
 
-            // Get converted leads for this month
-            $convertedLeadsQuery = Lead::whereYear('created_at', $startDate->year)
-                ->whereMonth('created_at', $startDate->month)
-                ->where('is_converted', true);
-            $this->applyRoleBasedFilter($convertedLeadsQuery);
-            $convertedLeads = $convertedLeadsQuery->count();
-
-            // Calculate conversion rate
-            $conversionRate = $totalLeads > 0 ? round(($convertedLeads / $totalLeads) * 100, 2) : 0;
-
-            $months[] = (object)[
-                'month' => $monthName,
-                'count' => $totalLeads,
-                'total_leads' => $totalLeads,
-                'converted' => $convertedLeads,
-                'conversion_rate' => $conversionRate
-            ];
-
-            $startDate->addMonth();
-        }
-
-        return collect($months);
+                return (object) [
+                    'month' => $row->month,
+                    'count' => $totalLeads,
+                    'total_leads' => $totalLeads,
+                    'converted' => $convertedLeads,
+                    'conversion_rate' => $totalLeads > 0
+                        ? round(($convertedLeads / $totalLeads) * 100, 2)
+                        : 0,
+                ];
+            });
     }
 
     private function getConversionReport($fromDate, $toDate)
