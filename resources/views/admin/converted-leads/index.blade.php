@@ -238,15 +238,13 @@
                                     <th>#</th>
                                     <th>Academic</th>
                                     <th>Support</th>
-                                    <th>Academic Document Approved</th>
                                     <th>Converted Date</th>
-                                    <th>Academic Verified At</th>
-                                    <th>Support Verified At</th>
                                     <th>Register Number</th>
+                                    <th>Name</th>
+                                    <th>BDE Name</th>
+                                    <th>Phone</th>
                                     <th>DOB</th>
                                     <th>Type</th>
-                                    <th>Name</th>
-                                    <th>Phone</th>
                                     <th>WhatsApp</th>
                                     @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
                                     <th>Parent Phone</th>
@@ -258,6 +256,9 @@
                                     <th>Cancelled By</th>
                                     <th>REG. FEE</th>
                                     <th>Mail</th>
+                                    <th>Academic Document Approved</th>
+                                    <th>Academic Verified At</th>
+                                    <th>Support Verified At</th>
                                     <th>Lead Created By</th>
                                     <th>Pending Payment</th>
                                     <th>Actions</th>
@@ -321,15 +322,13 @@ $convertedLeadsColumns = [
     ['data' => 'index', 'name' => 'index', 'orderable' => false, 'searchable' => false],
     ['data' => 'academic', 'name' => 'academic', 'orderable' => false, 'searchable' => false],
     ['data' => 'support', 'name' => 'support', 'orderable' => false, 'searchable' => false],
-    ['data' => 'academic_doc_approved', 'name' => 'academic_doc_approved', 'orderable' => false, 'searchable' => false],
     ['data' => 'converted_date', 'name' => 'converted_date', 'orderable' => false, 'searchable' => false],
-    ['data' => 'academic_verified_at', 'name' => 'academic_verified_at', 'orderable' => false, 'searchable' => false],
-    ['data' => 'support_verified_at', 'name' => 'support_verified_at', 'orderable' => false, 'searchable' => false],
     ['data' => 'register_number', 'name' => 'register_number', 'orderable' => false, 'searchable' => false],
+    ['data' => 'name', 'name' => 'name', 'orderable' => false, 'searchable' => false],
+    ['data' => 'bde_name', 'name' => 'bde_name', 'orderable' => false, 'searchable' => false],
+    ['data' => 'phone', 'name' => 'phone', 'orderable' => false, 'searchable' => false],
     ['data' => 'dob', 'name' => 'dob', 'orderable' => false, 'searchable' => false],
     ['data' => 'type', 'name' => 'type', 'orderable' => false, 'searchable' => false],
-    ['data' => 'name', 'name' => 'name', 'orderable' => false, 'searchable' => false],
-    ['data' => 'phone', 'name' => 'phone', 'orderable' => false, 'searchable' => false],
     ['data' => 'whatsapp', 'name' => 'whatsapp', 'orderable' => false, 'searchable' => false],
 ];
 if (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant()) {
@@ -343,6 +342,9 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
     ['data' => 'cancelled_by', 'name' => 'cancelled_by', 'orderable' => false, 'searchable' => false],
     ['data' => 'reg_fee', 'name' => 'reg_fee', 'orderable' => false, 'searchable' => false],
     ['data' => 'email', 'name' => 'email', 'orderable' => false, 'searchable' => false],
+    ['data' => 'academic_doc_approved', 'name' => 'academic_doc_approved', 'orderable' => false, 'searchable' => false],
+    ['data' => 'academic_verified_at', 'name' => 'academic_verified_at', 'orderable' => false, 'searchable' => false],
+    ['data' => 'support_verified_at', 'name' => 'support_verified_at', 'orderable' => false, 'searchable' => false],
     ['data' => 'lead_created_by', 'name' => 'lead_created_by', 'orderable' => false, 'searchable' => false],
     ['data' => 'pending_payment', 'name' => 'pending_payment', 'orderable' => false, 'searchable' => false],
     ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],
@@ -478,13 +480,35 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
     }
 
     #convertedLeadsTable thead th:nth-child(2),
-    #convertedLeadsTable tbody td:nth-child(2) {
-        min-width: 140px;
-    }
-
+    #convertedLeadsTable tbody td:nth-child(2),
     #convertedLeadsTable thead th:nth-child(3),
     #convertedLeadsTable tbody td:nth-child(3) {
-        min-width: 140px;
+        min-width: 108px;
+        max-width: 125px;
+        width: 118px;
+        padding-left: 6px;
+        padding-right: 6px;
+        text-align: center;
+    }
+
+    #convertedLeadsTable thead th:nth-child(2),
+    #convertedLeadsTable thead th:nth-child(3) {
+        font-size: 0.85rem;
+    }
+
+    #convertedLeadsTable .verify-status-compact .verify-badge-compact {
+        font-size: 0.72rem;
+        padding: 0.28em 0.45em;
+        font-weight: 500;
+        line-height: 1.25;
+    }
+
+    #convertedLeadsTable .verify-status-compact .verify-toggle-compact {
+        min-width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     #convertedLeadsTable thead th:nth-child(4),

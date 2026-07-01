@@ -9,4 +9,5 @@
     'toggleUrl' => $canToggleSupport ? route('admin.support-converted-leads.toggle-support-verify', $convertedLead->id) : null,
     'title' => 'support',
     'useModal' => true,
+    'compact' => true,
 ])

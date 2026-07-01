@@ -11,24 +11,27 @@
     $iconClass = $isVerified ? 'ti-x' : 'ti-check';
     $buttonLabel = $isVerified ? 'Unverify' : 'Verify';
     $useModal = $useModal ?? false;
+    $compact = $compact ?? false;
 @endphp
 
-<span class="badge {{ $badgeClass }}{{ $showToggle ? ' me-1' : '' }}">
-    {{ $isVerified ? 'Verified' : 'Not Verified' }}
+<span class="{{ $compact ? 'verify-status-compact d-inline-flex align-items-center gap-1' : '' }}">
+<span class="badge {{ $badgeClass }}{{ $showToggle && !$compact ? ' me-1' : '' }}{{ $compact ? ' verify-badge-compact' : '' }}">
+    {{ $compact ? ($isVerified ? 'Verified' : 'Pending') : ($isVerified ? 'Verified' : 'Not Verified') }}
 </span>
 
 @if($showToggle && $toggleUrl)
     <button type="button"
-        class="btn btn-sm {{ $buttonClass }} toggle-{{ $statusType }}-verify-btn"
+        class="btn btn-sm {{ $buttonClass }} toggle-{{ $statusType }}-verify-btn{{ $compact ? ' verify-toggle-compact' : '' }}"
         @if($useModal) data-use-modal="1" @endif
         data-id="{{ $convertedLead->id }}"
         data-name="{{ $convertedLead->name }}"
         data-verified="{{ $isVerified ? 1 : 0 }}"
         data-url="{{ $toggleUrl }}"
         title="{{ $buttonLabel }} {{ $title }}">
-        <i class="ti {{ $iconClass }}"></i>
+        <i class="ti {{ $iconClass }}{{ $compact ? ' f-14' : '' }}"></i>
     </button>
 @endif
+</span>
 
 @once
     @push('scripts')

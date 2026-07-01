@@ -32,14 +32,12 @@ class ConvertedLeadsExport implements FromCollection, WithHeadings, WithMapping,
             'S.No',
             'Academic',
             'Support',
-            'Academic Document Approved',
             'Converted Date',
-            'Academic Verified At',
-            'Support Verified At',
             'Register Number',
-            'DOB',
             'Name',
+            'BDE Name',
             'Phone',
+            'DOB',
             'WhatsApp',
             'Parent Phone',
             'Course',
@@ -49,6 +47,10 @@ class ConvertedLeadsExport implements FromCollection, WithHeadings, WithMapping,
             'Cancelled By',
             'REG. FEE',
             'Mail',
+            'Academic Document Approved',
+            'Academic Verified At',
+            'Support Verified At',
+            'Lead Created By',
             'Pending Payment',
         ];
     }
@@ -71,19 +73,17 @@ class ConvertedLeadsExport implements FromCollection, WithHeadings, WithMapping,
             $serialNumber,
             $convertedLead->is_academic_verified ? 'Yes' : 'No',
             $convertedLead->is_support_verified ? 'Yes' : 'No',
-            $convertedLead->leadDetail && $convertedLead->leadDetail->reviewed_at ? 'Yes' : 'No',
             $convertedLead->created_at ? $convertedLead->created_at->format('d-m-Y') : '-',
-            $convertedLead->academic_verified_at ? \Carbon\Carbon::parse($convertedLead->academic_verified_at)->format('d-m-Y h:i A') : '-',
-            $convertedLead->support_verified_at ? \Carbon\Carbon::parse($convertedLead->support_verified_at)->format('d-m-Y h:i A') : '-',
             $convertedLead->register_number ?? '-',
-            $convertedLead->dob ? \Carbon\Carbon::parse($convertedLead->dob)->format('d-m-Y') : '-',
             $convertedLead->name ?? '-',
+            $convertedLead->lead && $convertedLead->lead->telecaller ? $convertedLead->lead->telecaller->name : '-',
             $convertedLead->code && $convertedLead->phone ? ($convertedLead->code . $convertedLead->phone) : ($convertedLead->phone ?? '-'),
-            ($convertedLead->leadDetail && $convertedLead->leadDetail->whatsapp_number) 
-                ? ($convertedLead->leadDetail->whatsapp_code . $convertedLead->leadDetail->whatsapp_number) 
+            $convertedLead->dob ? \Carbon\Carbon::parse($convertedLead->dob)->format('d-m-Y') : '-',
+            ($convertedLead->leadDetail && $convertedLead->leadDetail->whatsapp_number)
+                ? ($convertedLead->leadDetail->whatsapp_code . $convertedLead->leadDetail->whatsapp_number)
                 : '-',
-            ($convertedLead->leadDetail && $convertedLead->leadDetail->parents_number) 
-                ? ($convertedLead->leadDetail->parents_code . $convertedLead->leadDetail->parents_number) 
+            ($convertedLead->leadDetail && $convertedLead->leadDetail->parents_number)
+                ? ($convertedLead->leadDetail->parents_code . $convertedLead->leadDetail->parents_number)
                 : '-',
             $convertedLead->course ? $convertedLead->course->title : '-',
             $convertedLead->batch ? $convertedLead->batch->title : '-',
@@ -92,6 +92,12 @@ class ConvertedLeadsExport implements FromCollection, WithHeadings, WithMapping,
             $convertedLead->cancelledBy ? $convertedLead->cancelledBy->name : '-',
             $convertedLead->studentDetails ? ($convertedLead->studentDetails->reg_fee ?? '-') : '-',
             $convertedLead->email ?? '-',
+            $convertedLead->leadDetail && $convertedLead->leadDetail->reviewed_at
+                ? \Carbon\Carbon::parse($convertedLead->leadDetail->reviewed_at)->format('d-m-Y h:i A')
+                : '-',
+            $convertedLead->academic_verified_at ? \Carbon\Carbon::parse($convertedLead->academic_verified_at)->format('d-m-Y h:i A') : '-',
+            $convertedLead->support_verified_at ? \Carbon\Carbon::parse($convertedLead->support_verified_at)->format('d-m-Y h:i A') : '-',
+            $convertedLead->lead && $convertedLead->lead->createdBy ? $convertedLead->lead->createdBy->name : '-',
             number_format($pendingPayment, 2),
         ];
     }

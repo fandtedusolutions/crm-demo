@@ -117,6 +117,7 @@ class ConvertedLeadController extends Controller
 
             $convertedLeads = (clone $filteredQuery)->with([
                 'lead.createdBy',
+                'lead.telecaller',
                 'lead.team',
                 'course',
                 'cancelledBy',
@@ -434,27 +435,23 @@ class ConvertedLeadController extends Controller
             ? e($convertedLead->lead->createdBy->name)
             : '<span class="text-muted">N/A</span>';
 
+        $bdeName = ($convertedLead->lead && $convertedLead->lead->telecaller)
+            ? e($convertedLead->lead->telecaller->name)
+            : '<span class="text-muted">N/A</span>';
+
         $row = [
             'DT_RowId' => 'converted_lead_'.$convertedLead->id,
             'DT_RowClass' => $convertedLead->is_cancelled ? 'cancelled-row' : '',
             'index' => (string) $displayIndex,
             'academic' => $academicHtml,
             'support' => $supportHtml,
-            'academic_doc_approved' => $academicDocumentApprovedAt
-                ? e($academicDocumentApprovedAt)
-                : '<span class="text-muted">N/A</span>',
             'converted_date' => e($convertedDate),
-            'academic_verified_at' => $academicVerifiedAt
-                ? e($academicVerifiedAt)
-                : '<span class="text-muted">N/A</span>',
-            'support_verified_at' => $supportVerifiedAt
-                ? e($supportVerifiedAt)
-                : '<span class="text-muted">N/A</span>',
             'register_number' => $registerCell,
+            'name' => $nameHtml,
+            'bde_name' => $bdeName,
+            'phone' => $phoneCell,
             'dob' => e($dobDisplay),
             'type' => e($typeLabel),
-            'name' => $nameHtml,
-            'phone' => $phoneCell,
             'whatsapp' => $whatsappCell,
             'course' => e($convertedLead->course ? $convertedLead->course->title : 'N/A'),
             'batch' => e($convertedLead->batch ? $convertedLead->batch->title : 'N/A'),
@@ -463,6 +460,15 @@ class ConvertedLeadController extends Controller
             'cancelled_by' => $cancelledByHtml,
             'reg_fee' => e($regFeeValue ?? 'N/A'),
             'email' => e($convertedLead->email ?? 'N/A'),
+            'academic_doc_approved' => $academicDocumentApprovedAt
+                ? e($academicDocumentApprovedAt)
+                : '<span class="text-muted">N/A</span>',
+            'academic_verified_at' => $academicVerifiedAt
+                ? e($academicVerifiedAt)
+                : '<span class="text-muted">N/A</span>',
+            'support_verified_at' => $supportVerifiedAt
+                ? e($supportVerifiedAt)
+                : '<span class="text-muted">N/A</span>',
             'lead_created_by' => $leadCreatedBy,
             'pending_payment' => $pendingPayment,
             'actions' => $actionsHtml,
@@ -487,6 +493,8 @@ class ConvertedLeadController extends Controller
         $query = ConvertedLead::with([
             'lead',
             'lead.team',
+            'lead.telecaller',
+            'lead.createdBy',
             'course',
             'academicAssistant',
             'createdBy',

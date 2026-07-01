@@ -10,4 +10,5 @@
     'toggleUrl' => $canToggleAcademic ? route('admin.converted-leads.toggle-academic-verify', $convertedLead->id) : null,
     'title' => 'academic',
     'useModal' => true,
+    'compact' => true,
 ])
