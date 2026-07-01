@@ -118,6 +118,8 @@ class CallSyncController extends Controller
      */
     public function uploadRecording(Request $request)
     {
+        $this->prepareRecordingUploadRequest($request);
+
         $idValidator = Validator::make($request->all(), [
             'device_call_id' => 'nullable|string|max:120',
             'server_call_id' => 'nullable|integer',
@@ -152,36 +154,62 @@ class CallSyncController extends Controller
             return $this->recordingUploadResponse($call, $existingRecording, skipped: true);
         }
 
-        $validator = Validator::make($request->all(), [
-            'recording' => 'required|file|max:25600',
+        $file = $this->resolveRecordingUploadFile($request);
+        if (!$file) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => [
+                    'recording' => [
+                        'No recording file was received. Send multipart/form-data with a file field named "recording".',
+                    ],
+                ],
+            ], 422);
+        }
+
+        if (!$file->isValid()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => [
+                    'recording' => [$this->describeUploadError($file->getError(), $request)],
+                ],
+            ], 422);
+        }
+
+        $maxUploadKilobytes = 25600;
+        $fileSizeKilobytes = (int) ceil($file->getSize() / 1024);
+        if ($fileSizeKilobytes > $maxUploadKilobytes) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => [
+                    'recording' => [
+                        "Recording is too large ({$fileSizeKilobytes} KB). Maximum allowed size is {$maxUploadKilobytes} KB.",
+                    ],
+                ],
+            ], 422);
+        }
+
+        if (!$this->isAllowedRecordingUpload($file, $request->input('original_file_name'))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => [
+                    'recording' => [
+                        'Invalid audio file type. Allowed: amr, m4a, mp3, wav, 3gp, aac',
+                    ],
+                ],
+            ], 422);
+        }
+
+        $validated = $request->validate([
             'duration_seconds' => 'nullable|integer|min:0',
             'recorded_at_ms' => 'nullable|integer',
             'file_size_bytes' => 'nullable|integer|min:0',
             'original_file_name' => 'nullable|string|max:255',
         ]);
 
-        $validator->after(function ($validator) use ($request) {
-            $file = $request->file('recording');
-            if (!$file || $this->isAllowedRecordingUpload($file, $request->input('original_file_name'))) {
-                return;
-            }
-
-            $validator->errors()->add(
-                'recording',
-                'Invalid audio file type. Allowed: amr, m4a, mp3, wav, 3gp, aac'
-            );
-        });
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $validated = $validator->validated();
-        $file = $request->file('recording');
         $extension = $this->resolveRecordingExtension($file, $validated['original_file_name'] ?? null) ?? 'bin';
         $storedFileName = 'recording.' . $extension;
         $path = $file->storeAs(
@@ -326,6 +354,64 @@ class CallSyncController extends Controller
                 'pending_recordings' => $pendingRecordings,
             ],
         ]);
+    }
+
+    private function prepareRecordingUploadRequest(Request $request): void
+    {
+        $normalized = [];
+
+        foreach (['duration_seconds', 'recorded_at_ms', 'file_size_bytes', 'server_call_id'] as $field) {
+            $value = $request->input($field);
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            if (is_numeric($value)) {
+                $normalized[$field] = (int) $value;
+            }
+        }
+
+        if ($normalized !== []) {
+            $request->merge($normalized);
+        }
+    }
+
+    private function resolveRecordingUploadFile(Request $request)
+    {
+        foreach (['recording', 'file', 'audio'] as $field) {
+            $file = $request->file($field);
+            if ($file) {
+                return $file;
+            }
+        }
+
+        return null;
+    }
+
+    private function describeUploadError(int $errorCode, Request $request): string
+    {
+        $declaredSize = (int) $request->input('file_size_bytes', 0);
+        $declaredSizeMb = $declaredSize > 0 ? round($declaredSize / 1048576, 2) : null;
+        $iniLimit = ini_get('upload_max_filesize') ?: 'unknown';
+        $postLimit = ini_get('post_max_size') ?: 'unknown';
+
+        $message = match ($errorCode) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Recording exceeds the server upload limit'
+                . ($declaredSizeMb ? " ({$declaredSizeMb} MB sent)" : '')
+                . ". Server limits: upload_max_filesize={$iniLimit}, post_max_size={$postLimit}.",
+            UPLOAD_ERR_PARTIAL => 'Recording upload was interrupted. Please retry the upload.',
+            UPLOAD_ERR_NO_FILE => 'No recording file was attached to the request.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Server temporary folder is unavailable. Contact support.',
+            UPLOAD_ERR_CANT_WRITE => 'Server failed to write the uploaded recording. Contact support.',
+            UPLOAD_ERR_EXTENSION => 'Server blocked this recording upload type. Contact support.',
+            default => 'The recording failed to upload.',
+        };
+
+        if ($errorCode === UPLOAD_ERR_OK) {
+            return 'The recording file is invalid or incomplete. Please retry the upload.';
+        }
+
+        return $message;
     }
 
     private function resolveCallTimestamps(array $item): array
