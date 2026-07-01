@@ -261,13 +261,13 @@ class LeadController extends Controller
             'plusTwoFollowUpQuestionnaire:id,lead_id,created_at'
         ]);
 
-        // Apply filters - optimized date range query
-        // Only apply date filters if search_key is not provided (to allow searching across all dates)
-        $fromDate = $request->get('date_from', now()->subDays(7)->format('Y-m-d'));
-        $toDate = $request->get('date_to', now()->format('Y-m-d'));
-        
+        // Apply created_at date filter (not first_created_at); skip when searching all dates
         if (!$request->filled('search_key')) {
-            $query->filterByListDateRange($fromDate, $toDate);
+            $fromDate = \App\Helpers\LeadDateFilterHelper::normalizeDate($request->input('date_from'))
+                ?? now()->subDays(7)->format('Y-m-d');
+            $toDate = \App\Helpers\LeadDateFilterHelper::normalizeDate($request->input('date_to'))
+                ?? now()->format('Y-m-d');
+            \App\Helpers\LeadDateFilterHelper::applyToQuery($query, $fromDate, $toDate);
         }
 
         if ($request->filled('lead_status_id')) {
@@ -373,15 +373,12 @@ class LeadController extends Controller
         ->whereNotNull('code')
         ->whereNotNull('phone');
 
-        // Apply date filters
-        $fromDate = $request->get('date_from');
-        $toDate = $request->get('date_to');
-        
-        if ($fromDate && !$request->filled('search_key')) {
-            $baseQuery->whereDate('created_at', '>=', $fromDate);
-        }
-        if ($toDate && !$request->filled('search_key')) {
-            $baseQuery->whereDate('created_at', '<=', $toDate);
+        // Apply created_at date filters (not first_created_at)
+        if (!$request->filled('search_key')) {
+            [$fromDate, $toDate] = \App\Helpers\LeadDateFilterHelper::fromRequest($request);
+            if ($fromDate || $toDate) {
+                \App\Helpers\LeadDateFilterHelper::applyToQuery($baseQuery, $fromDate, $toDate);
+            }
         }
 
         // Apply other filters
@@ -846,15 +843,12 @@ class LeadController extends Controller
             $baseQuery = Lead::whereNotNull('code')
                 ->whereNotNull('phone');
 
-            // Apply date filters
-            $fromDate = $request->get('date_from');
-            $toDate = $request->get('date_to');
-            
-            if ($fromDate && !$request->filled('search')) {
-                $baseQuery->whereDate('created_at', '>=', $fromDate);
-            }
-            if ($toDate && !$request->filled('search')) {
-                $baseQuery->whereDate('created_at', '<=', $toDate);
+            // Apply created_at date filters (not first_created_at)
+            if (!$request->filled('search')) {
+                [$fromDate, $toDate] = \App\Helpers\LeadDateFilterHelper::fromRequest($request);
+                if ($fromDate || $toDate) {
+                    \App\Helpers\LeadDateFilterHelper::applyToQuery($baseQuery, $fromDate, $toDate);
+                }
             }
 
             // Apply other filters

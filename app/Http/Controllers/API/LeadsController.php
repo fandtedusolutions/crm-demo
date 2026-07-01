@@ -83,9 +83,10 @@ class LeadsController extends Controller
             });
         }
 
-        // Date range filter — uses leads.created_at (not first_created_at)
-        if ($request->filled('date_from') || $request->filled('date_to')) {
-            $query->filterByListDateRange($request->date_from, $request->date_to);
+        // Date range filter — always leads.created_at (never first_created_at)
+        [$fromDate, $toDate] = \App\Helpers\LeadDateFilterHelper::fromRequest($request);
+        if ($fromDate && $toDate) {
+            \App\Helpers\LeadDateFilterHelper::applyToQuery($query, $fromDate, $toDate);
         }
 
         // Order by created_at desc

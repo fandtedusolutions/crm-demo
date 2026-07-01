@@ -295,31 +295,15 @@ class Lead extends Model
      */
     public function scopeByDateRange($query, $fromDate, $toDate)
     {
-        return $query->filterByListDateRange($fromDate, $toDate);
+        return \App\Helpers\LeadDateFilterHelper::applyToQuery($query, $fromDate, $toDate);
     }
 
     /**
-     * Date-range filter for leads list/report queries — always uses created_at.
+     * Date-range filter for leads list/report queries — always uses leads.created_at.
      */
     public function scopeFilterByListDateRange($query, ?string $fromDate = null, ?string $toDate = null)
     {
-        if (empty($fromDate) && empty($toDate)) {
-            return $query;
-        }
-
-        if (!empty($fromDate) && !empty($toDate)) {
-            return $query->whereBetween('created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
-        }
-
-        if (!empty($fromDate)) {
-            $query->whereDate('created_at', '>=', $fromDate);
-        }
-
-        if (!empty($toDate)) {
-            $query->whereDate('created_at', '<=', $toDate);
-        }
-
-        return $query;
+        return \App\Helpers\LeadDateFilterHelper::applyToQuery($query, $fromDate, $toDate);
     }
 
     public function scopeNotConverted($query)
