@@ -11,6 +11,7 @@ use App\Models\Course;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\LeadActivity;
+use App\Models\BulkReassignHistory;
 use App\Models\ConvertedLead;
 use App\Models\PlusTwoFollowUpQuestionnaire;
 use App\Helpers\AuthHelper;
@@ -3374,39 +3375,45 @@ class LeadController extends Controller
         $isTeamLead = $currentUser && AuthHelper::isTeamLead();
         $isTelecaller = $currentUser && $currentUser->role_id == 3;
         $isSeniorManager = $currentUser && RoleHelper::is_senior_manager();
-        
-        // Filter telecallers based on role
+        $isGeneralManager = RoleHelper::is_general_manager();
+
         if ($isTeamLead && !$isSeniorManager) {
-            // Team Lead: Show only their team members
             $teamId = $currentUser->team_id;
             if ($teamId) {
-                $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
-                $teamMemberIds[] = AuthHelper::getCurrentUserId(); // Include team lead
-                $telecallers = User::whereIn('id', $teamMemberIds)->get();
+                $teams = Team::where('id', $teamId)->where('is_active', true)->get();
             } else {
-                $telecallers = collect([$currentUser]); // Only themselves if no team
+                $teams = collect();
             }
-        } elseif ($isTelecaller && !$isSeniorManager && !$isTeamLead) {
-            // Regular Telecaller: Show only themselves
-            $telecallers = collect([$currentUser]);
+        } elseif ($isSeniorManager || RoleHelper::is_admin_or_super_admin() || $isGeneralManager) {
+            $teams = Team::where('is_active', true)->nonMarketing()->get();
+        } elseif ($isTelecaller) {
+            $teamId = $currentUser->team_id;
+            if ($teamId) {
+                $teams = Team::where('id', $teamId)->where('is_active', true)->get();
+            } else {
+                $teams = collect();
+            }
         } else {
-            // Admin/Super Admin/Senior Manager: Show all telecallers
-            $telecallers = User::where('role_id', 3)->get();
+            $teams = Team::where('is_active', true)->nonMarketing()->get();
         }
-        
-        // No team selection needed for bulk reassign - removed teams
-        // Senior managers and admins can see all telecallers
-        
+
         $data = [
-            'telecallers' => $telecallers,
+            'teams' => $teams,
             'isSeniorManager' => $isSeniorManager,
             'leadStatuses' => LeadStatus::where('is_active', 1)->get(),
             'leadSources' => LeadSource::where('is_active', 1)->get(),
             'countries' => Country::where('is_active', 1)->get(),
             'courses' => Course::where('is_active', 1)->get(),
+            'todayReassignSummary' => BulkReassignHistory::query()
+                ->selectRaw('to_telecaller_id, SUM(leads_count) as total_leads')
+                ->whereDate('reassign_date', today())
+                ->groupBy('to_telecaller_id')
+                ->with('toTelecaller:id,name')
+                ->orderByDesc('total_leads')
+                ->get(),
         ];
 
-        return view('admin.leads.ajax-bulk-reassign', $data);
+        return view('admin.leads.bulk-reassign', $data);
     }
 
     /**
@@ -3428,7 +3435,7 @@ class LeadController extends Controller
         $validator = Validator::make($request->all(), [
             'telecaller_id' => 'required|exists:users,id',
             'lead_source_id' => 'required|exists:lead_sources,id',
-            // lead_status_id is not required as it's always set to 1 when reassigning
+            'lead_status_id' => 'required|exists:lead_statuses,id',
             'from_telecaller_id' => 'required|exists:users,id',
             'lead_from_date' => 'required|date',
             'lead_to_date' => 'required|date',
@@ -3475,7 +3482,24 @@ class LeadController extends Controller
             }
         }
 
-        return redirect()->back()->with('message_success', "Successfully reassigned {$successCount} leads!");
+        if ($successCount > 0) {
+            BulkReassignHistory::create([
+                'from_telecaller_id' => $request->from_telecaller_id,
+                'to_telecaller_id' => $request->telecaller_id,
+                'leads_count' => $successCount,
+                'lead_source_id' => $request->lead_source_id,
+                'lead_status_id' => $request->lead_status_id,
+                'lead_from_date' => $request->lead_from_date,
+                'lead_to_date' => $request->lead_to_date,
+                'reassign_date' => now()->toDateString(),
+                'reassign_time' => now()->format('H:i:s'),
+                'created_by' => AuthHelper::getCurrentUserId(),
+            ]);
+        }
+
+        return redirect()->back()
+            ->withInput($request->except(['lead_id']))
+            ->with('message_success', "Successfully reassigned {$successCount} leads!");
     }
 
     /**

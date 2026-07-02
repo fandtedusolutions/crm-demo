@@ -196,8 +196,7 @@
                             onclick="show_ajax_modal('{{ route('leads.bulk-upload.test') }}', 'Bulk Upload Leads')">
                             <i class="ti ti-upload"></i> Bulk Upload
                         </a>
-                        <a href="javascript:void(0);" class="btn btn-outline-success btn-sm px-3"
-                            onclick="show_large_modal('{{ route('admin.leads.bulk-reassign') }}', 'Bulk Reassign Leads')">
+                        <a href="{{ route('admin.leads.bulk-reassign') }}" class="btn btn-outline-success btn-sm px-3">
                             <i class="ti ti-users"></i> Bulk Reassign
                         </a>
                         @endif
@@ -262,8 +261,7 @@
                         </div>
                         <div class="col-6">
                             @if(empty($hasB2BLeadRestrictions))
-                            <a href="javascript:void(0);" class="btn btn-outline-success btn-sm w-100"
-                                onclick="show_large_modal('{{ route('admin.leads.bulk-reassign') }}', 'Bulk Reassign Leads')">
+                            <a href="{{ route('admin.leads.bulk-reassign') }}" class="btn btn-outline-success btn-sm w-100">
                                 <i class="ti ti-users me-1"></i> Reassign
                             </a>
                             @endif
