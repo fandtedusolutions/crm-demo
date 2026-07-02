@@ -82,6 +82,12 @@
                     <a href="{{ route('admin.junior-vlogger-mentor-converted-leads.index') }}" class="{{ $mentorNavBtn('admin.junior-vlogger-mentor-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> CreateX AI Converted Mentor List
                     </a>
+                    <a href="{{ route('admin.robo-vibe-mentor-converted-leads.index') }}" class="{{ $mentorNavBtn('admin.robo-vibe-mentor-converted-leads.index') }}">
+                        <i class="ti ti-user-star"></i> Robo Vibe Converted Mentor List
+                    </a>
+                    <a href="{{ route('admin.prompt-engineering-mentor-converted-leads.index') }}" class="{{ $mentorNavBtn('admin.prompt-engineering-mentor-converted-leads.index') }}">
+                        <i class="ti ti-user-star"></i> Prompt Engineering Converted Mentor List
+                    </a>
                 </div>
             </div>
         </div>

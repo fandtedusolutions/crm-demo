@@ -974,6 +974,8 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/eduthanzeel-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'eduthanzeelIndex'])->name('eduthanzeel-converted-leads.index');
         Route::get('/e-school-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'eschoolIndex'])->name('e-school-converted-leads.index');
         Route::get('/junior-vlogger-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'juniorVloggerIndex'])->name('junior-vlogger-converted-leads.index');
+        Route::get('/robo-vibe-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'roboVibeIndex'])->name('robo-vibe-converted-leads.index');
+        Route::get('/prompt-engineering-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'promptEngineeringIndex'])->name('prompt-engineering-converted-leads.index');
         Route::get('/converted-leads/{id}/update-register-number-modal', [App\Http\Controllers\ConvertedLeadController::class, 'showUpdateRegisterNumberModal'])->name('converted-leads.update-register-number-modal');
         Route::post('/converted-leads/{id}/update-register-number', [App\Http\Controllers\ConvertedLeadController::class, 'updateRegisterNumber'])->name('converted-leads.update-register-number');
         Route::put('/converted-leads/{id}/update-documents', [App\Http\Controllers\ConvertedLeadController::class, 'updateDocuments'])->name('converted-leads.update-documents');
@@ -1030,6 +1032,10 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // CreateX AI Mentor Converted Leads Routes
         Route::get('/junior-vlogger-mentor-converted-leads', [App\Http\Controllers\JuniorVloggerMentorController::class, 'index'])->name('junior-vlogger-mentor-converted-leads.index');
         Route::post('/junior-vlogger-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\JuniorVloggerMentorController::class, 'updateMentorDetails'])->name('junior-vlogger-mentor-converted-leads.update-mentor-details');
+        Route::get('/robo-vibe-mentor-converted-leads', [App\Http\Controllers\RoboVibeMentorController::class, 'index'])->name('robo-vibe-mentor-converted-leads.index');
+        Route::post('/robo-vibe-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\RoboVibeMentorController::class, 'updateMentorDetails'])->name('robo-vibe-mentor-converted-leads.update-mentor-details');
+        Route::get('/prompt-engineering-mentor-converted-leads', [App\Http\Controllers\PromptEngineeringMentorController::class, 'index'])->name('prompt-engineering-mentor-converted-leads.index');
+        Route::post('/prompt-engineering-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\PromptEngineeringMentorController::class, 'updateMentorDetails'])->name('prompt-engineering-mentor-converted-leads.update-mentor-details');
 
         // Additional Mentor Converted Leads Routes
         Route::get('/medical-coding-mentor-converted-leads', [App\Http\Controllers\AdditionalMentorCourseController::class, 'medicalCodingIndex'])->name('medical-coding-mentor-converted-leads.index');
@@ -1087,6 +1093,10 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // CreateX AI Faculty Converted Leads Routes
         Route::get('/junior-vlogger-faculty-converted-leads', [App\Http\Controllers\JuniorVloggerFacultyController::class, 'index'])->name('junior-vlogger-faculty-converted-leads.index');
         Route::post('/junior-vlogger-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\JuniorVloggerFacultyController::class, 'updateMentorDetails'])->name('junior-vlogger-faculty-converted-leads.update-mentor-details');
+        Route::get('/robo-vibe-faculty-converted-leads', [App\Http\Controllers\RoboVibeFacultyController::class, 'index'])->name('robo-vibe-faculty-converted-leads.index');
+        Route::post('/robo-vibe-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\RoboVibeFacultyController::class, 'updateMentorDetails'])->name('robo-vibe-faculty-converted-leads.update-mentor-details');
+        Route::get('/prompt-engineering-faculty-converted-leads', [App\Http\Controllers\PromptEngineeringFacultyController::class, 'index'])->name('prompt-engineering-faculty-converted-leads.index');
+        Route::post('/prompt-engineering-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\PromptEngineeringFacultyController::class, 'updateMentorDetails'])->name('prompt-engineering-faculty-converted-leads.update-mentor-details');
 
         // Grameen Mukt Vidhyalayi Shiksha Sansthan Faculty Converted Leads Routes
         Route::get('/gmvss-faculty-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'gmvssFacultyIndex'])->name('gmvss-faculty-converted-leads.index');
@@ -1183,6 +1193,10 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
 
         Route::get('/support-junior-vlogger-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'juniorVloggerIndex'])->name('support-junior-vlogger-converted-leads.index');
         Route::post('/support-junior-vlogger-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-junior-vlogger-converted-leads.update-support-details');
+        Route::get('/support-robo-vibe-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'roboVibeIndex'])->name('support-robo-vibe-converted-leads.index');
+        Route::post('/support-robo-vibe-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-robo-vibe-converted-leads.update-support-details');
+        Route::get('/support-prompt-engineering-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'promptEngineeringIndex'])->name('support-prompt-engineering-converted-leads.index');
+        Route::post('/support-prompt-engineering-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-prompt-engineering-converted-leads.update-support-details');
 
         // Invoice Routes
         Route::get('/invoices/student/{studentId}', [App\Http\Controllers\InvoiceController::class, 'index'])->name('invoices.index');

@@ -73,6 +73,12 @@
                     <a href="{{ route('admin.support-junior-vlogger-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-junior-vlogger-converted-leads.index') }}">
                         <i class="ti ti-headphones"></i> CreateX AI - Course Support List
                     </a>
+                    <a href="{{ route('admin.support-robo-vibe-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-robo-vibe-converted-leads.index') }}">
+                        <i class="ti ti-headphones"></i> Robo Vibe - Course Support List
+                    </a>
+                    <a href="{{ route('admin.support-prompt-engineering-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-prompt-engineering-converted-leads.index') }}">
+                        <i class="ti ti-headphones"></i> Prompt Engineering - Course Support List
+                    </a>
                 </div>
             </div>
         </div>

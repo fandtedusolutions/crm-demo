@@ -13,6 +13,8 @@ class CourseTitleHelper
         15 => 'Diploma in Graphic Designing',
         16 => 'Grameen Mukt Vidhyalayi Shiksha Sansthan',
         25 => 'CreateX AI',
+        33 => 'Robo Vibe',
+        34 => 'Prompt Engineering',
     ];
 
     public static function title(int $courseId, ?string $fallback = null): string

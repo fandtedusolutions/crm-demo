@@ -234,6 +234,8 @@ class PermissionHelper
             'admin/ai-integrated-video-editing-converted-leads/index',
             'admin/ai-integrated-videography-converted-leads/index',
             'admin/ai-integrated-photography-converted-leads/index',
+            'admin/robo-vibe-converted-leads/index',
+            'admin/prompt-engineering-converted-leads/index',
             'admin/eduthanzeel-converted-leads/index',
             'admin/e-school-converted-leads/index',
             'admin/payments/list',
@@ -288,6 +290,8 @@ class PermissionHelper
             'admin/support-ai-integrated-video-editing-converted-leads/index',
             'admin/support-ai-integrated-videography-converted-leads/index',
             'admin/support-ai-integrated-photography-converted-leads/index',
+            'admin/support-robo-vibe-converted-leads/index',
+            'admin/support-prompt-engineering-converted-leads/index',
             'admin/support-eduthanzeel-converted-leads/index',
             'admin/support-e-school-converted-leads/index',
         ];
@@ -367,6 +371,8 @@ class PermissionHelper
             'admin/flutter-faculty-converted-leads/index',
             'admin/rpa-faculty-converted-leads/index',
             'admin/junior-vlogger-faculty-converted-leads/index',
+            'admin/robo-vibe-faculty-converted-leads/index',
+            'admin/prompt-engineering-faculty-converted-leads/index',
         ];
 
         return in_array($permission, $permissions);

@@ -78,6 +78,12 @@
                     <a href="{{ route('admin.junior-vlogger-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.junior-vlogger-faculty-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> CreateX AI Converted Faculty List
                     </a>
+                    <a href="{{ route('admin.robo-vibe-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.robo-vibe-faculty-converted-leads.index') }}">
+                        <i class="ti ti-user-star"></i> Robo Vibe Converted Faculty List
+                    </a>
+                    <a href="{{ route('admin.prompt-engineering-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.prompt-engineering-faculty-converted-leads.index') }}">
+                        <i class="ti ti-user-star"></i> Prompt Engineering Converted Faculty List
+                    </a>
                 </div>
             </div>
         </div>

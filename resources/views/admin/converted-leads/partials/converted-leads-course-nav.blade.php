@@ -76,6 +76,12 @@
                     <a href="{{ route('admin.junior-vlogger-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.junior-vlogger-converted-leads.index') }}">
                         <i class="ti ti-video"></i> CreateX AI Converted Leads
                     </a>
+                    <a href="{{ route('admin.robo-vibe-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.robo-vibe-converted-leads.index') }}">
+                        <i class="ti ti-robot"></i> Robo Vibe Converted Leads
+                    </a>
+                    <a href="{{ route('admin.prompt-engineering-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.prompt-engineering-converted-leads.index') }}">
+                        <i class="ti ti-brain"></i> Prompt Engineering Converted Leads
+                    </a>
                 </div>
             </div>
         </div>

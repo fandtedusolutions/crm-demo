@@ -856,7 +856,7 @@ class SupportConvertedLeadController extends Controller
             'technology_side' => 'nullable|string|max:255',
             'student_status' => 'nullable|string|max:255',
             'call_1' => 'nullable|string|max:255',
-            'app' => 'nullable|string|max:255',
+            'app' => 'nullable|in:Provided app,OTP Problem,Task Completed,Not Respond',
             'whatsapp_group' => 'nullable|string|max:255',
             'telegram_group' => 'nullable|string|max:255',
             'problems' => 'nullable|string|max:500',
@@ -1125,6 +1125,16 @@ class SupportConvertedLeadController extends Controller
     public function juniorVloggerIndex(Request $request)
     {
         return $this->getCourseSupportIndex($request, 25, 'CreateX AI – Course Support List', 'admin.converted-leads.support-junior-vlogger-index');
+    }
+
+    public function roboVibeIndex(Request $request)
+    {
+        return $this->getCourseSupportIndex($request, 33, 'Robo Vibe – Course Support List', 'admin.converted-leads.support-robo-vibe-index');
+    }
+
+    public function promptEngineeringIndex(Request $request)
+    {
+        return $this->getCourseSupportIndex($request, 34, 'Prompt Engineering – Course Support List', 'admin.converted-leads.support-prompt-engineering-index');
     }
 
     /**

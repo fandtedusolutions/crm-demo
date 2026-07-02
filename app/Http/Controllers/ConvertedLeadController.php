@@ -2224,11 +2224,51 @@ class ConvertedLeadController extends Controller
      */
     public function juniorVloggerIndex(Request $request)
     {
+        return $this->juniorVloggerStyleConvertedLeadsIndex(
+            $request,
+            25,
+            'admin.converted-leads.junior-vlogger-index',
+            'juniorVloggerStudentDetails'
+        );
+    }
+
+    /**
+     * Display Robo Vibe converted leads (course_id = 33)
+     */
+    public function roboVibeIndex(Request $request)
+    {
+        return $this->juniorVloggerStyleConvertedLeadsIndex(
+            $request,
+            33,
+            'admin.converted-leads.robo-vibe-index',
+            'roboVibeStudentDetails'
+        );
+    }
+
+    /**
+     * Display Prompt Engineering converted leads (course_id = 34)
+     */
+    public function promptEngineeringIndex(Request $request)
+    {
+        return $this->juniorVloggerStyleConvertedLeadsIndex(
+            $request,
+            34,
+            'admin.converted-leads.prompt-engineering-index',
+            'promptEngineeringStudentDetails'
+        );
+    }
+
+    private function juniorVloggerStyleConvertedLeadsIndex(
+        Request $request,
+        int $courseId,
+        string $viewName,
+        string $studentDetailsRelation
+    ) {
         $query = ConvertedLead::with([
-            'lead', 'lead.team', 'lead.team.detail', 'lead.juniorVloggerStudentDetails.classTime',
+            'lead', 'lead.team', 'lead.team.detail', "lead.{$studentDetailsRelation}.classTime",
             'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject',
             'studentDetails', 'leadDetail', 'batch', 'admissionBatch'
-        ])->where('course_id', 25);
+        ])->where('course_id', $courseId);
 
         // Apply role-based filtering
         $currentUser = AuthHelper::getCurrentUser();
@@ -2310,17 +2350,17 @@ class ConvertedLeadController extends Controller
         $convertedLeads = $query->orderBy('created_at', 'desc')->get();
 
         $courses = \App\Models\Course::where('is_active', 1)->get();
-        $batches = \App\Models\Batch::where('course_id', 25)->orderBy('is_active', 'desc')->orderBy('title')->get();
+        $batches = \App\Models\Batch::where('course_id', $courseId)->orderBy('is_active', 'desc')->orderBy('title')->get();
         $admission_batches = \App\Models\AdmissionBatch::orderBy('is_active', 'desc')->orderBy('title')->get();
         $country_codes = get_country_code();
 
-        $course = \App\Models\Course::find(25);
+        $course = \App\Models\Course::find($courseId);
         $classTimes = collect();
         if ($course && $course->needs_time) {
-            $classTimes = \App\Models\ClassTime::where('course_id', 25)->where('is_active', true)->get();
+            $classTimes = \App\Models\ClassTime::where('course_id', $courseId)->where('is_active', true)->get();
         }
 
-        return view('admin.converted-leads.junior-vlogger-index', compact(
+        return view($viewName, compact(
             'convertedLeads', 'courses', 'batches', 'admission_batches', 'country_codes', 'course', 'classTimes'
         ));
     }
