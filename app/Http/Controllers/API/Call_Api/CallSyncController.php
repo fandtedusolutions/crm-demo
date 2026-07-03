@@ -8,7 +8,6 @@ use App\Models\CallAppRecording;
 use App\Services\CallRecording\RecordingFileTypeDetector;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -25,8 +24,6 @@ class CallSyncController extends Controller
      */
     public function syncCalls(Request $request)
     {
-        $this->logCallApiPost($request, 'sync/calls');
-
         try {
             $validated = $request->validate([
                 'device_id' => 'required|string|max:100',
@@ -127,8 +124,6 @@ class CallSyncController extends Controller
      */
     public function uploadRecording(Request $request)
     {
-        $this->logCallApiPost($request, 'sync/recordings');
-
         $this->prepareRecordingUploadRequest($request);
 
         $idValidator = Validator::make($request->all(), [
@@ -294,8 +289,6 @@ class CallSyncController extends Controller
      */
     public function recordingStatus(Request $request)
     {
-        $this->logCallApiPost($request, 'sync/recordings/status');
-
         try {
             $validated = $request->validate([
                 'device_call_ids' => 'required|array|min:1|max:100',
@@ -394,41 +387,6 @@ class CallSyncController extends Controller
                 'pending_recordings' => $pendingRecordings,
             ],
         ]);
-    }
-
-    private function logCallApiPost(Request $request, string $endpoint): void
-    {
-        $user = $request->user();
-
-        Log::info("Call API: {$endpoint}", [
-            'user_id' => $user?->id,
-            'user_name' => $user?->name,
-            'post_data' => $this->sanitizeCallApiPostData($request),
-            'ip' => $request->ip(),
-        ]);
-    }
-
-    private function sanitizeCallApiPostData(Request $request): array
-    {
-        $data = $request->except(['recording', 'file', 'audio', 'password', 'password_confirmation']);
-
-        foreach (['recording', 'file', 'audio'] as $field) {
-            $file = $request->file($field);
-            if (!$file) {
-                continue;
-            }
-
-            $data[$field] = [
-                'original_name' => $file->getClientOriginalName(),
-                'mime_type' => $file->getMimeType(),
-                'size_bytes' => $file->getSize(),
-                'extension' => $file->getClientOriginalExtension(),
-                'is_valid' => $file->isValid(),
-                'error' => $file->getError(),
-            ];
-        }
-
-        return $data;
     }
 
     private function prepareRecordingUploadRequest(Request $request): void
