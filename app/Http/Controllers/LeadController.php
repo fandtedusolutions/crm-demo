@@ -4852,6 +4852,7 @@ class LeadController extends Controller
             
             // Get class times for the course if it needs time
             $classTimes = collect();
+            $offlinePlaceOptions = [];
             if ($studentDetail->course_id) {
                 $course = \App\Models\Course::find($studentDetail->course_id);
                 if ($course && $course->needs_time) {
@@ -4859,9 +4860,10 @@ class LeadController extends Controller
                         ->where('is_active', true)
                         ->get();
                 }
+                $offlinePlaceOptions = \App\Support\CourseOfflinePlaceSupport::optionsForSelect($course);
             }
             
-            return view('admin.leads.registration-details', compact('studentDetail', 'lead', 'country_codes', 'hasSubCourses', 'classTimes'));
+            return view('admin.leads.registration-details', compact('studentDetail', 'lead', 'country_codes', 'hasSubCourses', 'classTimes', 'offlinePlaceOptions'));
             
         } catch (\Exception $e) {
             return view('admin.leads.registration-details', compact('lead'))
@@ -5489,8 +5491,8 @@ class LeadController extends Controller
                     'show_location' => $value === 'offline'
                 ]);
             } elseif ($field === 'location') {
-                // Validate location value
-                if (!in_array($value, ['Ernakulam', 'Malappuram'])) {
+                $course = \App\Models\Course::find($studentDetail->course_id);
+                if (!\App\Support\CourseOfflinePlaceSupport::isValidLocation($course, $value)) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Invalid location value.'

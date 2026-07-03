@@ -73,7 +73,7 @@
                                         title="Edit">
                                         <i class="ti ti-edit"></i> Edit
                                     </a>
-                                    @if(is_super_admin())
+                                    @if(is_super_admin() || is_admission_counsellor())
                                     <a href="javascript:void(0);" class="btn btn-danger btn-sm shadow-sm px-3"
                                         onclick="delete_modal('{{ route('admin.class-times.delete', $classTime->id) }}')" title="Delete">
                                         <i class="ti ti-trash"></i> Delete

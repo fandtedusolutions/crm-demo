@@ -1188,7 +1188,8 @@ class RegistrationLeadsController extends Controller
             }
 
             if ($field === 'location') {
-                if (!in_array($value, ['Ernakulam', 'Malappuram'])) {
+                $course = \App\Models\Course::find($studentDetail->course_id);
+                if (!\App\Support\CourseOfflinePlaceSupport::isValidLocation($course, $value)) {
                     return response()->json([
                         'status' => false,
                         'message' => 'Invalid location value.',

@@ -113,6 +113,30 @@
                     </div>
                 </div>
             </div>
+
+            <div class="col-12" id="offline_places_group" style="display: none;">
+                <div class="mb-3">
+                    <label class="form-label">Offline Places</label>
+                    <div class="row">
+                        @foreach($offlinePlaces as $place)
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input offline-place-checkbox" type="checkbox"
+                                    id="offline_place_{{ $place->id }}" name="offline_place_ids[]"
+                                    value="{{ $place->id }}">
+                                <label class="form-check-label" for="offline_place_{{ $place->id }}">
+                                    {{ $place->name }}
+                                </label>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    @if($offlinePlaces->isEmpty())
+                    <small class="text-muted">No active offline places found. Add places under Offline Places first.</small>
+                    @endif
+                    <div class="invalid-feedback d-block" id="offline_place_ids-error"></div>
+                </div>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-success float-end">Submit</button>
@@ -143,6 +167,18 @@
             $('#hod_number').off('focus.courseAdd').on('focus.courseAdd', function() {
                 $(this).prop('readonly', false);
             });
+
+            function toggleOfflinePlacesGroup() {
+                if ($('#is_offline').is(':checked')) {
+                    $('#offline_places_group').show();
+                } else {
+                    $('#offline_places_group').hide();
+                    $('.offline-place-checkbox').prop('checked', false);
+                }
+            }
+
+            $('#is_offline').off('change.courseAdd').on('change.courseAdd', toggleOfflinePlacesGroup);
+            toggleOfflinePlacesGroup();
 
             form.off('submit.courseAdd').on('submit.courseAdd', function(e) {
                 e.preventDefault();

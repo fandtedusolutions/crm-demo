@@ -8,9 +8,10 @@ use App\Models\ClassTime;
 use App\Models\Course;
 use App\Models\Lead;
 use App\Models\LeadDetail;
-use App\Models\OfflinePlace;
 use App\Models\Subject;
 use App\Services\MailService;
+use App\Support\CourseOfflinePlaceSupport;
+use App\Support\CourseCourseTypeSupport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -57,7 +58,8 @@ abstract class BaseGraphicDesigningStyleRegistrationController extends Controlle
             $classTimes = ClassTime::where('course_id', $courseId)->where('is_active', true)->get();
         }
 
-        $offlinePlaces = OfflinePlace::active()->get();
+        $offlinePlaces = CourseOfflinePlaceSupport::placesFor($course);
+        $courseTypes = CourseCourseTypeSupport::typesFor($course);
         $countryCodes = \App\Helpers\CountriesHelper::get_country_code();
 
         return view('public.graphic-designing-style-registration', [
@@ -68,6 +70,7 @@ abstract class BaseGraphicDesigningStyleRegistrationController extends Controlle
             'classTimes' => $classTimes,
             'course' => $course,
             'offlinePlaces' => $offlinePlaces,
+            'courseTypes' => $courseTypes,
             'registrationTitle' => $this->courseTitle() . ' Registration',
             'storageKey' => $this->storageKey(),
             'storeRouteName' => $this->storeRouteName(),
@@ -76,7 +79,9 @@ abstract class BaseGraphicDesigningStyleRegistrationController extends Controlle
 
     public function store(Request $request)
     {
-        $request->validate([
+        $course = Course::find($this->courseId());
+
+        $request->validate(array_merge([
             'lead_id' => 'required|exists:leads,id',
             'student_name' => 'required|string|max:255',
             'father_name' => 'required|string|max:255',
@@ -94,7 +99,6 @@ abstract class BaseGraphicDesigningStyleRegistrationController extends Controlle
             'whatsapp_number' => 'required|string|max:20',
             'whatsapp_code' => 'required|string|max:10',
             'programme_type' => 'required|in:online,offline',
-            'location' => 'nullable|required_if:programme_type,offline|in:Ernakulam,Malappuram',
             'class_time_id' => 'nullable|exists:class_times,id',
             'street' => 'required|string',
             'locality' => 'required|string|max:255',
@@ -111,7 +115,7 @@ abstract class BaseGraphicDesigningStyleRegistrationController extends Controlle
             'graduation_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'post_graduation_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'other_relevant_documents' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-        ], [
+        ], CourseOfflinePlaceSupport::locationValidationRules($course), CourseCourseTypeSupport::validationRules($course, $this->courseId())), [
             'lead_id.required' => 'Lead ID is required.',
             'lead_id.exists' => 'Invalid lead.',
             'student_name.required' => 'Student name is required.',
@@ -193,6 +197,7 @@ abstract class BaseGraphicDesigningStyleRegistrationController extends Controlle
                 'mother_contact_code' => $request->mother_contact_code,
                 'whatsapp_number' => $request->whatsapp_number,
                 'whatsapp_code' => $request->whatsapp_code,
+                'course_type_id' => $request->course_type_id,
                 'programme_type' => $request->programme_type,
                 'location' => $request->location,
                 'class_time_id' => $request->class_time_id,

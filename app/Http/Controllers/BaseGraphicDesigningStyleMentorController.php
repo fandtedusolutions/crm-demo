@@ -137,7 +137,7 @@ abstract class BaseGraphicDesigningStyleMentorController extends Controller
         if ($course && $course->needs_time) {
             $classTimes = ClassTime::where('course_id', $courseId)->where('is_active', true)->get();
         }
-        $offlinePlaces = OfflinePlace::active()->get();
+        $offlinePlaces = \App\Support\CourseOfflinePlaceSupport::placesFor($course);
         $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
 
         return view($this->mentorViewName(), compact(

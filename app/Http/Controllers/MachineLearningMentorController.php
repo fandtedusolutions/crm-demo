@@ -149,7 +149,7 @@ class MachineLearningMentorController extends Controller
         if ($course && $course->needs_time) {
             $classTimes = ClassTime::where('course_id', 20)->where('is_active', true)->get();
         }
-        $offlinePlaces = OfflinePlace::active()->get();
+        $offlinePlaces = \App\Support\CourseOfflinePlaceSupport::placesFor($course);
         $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
 
         return view('admin.converted-leads.machine-learning-mentor-index', compact(

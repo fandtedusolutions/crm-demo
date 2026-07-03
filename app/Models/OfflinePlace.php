@@ -22,6 +22,11 @@ class OfflinePlace extends Model
         'deleted_at' => 'datetime',
     ];
 
+    public function courses()
+    {
+        return $this->belongsToMany(Course::class, 'course_offline_place');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

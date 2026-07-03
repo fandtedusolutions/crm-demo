@@ -48,6 +48,30 @@ class Course extends Model
         return $this->hasMany(ClassTime::class);
     }
 
+    public function offlinePlaces()
+    {
+        return $this->belongsToMany(OfflinePlace::class, 'course_offline_place');
+    }
+
+    public function activeOfflinePlaces()
+    {
+        return $this->offlinePlaces()
+            ->where('offline_places.is_active', true)
+            ->orderBy('offline_places.name');
+    }
+
+    public function courseTypes()
+    {
+        return $this->hasMany(CourseType::class);
+    }
+
+    public function activeCourseTypes()
+    {
+        return $this->courseTypes()
+            ->where('is_active', true)
+            ->orderBy('title');
+    }
+
     public function hod()
     {
         return $this->belongsTo(User::class , 'hod_id');

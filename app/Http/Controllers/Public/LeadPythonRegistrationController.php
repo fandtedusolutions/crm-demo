@@ -9,7 +9,8 @@ use App\Models\LeadDetail;
 use App\Models\Subject;
 use App\Models\Batch;
 use App\Models\ClassTime;
-use App\Models\OfflinePlace;
+use App\Support\CourseOfflinePlaceSupport;
+use App\Support\CourseCourseTypeSupport;
 use App\Services\MailService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -51,17 +52,20 @@ class LeadPythonRegistrationController extends Controller
         }
         
         // Get active offline places
-        $offlinePlaces = OfflinePlace::active()->get();
+        $offlinePlaces = CourseOfflinePlaceSupport::placesFor($course);
+        $courseTypes = CourseCourseTypeSupport::typesFor($course);
         
         // Get country codes
         $countryCodes = \App\Helpers\CountriesHelper::get_country_code();
         
-        return view('public.python-registration', compact('subjects', 'batches', 'lead', 'countryCodes', 'classTimes', 'course', 'offlinePlaces'));
+        return view('public.python-registration', compact('subjects', 'batches', 'lead', 'countryCodes', 'classTimes', 'course', 'offlinePlaces', 'courseTypes'));
     }
     
     public function store(Request $request)
     {
-        $request->validate([
+        $course = \App\Models\Course::find(10);
+
+        $request->validate(array_merge([
             'lead_id' => 'required|exists:leads,id',
             'student_name' => 'required|string|max:255',
             'father_name' => 'required|string|max:255',
@@ -79,7 +83,6 @@ class LeadPythonRegistrationController extends Controller
             'whatsapp_number' => 'required|string|max:20',
             'whatsapp_code' => 'required|string|max:10',
             'programme_type' => 'required|in:online,offline',
-            'location' => 'nullable|required_if:programme_type,offline|in:Ernakulam,Malappuram',
             'class_time_id' => 'nullable|exists:class_times,id',
             'street' => 'required|string',
             'locality' => 'required|string|max:255',
@@ -96,7 +99,7 @@ class LeadPythonRegistrationController extends Controller
             'graduation_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'post_graduation_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'other_relevant_documents' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-        ], [
+        ], CourseOfflinePlaceSupport::locationValidationRules($course), CourseCourseTypeSupport::validationRules($course, 10)), [
             'lead_id.required' => 'Lead ID is required.',
             'lead_id.exists' => 'Invalid lead.',
             'student_name.required' => 'Student name is required.',
@@ -198,6 +201,7 @@ class LeadPythonRegistrationController extends Controller
                 'mother_contact_code' => $request->mother_contact_code,
                 'whatsapp_number' => $request->whatsapp_number,
                 'whatsapp_code' => $request->whatsapp_code,
+                'course_type_id' => $request->course_type_id,
                 'programme_type' => $request->programme_type,
                 'location' => $request->location,
                 'class_time_id' => $request->class_time_id,

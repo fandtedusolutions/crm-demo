@@ -218,7 +218,9 @@ trait ConvertedLeadScopedDataTables
             ->flip();
 
         $courseModel = Course::find($scopedCourseId);
-        $offlinePlaceOptions = OfflinePlace::active()->pluck('name', 'name')->toArray();
+        $offlinePlaceOptions = $courseModel
+            ? \App\Support\CourseOfflinePlaceSupport::optionsForSelect($courseModel)
+            : [];
         $showParentPhone = RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor();
         $canEditInline = RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor() || RoleHelper::is_academic_assistant();
         $offlineOptionsJson = htmlspecialchars(json_encode($offlinePlaceOptions), ENT_QUOTES, 'UTF-8');

@@ -823,7 +823,7 @@
                                         <p class="info-value" data-field="location" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ $studentDetail->location ?? '' }}">
                                             {{ $studentDetail->location ?? 'N/A' }}
                                             @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
-                                            <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{"Ernakulam":"Ernakulam","Malappuram":"Malappuram"}' title="Edit">
+                                            <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{!! json_encode($offlinePlaceOptions ?? []) !!}' title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
                                             @endif
@@ -1903,6 +1903,18 @@
 
 @push('scripts')
 <script>
+    const offlinePlaceOptions = {!! json_encode($offlinePlaceOptions ?? []) !!};
+
+    function buildLocationSelectHtml(field, currentValue) {
+        let optionsHtml = '<option value="">Select Location</option>';
+        Object.keys(offlinePlaceOptions).forEach(function(name) {
+            const selected = currentValue === name ? 'selected' : '';
+            optionsHtml += `<option value="${name}" ${selected}>${name}</option>`;
+        });
+        return `<select name="${field}" class="form-select form-select-sm">${optionsHtml}</select>`;
+    }
+</script>
+<script>
     // Handle Upload Other Document form submission
     document.addEventListener('DOMContentLoaded', function() {
         const uploadOtherDocumentForm = document.getElementById('uploadOtherDocumentForm');
@@ -2588,13 +2600,7 @@
             </select>
         `;
         } else if (field === 'location') {
-            inputHtml = `
-            <select name="${field}" class="form-select form-select-sm">
-                <option value="">Select Location</option>
-                <option value="Ernakulam" ${currentValue === 'Ernakulam' ? 'selected' : ''}>Ernakulam</option>
-                <option value="Malappuram" ${currentValue === 'Malappuram' ? 'selected' : ''}>Malappuram</option>
-            </select>
-        `;
+            inputHtml = buildLocationSelectHtml(field, currentValue);
         } else if (field === 'message') {
             inputHtml = `<textarea name="${field}" class="form-control form-control-sm" rows="3">${currentValue}</textarea>`;
         } else if (field === 'selected_courses') {
@@ -2837,7 +2843,7 @@
                             } else if (fieldName === 'programme_type') {
                                 optionsAttr = `data-options='{"online":"Online","offline":"Offline"}'`;
                             } else if (fieldName === 'location') {
-                                optionsAttr = `data-options='{"Ernakulam":"Ernakulam","Malappuram":"Malappuram"}'`;
+                                optionsAttr = `data-options='${JSON.stringify(offlinePlaceOptions).replace(/'/g, '&#39;')}'`;
                             } else if (fieldName === 'class') {
                                 optionsAttr = `data-options='{"sslc":"SSLC","plustwo":"Plus Two"}'`;
                             } else if (fieldName === 'course_type') {
@@ -2881,7 +2887,7 @@
                                     // Check if user has permission to edit (we'll show edit button if they can edit other fields)
                                     const canEdit = infoValue.querySelector('.edit-field') !== null;
                                     const editButtonHtml = canEdit ?
-                                        `<button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{"Ernakulam":"Ernakulam","Malappuram":"Malappuram"}' title="Edit"><i class="ti ti-edit"></i></button>` : '';
+                                        `<button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='${JSON.stringify(offlinePlaceOptions).replace(/'/g, '&#39;')}' title="Edit"><i class="ti ti-edit"></i></button>` : '';
 
                                     const locationHtml = `
                                 <div class="col-md-6 location-field-container">

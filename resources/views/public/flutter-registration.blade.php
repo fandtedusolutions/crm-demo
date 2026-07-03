@@ -577,25 +577,37 @@
                     <h4 class="mb-4"><i class="fas fa-graduation-cap me-2"></i>Programme Details</h4>
                     
                     <div class="row">
+                        @include('public.partials.admin-course-type-field')
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label">Course Type <span class="required">*</span></label>
+                                <label class="form-label">{{ isset($courseTypes) && $courseTypes->count() > 0 ? 'Mode of Study' : 'Course Type' }} <span class="required">*</span></label>
                                 <select class="form-control" name="programme_type" id="programme_type" required>
-                                    <option value="">Select Course Type</option>
-                                    <option value="online">Online</option>
-                                    <option value="offline">Offline</option>
+                                    <option value="">Select {{ isset($courseTypes) && $courseTypes->count() > 0 ? 'Mode of Study' : 'Course Type' }}</option>
+                                    @if($course && $course->is_online)
+                                        <option value="online">Online</option>
+                                    @endif
+                                    @if($course && $course->is_offline)
+                                        <option value="offline">Offline</option>
+                                    @endif
+                                    @if(!$course || (!$course->is_online && !$course->is_offline))
+                                        <option value="online">Online</option>
+                                        <option value="offline">Offline</option>
+                                    @endif
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-6">
+                            @if($course && $course->is_offline && $offlinePlaces && $offlinePlaces->count() > 0)
                             <div class="form-group" id="location_group" style="display: none;">
                                 <label class="form-label">Choose Please <span class="required">*</span></label>
                                 <select class="form-control" name="location" id="location">
                                     <option value="">Select Location</option>
-                                    <option value="Ernakulam">Ernakulam</option>
-                                    <option value="Malappuram">Malappuram</option>
+                                    @foreach($offlinePlaces as $place)
+                                        <option value="{{ $place->name }}">{{ $place->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
+                            @endif
                         </div>
                     </div>
                     

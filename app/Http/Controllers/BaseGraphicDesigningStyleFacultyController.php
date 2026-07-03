@@ -138,7 +138,7 @@ abstract class BaseGraphicDesigningStyleFacultyController extends Controller
         if ($course && $course->needs_time) {
             $classTimes = ClassTime::where('course_id', $courseId)->where('is_active', true)->get();
         }
-        $offlinePlaces = OfflinePlace::active()->get();
+        $offlinePlaces = \App\Support\CourseOfflinePlaceSupport::placesFor($course);
         $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
         $activeFacultyRoute = $this->activeFacultyRoute();
 

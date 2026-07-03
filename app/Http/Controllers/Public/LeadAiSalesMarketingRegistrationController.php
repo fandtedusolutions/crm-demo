@@ -8,7 +8,7 @@ use App\Models\Course;
 use App\Models\CourseType;
 use App\Models\Lead;
 use App\Models\LeadDetail;
-use App\Models\OfflinePlace;
+use App\Support\CourseOfflinePlaceSupport;
 use App\Models\StreamSpecialization;
 use App\Services\MailService;
 use Illuminate\Http\Request;
@@ -39,7 +39,7 @@ class LeadAiSalesMarketingRegistrationController extends Controller
         $course = Course::find(self::COURSE_ID);
         $courseTypes = CourseType::where('course_id', self::COURSE_ID)->where('is_active', true)->orderBy('title')->get();
         $streamSpecializations = StreamSpecialization::where('course_id', self::COURSE_ID)->where('is_active', true)->orderBy('title')->get();
-        $offlinePlaces = OfflinePlace::active()->get();
+        $offlinePlaces = CourseOfflinePlaceSupport::placesFor($course);
         $countryCodes = \App\Helpers\CountriesHelper::get_country_code();
 
         return view('public.ai-sales-marketing-registration', compact(
@@ -55,7 +55,9 @@ class LeadAiSalesMarketingRegistrationController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $course = Course::find(self::COURSE_ID);
+
+        $validator = Validator::make($request->all(), array_merge([
             'lead_id' => 'required|exists:leads,id',
             'student_name' => 'required|string|max:255',
             'father_name' => 'required|string|max:255',
@@ -79,7 +81,6 @@ class LeadAiSalesMarketingRegistrationController extends Controller
                 Rule::exists('stream_specializations', 'id')->where(fn ($query) => $query->where('course_id', self::COURSE_ID)->where('is_active', true)),
             ],
             'programme_type' => 'required|in:online,offline',
-            'location' => 'nullable|required_if:programme_type,offline|string|max:255',
             'batch_id' => [
                 'required',
                 Rule::exists('batches', 'id')->where(fn ($query) => $query->where('course_id', self::COURSE_ID)->where('is_active', true)),
@@ -102,7 +103,7 @@ class LeadAiSalesMarketingRegistrationController extends Controller
             'signature' => 'required|file|mimes:jpg,jpeg,png|max:2048',
             'message' => 'nullable|string',
             'terms_accepted' => 'required|accepted',
-        ], [
+        ], CourseOfflinePlaceSupport::locationValidationRules($course)), [
             'lead_id.required' => 'Lead ID is required.',
             'lead_id.exists' => 'Invalid lead.',
             'student_name.required' => 'Candidate name is required.',

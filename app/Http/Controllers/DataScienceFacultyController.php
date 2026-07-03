@@ -149,7 +149,7 @@ class DataScienceFacultyController extends Controller
         if ($course && $course->needs_time) {
             $classTimes = ClassTime::where('course_id', 12)->where('is_active', true)->get();
         }
-        $offlinePlaces = OfflinePlace::active()->get();
+        $offlinePlaces = \App\Support\CourseOfflinePlaceSupport::placesFor($course);
         $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
 
         $activeFacultyRoute = 'admin.data-science-faculty-converted-leads.index';

@@ -2032,7 +2032,7 @@ class ConvertedLeadController extends Controller
         $country_codes = get_country_code();
         
         // Get offline places for location dropdown
-        $offlinePlaces = \App\Models\OfflinePlace::active()->get();
+        $offlinePlaces = \App\Support\CourseOfflinePlaceSupport::placesFor($course);
         
         // Get class times for course_id = 11 (AI Integrated Digital Marketing)
         $classTimes = collect();
@@ -4168,7 +4168,7 @@ class ConvertedLeadController extends Controller
             'university_course_id' => 'nullable|exists:university_courses,id',
             'passed_year' => 'nullable|integer|min:1900|max:' . date('Y'),
             'programme_type' => 'nullable|string|in:online,offline',
-            'location' => 'nullable|string|in:Ernakulam,Malappuram',
+            'location' => 'nullable|string|max:255',
             'class_time_id' => 'nullable|exists:class_times,id',
             // Grameen Mukt Vidhyalayi Shiksha Sansthan specific fields
             'class' => 'nullable|string|in:sslc,plustwo',
@@ -4225,6 +4225,15 @@ class ConvertedLeadController extends Controller
         }
 
         // Validate the field
+        if ($field === 'location') {
+            $course = \App\Models\Course::find($convertedLead->course_id);
+            if (!\App\Support\CourseOfflinePlaceSupport::isValidLocation($course, $value)) {
+                return response()->json([
+                    'error' => 'Invalid location value.',
+                ], 422);
+            }
+        }
+
         $validator = Validator::make([$field => $value], [$field => $allowedFields[$field]]);
         
         if ($validator->fails()) {

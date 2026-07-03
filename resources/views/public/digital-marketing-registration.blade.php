@@ -577,10 +577,11 @@
                     <h4 class="mb-4"><i class="fas fa-graduation-cap me-2"></i>Programme Details</h4>
                     
                     <div class="row">
+                        @include('public.partials.admin-course-type-field')
                         <div class="col-md-6">
                             @if($course && ($course->is_online || $course->is_offline))
                             <div class="form-group">
-                                <label class="form-label">Course Type <span class="required">*</span></label>
+                                <label class="form-label">{{ isset($courseTypes) && $courseTypes->count() > 0 ? 'Mode of Study' : 'Course Type' }} <span class="required">*</span></label>
                                 <select class="form-control" name="programme_type" id="programme_type" required>
                                     <option value="">Select Course Type</option>
                                     @if($course->is_online)

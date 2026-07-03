@@ -9,7 +9,7 @@ use App\Models\LeadDetail;
 use App\Models\Subject;
 use App\Models\Batch;
 use App\Models\ClassTime;
-use App\Models\OfflinePlace;
+use App\Support\CourseOfflinePlaceSupport;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Services\MailService;
@@ -45,7 +45,7 @@ class LeadVibeCodingRegistrationController extends Controller
         }
         
         // Get active offline places
-        $offlinePlaces = OfflinePlace::active()->get();
+        $offlinePlaces = CourseOfflinePlaceSupport::placesFor($course);
         
         // Get country codes
         $countryCodes = \App\Helpers\CountriesHelper::get_country_code();

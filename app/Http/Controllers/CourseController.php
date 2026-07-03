@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\OfflinePlace;
 use Illuminate\Http\Request;
 use App\Helpers\RoleHelper;
+use App\Support\CourseOfflinePlaceSupport;
 
 class CourseController extends Controller
 {
@@ -93,7 +95,8 @@ class CourseController extends Controller
         }
 
         $hodUsers = \App\Models\User::where('role_id', 14)->where('is_active', true)->get();
-        return view('admin.courses.add', compact('hodUsers'));
+        $offlinePlaces = OfflinePlace::active()->orderBy('name')->get();
+        return view('admin.courses.add', compact('hodUsers', 'offlinePlaces'));
     }
 
     public function submit(Request $request)
@@ -113,7 +116,11 @@ class CourseController extends Controller
                 'needs_time' => 'nullable|boolean',
                 'is_online' => 'nullable|boolean',
                 'is_offline' => 'nullable|boolean',
+                'offline_place_ids' => 'nullable|array',
+                'offline_place_ids.*' => 'exists:offline_places,id',
             ]);
+
+            $isOffline = $request->boolean('is_offline');
 
             $course = Course::create([
                 'title' => $request->title,
@@ -124,8 +131,14 @@ class CourseController extends Controller
                 'is_active' => $request->boolean('is_active'),
                 'needs_time' => $request->boolean('needs_time'),
                 'is_online' => $request->boolean('is_online'),
-                'is_offline' => $request->boolean('is_offline'),
+                'is_offline' => $isOffline,
             ]);
+
+            CourseOfflinePlaceSupport::syncForCourse(
+                $course,
+                $request->input('offline_place_ids', []),
+                $isOffline
+            );
 
             // For AJAX requests, return JSON response
             if (request()->ajax()) {
@@ -172,10 +185,11 @@ class CourseController extends Controller
             return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
         }
 
-        $edit_data = Course::findOrFail($id);
+        $edit_data = Course::with('offlinePlaces')->findOrFail($id);
         $hodUsers = \App\Models\User::where('role_id', 14)->where('is_active', true)->get();
+        $offlinePlaces = OfflinePlace::active()->orderBy('name')->get();
         
-        return view('admin.courses.edit', compact('edit_data', 'hodUsers'));
+        return view('admin.courses.edit', compact('edit_data', 'hodUsers', 'offlinePlaces'));
     }
 
     public function update(Request $request, $id)
@@ -195,9 +209,13 @@ class CourseController extends Controller
                 'needs_time' => 'nullable|boolean',
                 'is_online' => 'nullable|boolean',
                 'is_offline' => 'nullable|boolean',
+                'offline_place_ids' => 'nullable|array',
+                'offline_place_ids.*' => 'exists:offline_places,id',
             ]);
 
             $course = Course::findOrFail($id);
+            $isOffline = $request->boolean('is_offline');
+
             $course->update([
                 'title' => RoleHelper::is_super_admin() ? $request->title : $course->title,
                 'code' => $request->code,
@@ -207,8 +225,14 @@ class CourseController extends Controller
                 'is_active' => $request->boolean('is_active'),
                 'needs_time' => $request->boolean('needs_time'),
                 'is_online' => $request->boolean('is_online'),
-                'is_offline' => $request->boolean('is_offline'),
+                'is_offline' => $isOffline,
             ]);
+
+            CourseOfflinePlaceSupport::syncForCourse(
+                $course,
+                $request->input('offline_place_ids', []),
+                $isOffline
+            );
 
             // For AJAX requests, return JSON response
             if (request()->ajax()) {
