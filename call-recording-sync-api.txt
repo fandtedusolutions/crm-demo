@@ -360,8 +360,22 @@ On app open / refresh / resume (Dashboard _loadLogs):
     Mark synced_recording_ids on success
 
 Recording upload tips (Android):
-  - Copy content:// URI to temp file before multipart upload
+  - Copy content:// URI to a temp file BEFORE multipart upload
+  - Preserve the file extension in the cache filename (.aac, .m4a, .amr)
+  - Set the multipart MIME type from the extension (audio/aac, audio/x-m4a, audio/amr)
+    Do NOT use audio/octet-stream — the server accepts it, but proper MIME avoids client issues
+  - Always send original_file_name with the real dialer filename (e.g. 20260630_220001.aac)
+  - Use multipart/form-data; do NOT send the recording path as a JSON string
   - Match recording to call using device_call_id
+
+Upload when to retry (app logic):
+  - STEP 1: upload when sync/calls returns recording_upload_required=true
+  - STEP 2: syncPendingRecordings — upload ANY call where:
+      local recording file exists on device
+      device_call_id is in synced_call_ids
+      device_call_id is NOT in synced_recording_ids
+    Do NOT require server_call_id > 0; device_call_id alone is enough for POST /sync/recordings
+  - After late recordings appear (dialer saves file after call sync), always run STEP 2 on app open
 
 Recommended sync timing:
   - After login          -> sync all calls since install

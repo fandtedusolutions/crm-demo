@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Call_Api;
 use App\Http\Controllers\Controller;
 use App\Models\CallAppLog;
 use App\Models\CallAppRecording;
+use App\Services\CallRecording\RecordingFileTypeDetector;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +14,11 @@ use Illuminate\Validation\ValidationException;
 
 class CallSyncController extends Controller
 {
+    public function __construct(
+        private readonly RecordingFileTypeDetector $recordingFileTypeDetector,
+    ) {
+    }
+
     /**
      * Bulk sync call details from the Call Tracker app.
      */
@@ -154,6 +160,18 @@ class CallSyncController extends Controller
             return $this->recordingUploadResponse($call, $existingRecording, skipped: true);
         }
 
+        if ($this->requestLooksLikeJsonRecordingPayload($request)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => [
+                    'recording' => [
+                        'Recording must be sent as multipart/form-data with a file field named "recording". JSON bodies cannot carry the audio file.',
+                    ],
+                ],
+            ], 422);
+        }
+
         $file = $this->resolveRecordingUploadFile($request);
         if (!$file) {
             return response()->json([
@@ -177,6 +195,18 @@ class CallSyncController extends Controller
             ], 422);
         }
 
+        if ($file->getSize() <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => [
+                    'recording' => [
+                        'The recording file is empty. Copy the content URI to a cache file with the correct extension (.aac, .m4a, .amr) before uploading.',
+                    ],
+                ],
+            ], 422);
+        }
+
         $maxUploadKilobytes = 25600;
         $fileSizeKilobytes = (int) ceil($file->getSize() / 1024);
         if ($fileSizeKilobytes > $maxUploadKilobytes) {
@@ -191,13 +221,15 @@ class CallSyncController extends Controller
             ], 422);
         }
 
-        if (!$this->isAllowedRecordingUpload($file, $request->input('original_file_name'))) {
+        $originalFileName = $request->input('original_file_name') ?: $call->recording_file_name;
+
+        if (!$this->isAllowedRecordingUpload($file, $originalFileName)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => [
                     'recording' => [
-                        'Invalid audio file type. Allowed: amr, m4a, mp3, wav, 3gp, aac',
+                        'Invalid audio file type. Allowed: amr, m4a, mp3, wav, 3gp, aac. Send original_file_name with the correct extension when the upload part has no extension.',
                     ],
                 ],
             ], 422);
@@ -210,7 +242,8 @@ class CallSyncController extends Controller
             'original_file_name' => 'nullable|string|max:255',
         ]);
 
-        $extension = $this->resolveRecordingExtension($file, $validated['original_file_name'] ?? null) ?? 'bin';
+        $resolvedOriginalFileName = $validated['original_file_name'] ?? $originalFileName;
+        $extension = $this->resolveRecordingExtension($file, $resolvedOriginalFileName) ?? 'bin';
         $storedFileName = 'recording.' . $extension;
         $path = $file->storeAs(
             "call-recordings/{$telecallerId}/{$call->id}",
@@ -230,10 +263,10 @@ class CallSyncController extends Controller
             [
                 'telecaller_id' => $telecallerId,
                 'file_path' => $path,
-                'file_name' => $validated['original_file_name'] ?? $file->getClientOriginalName(),
+                'file_name' => $resolvedOriginalFileName ?: $file->getClientOriginalName(),
                 'mime_type' => $this->resolveRecordingMimeType(
                     $file,
-                    $validated['original_file_name'] ?? null
+                    $resolvedOriginalFileName
                 ),
                 'file_size_bytes' => $validated['file_size_bytes'] ?? $file->getSize(),
                 'duration_seconds' => $validated['duration_seconds'] ?? 0,
@@ -376,6 +409,19 @@ class CallSyncController extends Controller
         }
     }
 
+    private function requestLooksLikeJsonRecordingPayload(Request $request): bool
+    {
+        if ($this->resolveRecordingUploadFile($request)) {
+            return false;
+        }
+
+        $contentType = strtolower((string) $request->header('Content-Type', ''));
+
+        return str_contains($contentType, 'application/json')
+            && is_string($request->input('recording'))
+            && trim($request->input('recording')) !== '';
+    }
+
     private function resolveRecordingUploadFile(Request $request)
     {
         foreach (['recording', 'file', 'audio'] as $field) {
@@ -497,8 +543,11 @@ class CallSyncController extends Controller
 
         $mime = strtolower((string) $file->getMimeType());
 
-        return in_array($mime, $this->allowedRecordingMimes(), true)
-            || str_starts_with($mime, 'audio/');
+        if (in_array($mime, $this->allowedRecordingMimes(), true) || str_starts_with($mime, 'audio/')) {
+            return true;
+        }
+
+        return $this->detectRecordingTypeFromUploadedFile($file) !== null;
     }
 
     private function resolveRecordingExtension($file, ?string $originalFileName = null): ?string
@@ -509,30 +558,55 @@ class CallSyncController extends Controller
             pathinfo((string) $originalFileName, PATHINFO_EXTENSION),
         ] as $candidate) {
             $extension = strtolower(trim((string) $candidate));
-            if ($extension !== '') {
+            if ($extension !== '' && in_array($extension, $this->allowedRecordingExtensions(), true)) {
                 return $extension;
             }
         }
 
-        return null;
+        $mimeExtension = $this->recordingFileTypeDetector->extensionFromMime(
+            strtolower((string) $file->getMimeType())
+        );
+        if ($mimeExtension && in_array($mimeExtension, $this->allowedRecordingExtensions(), true)) {
+            return $mimeExtension;
+        }
+
+        $detected = $this->detectRecordingTypeFromUploadedFile($file);
+
+        return $detected['extension'] ?? null;
     }
 
     private function resolveRecordingMimeType($file, ?string $originalFileName = null): string
     {
         $mime = strtolower((string) ($file->getMimeType() ?? ''));
-        if ($mime !== '' && $mime !== 'application/octet-stream') {
+        if (in_array($mime, ['application/octet-stream', 'audio/octet-stream', 'binary/octet-stream'], true)) {
+            $mime = '';
+        }
+
+        if ($mime !== '') {
             return $mime;
         }
 
-        return match ($this->resolveRecordingExtension($file, $originalFileName)) {
-            'aac' => 'audio/aac',
-            'm4a' => 'audio/mp4',
-            'mp3' => 'audio/mpeg',
-            'wav' => 'audio/wav',
-            'amr' => 'audio/amr',
-            '3gp' => 'audio/3gpp',
-            default => $mime !== '' ? $mime : 'application/octet-stream',
-        };
+        $extension = $this->resolveRecordingExtension($file, $originalFileName);
+        if ($extension) {
+            return $this->recordingFileTypeDetector->mimeFromExtension($extension)
+                ?? 'application/octet-stream';
+        }
+
+        $detected = $this->detectRecordingTypeFromUploadedFile($file);
+
+        return $detected['mime'] ?? 'application/octet-stream';
+    }
+
+    /**
+     * @return array{extension: string, mime: string}|null
+     */
+    private function detectRecordingTypeFromUploadedFile($file): ?array
+    {
+        $path = $file->getPathname();
+
+        return is_string($path) && $path !== ''
+            ? $this->recordingFileTypeDetector->detectFromPath($path)
+            : null;
     }
 
     /**
@@ -561,6 +635,7 @@ class CallSyncController extends Controller
             'audio/x-wav',
             'audio/3gpp',
             'audio/3gp',
+            'audio/octet-stream',
             'video/mp4',
             'application/octet-stream',
         ];
