@@ -359,6 +359,172 @@ class LeadController extends Controller
     }
 
     /**
+     * Apply role-based scoping for follow-up leads queries.
+     */
+    private function applyFollowupRoleScope($query): void
+    {
+        $currentUser = AuthHelper::getCurrentUser();
+        if (!$currentUser) {
+            return;
+        }
+
+        if (RoleHelper::is_senior_manager() || RoleHelper::is_general_manager() || RoleHelper::is_admin_or_super_admin()) {
+            return;
+        }
+
+        if (AuthHelper::isTeamLead() == 1) {
+            $teamId = $currentUser->team_id;
+            if ($teamId) {
+                $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+                $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                $query->whereIn('telecaller_id', $teamMemberIds);
+            } else {
+                $query->where('telecaller_id', AuthHelper::getCurrentUserId());
+            }
+        } elseif (AuthHelper::isTelecaller()) {
+            $query->where('telecaller_id', AuthHelper::getCurrentUserId());
+        }
+    }
+
+    /**
+     * Build the base query for follow-up leads (status = 2) with filters applied.
+     */
+    private function buildFollowupLeadsQuery(Request $request)
+    {
+        $query = Lead::select([
+            'id', 'title', 'code', 'phone', 'email', 'lead_status_id', 'lead_source_id',
+            'course_id', 'telecaller_id', 'team_id', 'place', 'rating', 'interest_status',
+            'followup_date', 'remarks', 'is_converted', 'created_at', 'updated_at',
+            'gender', 'age', 'whatsapp', 'whatsapp_code', 'qualification', 'country_id',
+            'address',
+        ])
+        ->where('lead_status_id', 2)
+        ->notConverted()
+        ->notDropped()
+        ->with([
+            'leadStatus:id,title',
+            'leadSource:id,title',
+            'course:id,title',
+            'telecaller:id,name,team_id',
+            'studentDetails' => function ($query) {
+                $query->select([
+                    'id', 'lead_id', 'status', 'course_id',
+                    'sslc_certificate', 'plustwo_certificate', 'ug_certificate',
+                    'birth_certificate', 'passport_photo', 'adhar_front', 'adhar_back',
+                    'signature', 'other_document',
+                    'sslc_verification_status', 'plustwo_verification_status', 'ug_verification_status',
+                    'birth_certificate_verification_status', 'passport_photo_verification_status',
+                    'adhar_front_verification_status', 'adhar_back_verification_status',
+                    'signature_verification_status', 'other_document_verification_status',
+                    'reviewed_at',
+                ]);
+            },
+            'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
+            'plusTwoFollowUpQuestionnaire:id,lead_id,created_at',
+            'leadActivities' => function ($query) {
+                $query->select('id', 'lead_id', 'reason', 'created_at', 'activity_type')
+                    ->whereNotNull('reason')
+                    ->where('reason', '!=', '')
+                    ->orderBy('created_at', 'desc')
+                    ->limit(1);
+            },
+        ]);
+
+        if ($request->filled('search_key')) {
+            $searchKey = $request->search_key;
+            $query->where(function ($q) use ($searchKey) {
+                $q->where('title', 'LIKE', "%{$searchKey}%")
+                    ->orWhere('phone', 'LIKE', "%{$searchKey}%")
+                    ->orWhere('email', 'LIKE', "%{$searchKey}%");
+            });
+        }
+
+        if ($request->filled('lead_source_id')) {
+            $query->where('lead_source_id', $request->lead_source_id);
+        }
+
+        if ($request->filled('course_id')) {
+            $query->where('course_id', $request->course_id);
+        }
+
+        if ($request->filled('country_id')) {
+            $query->where('country_id', $request->country_id);
+        }
+
+        if ($request->filled('telecaller_id')) {
+            $query->where('telecaller_id', $request->telecaller_id);
+        }
+
+        $this->applyFollowupRoleScope($query);
+
+        return $query;
+    }
+
+    /**
+     * Apply default follow-up date ordering (today first, then tomorrow, future, past).
+     */
+    private function applyFollowupDateOrdering($query): void
+    {
+        $query->orderByRaw("
+            CASE
+                WHEN followup_date IS NULL THEN 6
+                WHEN DATE(followup_date) = CURDATE() THEN 1
+                WHEN DATE(followup_date) = DATE_ADD(CURDATE(), INTERVAL 1 DAY) THEN 2
+                WHEN DATE(followup_date) > CURDATE() THEN 3
+                ELSE 4
+            END,
+            followup_date ASC
+        ");
+    }
+
+    /**
+     * Format follow-up date for table display.
+     */
+    private function formatFollowupDateValue($lead): string
+    {
+        if (!$lead->followup_date) {
+            return '-';
+        }
+
+        return $lead->followup_date->format('d-m-Y');
+    }
+
+    /**
+     * Build follow-up leads DataTable column index map for ordering.
+     */
+    private function buildFollowupLeadsColumnMap(bool $hasRegistrationDetails): array
+    {
+        $columnIndex = 0;
+        $columns = [
+            $columnIndex++ => 'id',
+            $columnIndex++ => 'id',
+        ];
+
+        if ($hasRegistrationDetails) {
+            $columns[$columnIndex++] = 'id';
+        }
+
+        $columns[$columnIndex++] = 'title';
+        $columns[$columnIndex++] = 'id';
+        $columns[$columnIndex++] = 'phone';
+        $columns[$columnIndex++] = 'followup_date';
+        $columns[$columnIndex++] = 'email';
+        $columns[$columnIndex++] = 'lead_status_id';
+        $columns[$columnIndex++] = 'interest_status';
+        $columns[$columnIndex++] = 'rating';
+        $columns[$columnIndex++] = 'lead_source_id';
+        $columns[$columnIndex++] = 'course_id';
+        $columns[$columnIndex++] = 'telecaller_id';
+        $columns[$columnIndex++] = 'place';
+        $columns[$columnIndex++] = 'id';
+        $columns[$columnIndex++] = 'remarks';
+        $columns[$columnIndex++] = 'created_at';
+        $columns[$columnIndex++] = 'created_at';
+
+        return $columns;
+    }
+
+    /**
      * Build the base query for duplicate leads (same code and phone)
      */
     private function buildDuplicateLeadsQuery(Request $request)
@@ -828,6 +994,178 @@ class LeadController extends Controller
                 'recordsFiltered' => 0,
                 'data' => [],
                 'error' => 'An error occurred while fetching leads data: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * AJAX endpoint for DataTables to fetch follow-up leads data.
+     */
+    public function getFollowupLeadsData(Request $request): JsonResponse
+    {
+        try {
+            set_time_limit(config('timeout.max_execution_time', 300));
+
+            $query = $this->buildFollowupLeadsQuery($request);
+
+            $totalQuery = Lead::where('lead_status_id', 2)->notConverted()->notDropped();
+            $this->applyFollowupRoleScope($totalQuery);
+            $totalRecords = $totalQuery->count();
+
+            if ($request->filled('search') && is_array($request->search) && isset($request->search['value']) && !empty($request->search['value'])) {
+                $searchValue = $request->search['value'];
+                $query->where(function ($q) use ($searchValue) {
+                    $q->where('title', 'LIKE', "%{$searchValue}%")
+                        ->orWhere('phone', 'LIKE', "%{$searchValue}%")
+                        ->orWhere('email', 'LIKE', "%{$searchValue}%");
+                });
+            }
+
+            $filteredCount = $query->count();
+
+            $isAdminOrSuperAdmin = RoleHelper::is_admin_or_super_admin();
+            $isTeamLeadRole = RoleHelper::is_team_lead();
+            $isGeneralManager = RoleHelper::is_general_manager();
+            $isTelecallerRole = RoleHelper::is_telecaller();
+            $isAcademicAssistant = RoleHelper::is_academic_assistant();
+            $isAdmissionCounsellor = RoleHelper::is_admission_counsellor();
+            $hasLeadActionPermission = \App\Helpers\PermissionHelper::has_lead_action_permission();
+            $hasRegistrationDetails = $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isTeamLeadRole || $isGeneralManager;
+
+            $columns = $this->buildFollowupLeadsColumnMap($hasRegistrationDetails);
+            $followupDateColumnIndex = array_search('followup_date', $columns, true);
+
+            $order = $request->get('order', []);
+            $orderColumn = isset($order[0]['column']) ? (int) $order[0]['column'] : $followupDateColumnIndex;
+            $orderDir = isset($order[0]['dir']) ? $order[0]['dir'] : 'asc';
+            $orderColumnName = $columns[$orderColumn] ?? 'followup_date';
+
+            if ($orderColumnName === 'followup_date') {
+                $this->applyFollowupDateOrdering($query);
+            } elseif ($orderColumnName !== 'id') {
+                $query->orderBy($orderColumnName, $orderDir);
+            } else {
+                $this->applyFollowupDateOrdering($query);
+            }
+
+            $start = $request->get('start', 0);
+            $length = $request->get('length', 25);
+            $leads = $query->skip($start)->take($length)->get();
+
+            $fieldLabels = [
+                'title' => 'Name', 'gender' => 'Gender', 'age' => 'Age', 'phone' => 'Phone',
+                'code' => 'Country Code', 'whatsapp' => 'WhatsApp', 'whatsapp_code' => 'WhatsApp Code',
+                'email' => 'Email', 'qualification' => 'Qualification', 'country_id' => 'Country',
+                'interest_status' => 'Interest Status', 'lead_status_id' => 'Lead Status',
+                'lead_source_id' => 'Lead Source', 'address' => 'Address',
+                'telecaller_id' => 'Telecaller', 'team_id' => 'Team', 'place' => 'Place',
+            ];
+            $requiredFields = array_keys($fieldLabels);
+            $totalFields = count($requiredFields);
+
+            $courses = cache()->remember('courses_list', 3600, function () {
+                return Course::select('id', 'title')->orderBy('title')->get();
+            });
+            $courseName = $courses->pluck('title', 'id')->toArray();
+
+            $data = [];
+
+            foreach ($leads as $index => $lead) {
+                $completedFields = 0;
+                $missingFields = [];
+
+                foreach ($requiredFields as $field) {
+                    if (!empty($lead->$field)) {
+                        $completedFields++;
+                    } else {
+                        $missingFields[] = $fieldLabels[$field];
+                    }
+                }
+
+                $profileCompleteness = round(($completedFields / $totalFields) * 100);
+                $profileStatus = $profileCompleteness == 100 ? 'complete' :
+                    ($profileCompleteness >= 75 ? 'almost_complete' :
+                    ($profileCompleteness >= 50 ? 'partial' : 'incomplete'));
+                $missingFieldsDisplay = implode(', ', array_slice($missingFields, 0, 5));
+
+                $leadEmail = $this->cleanUtf8($lead->email ?? '');
+                $leadPlace = $this->cleanUtf8($lead->place ?? '');
+                $leadRemarks = $this->cleanUtf8($lead->remarks ?? '');
+                $leadSourceTitle = $this->cleanUtf8($lead->leadSource->title ?? '');
+                $leadCourseTitle = $this->cleanUtf8($lead->course->title ?? '');
+                $leadTelecallerName = $this->cleanUtf8($lead->telecaller->name ?? 'Unassigned');
+                $missingFieldsDisplayClean = $this->cleanUtf8($missingFieldsDisplay);
+
+                $row = [
+                    'DT_RowId' => 'followup_lead_' . $lead->id,
+                    'DT_RowData' => ['id' => $lead->id],
+                    'index' => $start + $index + 1,
+                    'actions' => $this->renderActions($lead, $isAdminOrSuperAdmin, $isTeamLeadRole, $isGeneralManager, $hasLeadActionPermission, $isTelecallerRole, $isAcademicAssistant, $isAdmissionCounsellor),
+                    'registration_details' => $hasRegistrationDetails ? $this->renderRegistrationDetails($lead, $courseName) : '',
+                    'name' => $this->renderName($lead),
+                    'profile' => $this->renderProfile($lead, $profileCompleteness, $profileStatus, $missingFieldsDisplayClean, count($missingFields)),
+                    'phone' => PhoneNumberHelper::display($lead->code, $lead->phone),
+                    'email' => $leadEmail ?: '-',
+                    'status' => $this->renderStatus($lead),
+                    'interest' => $this->renderInterest($lead),
+                    'rating' => $this->renderRating($lead),
+                    'source' => $this->renderSource($lead, $leadSourceTitle),
+                    'course' => $leadCourseTitle ?: '-',
+                    'telecaller' => $leadTelecallerName,
+                    'place' => $leadPlace ?: '-',
+                    'followup_date' => $this->formatFollowupDateValue($lead),
+                    'last_reason' => $this->renderLastReason($lead),
+                    'remarks' => $leadRemarks ? Str::limit($leadRemarks, 30) : '-',
+                    'date' => $lead->created_at->format('M d, Y'),
+                    'time' => $lead->created_at->format('h:i A'),
+                    'mobile_view' => $this->renderMobileView($lead, $profileCompleteness, $profileStatus, $missingFieldsDisplayClean, count($missingFields), $courseName, $isAdminOrSuperAdmin, $isTelecallerRole, $isAcademicAssistant, $isAdmissionCounsellor, $hasLeadActionPermission),
+                ];
+
+                $data[] = $row;
+            }
+
+            $cleanedData = $this->cleanDataForJson($data);
+
+            $responseData = [
+                'draw' => intval($request->get('draw')),
+                'recordsTotal' => $totalRecords,
+                'recordsFiltered' => $filteredCount,
+                'data' => $cleanedData,
+            ];
+
+            $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+            if (defined('JSON_INVALID_UTF8_IGNORE')) {
+                $jsonFlags |= JSON_INVALID_UTF8_IGNORE;
+            }
+
+            $jsonData = @json_encode($responseData, $jsonFlags);
+
+            if ($jsonData === false) {
+                $cleanedData = $this->aggressiveCleanData($data);
+                $responseData['data'] = $cleanedData;
+                $jsonData = @json_encode($responseData, $jsonFlags);
+
+                if ($jsonData === false) {
+                    $responseData['data'] = [];
+                    $jsonData = json_encode($responseData, $jsonFlags);
+                }
+            }
+
+            $decoded = json_decode($jsonData, true);
+            return response()->json($decoded, 200, [], $jsonFlags);
+        } catch (\Exception $e) {
+            Log::error('Error fetching follow-up leads data: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'draw' => intval($request->get('draw', 1)),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => [],
+                'error' => 'An error occurred while fetching follow-up leads data: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -1461,6 +1799,22 @@ class LeadController extends Controller
     }
 
     /**
+     * Render last reason column HTML from the most recent activity.
+     */
+    private function renderLastReason($lead): string
+    {
+        $activity = $lead->leadActivities->first();
+        if (!$activity || empty($activity->reason)) {
+            return '-';
+        }
+
+        $reason = $this->cleanUtf8($activity->reason);
+        $truncated = Str::limit($reason, 20);
+
+        return '<span class="badge bg-info" title="' . e($reason) . '">' . e($truncated) . '</span>';
+    }
+
+    /**
      * Render converted status column HTML
      */
     private function renderConvertedStatus($lead)
@@ -1932,102 +2286,57 @@ class LeadController extends Controller
      */
     public function followupLeads(Request $request)
     {
-        $isTelecaller = AuthHelper::isTelecaller();
-        $isTeamLead = AuthHelper::isTeamLead();
-        $isSeniorManager = RoleHelper::is_senior_manager();
+        $leadSources = cache()->remember('lead_sources_list', 3600, function () {
+            return LeadSource::select('id', 'title')->orderBy('title')->get();
+        });
+        $countries = cache()->remember('countries_list', 3600, function () {
+            return Country::select('id', 'title')->orderBy('title')->get();
+        });
+        $courses = cache()->remember('courses_list', 3600, function () {
+            return Course::select('id', 'title')->orderBy('title')->get();
+        });
 
-        // Base query for follow-up leads (status = 2)
-        $query = Lead::select([
-            'id', 'title', 'code', 'phone', 'email', 'lead_status_id', 'lead_source_id', 
-            'course_id', 'telecaller_id', 'team_id', 'place', 'rating', 'interest_status', 
-            'followup_date', 'remarks', 'is_converted', 'created_at', 'updated_at'
-        ])
-        ->with([
-            'leadStatus:id,title', 
-            'leadSource:id,title', 
-            'course:id,title', 
-            'telecaller:id,name', 
-            'studentDetails:id,lead_id,status,course_id',
-            'leadActivities' => function($query) {
-                $query->select('id', 'lead_id', 'reason', 'created_at', 'activity_type')
-                      ->whereNotNull('reason')
-                      ->where('reason', '!=', '')
-                      ->orderBy('created_at', 'desc');
+        $currentUser = AuthHelper::getCurrentUser();
+        $isSeniorManager = $currentUser && RoleHelper::is_senior_manager();
+
+        $cacheKey = 'telecallers_list_' . ($currentUser ? $currentUser->id : 'guest');
+        $telecallers = cache()->remember($cacheKey, 1800, function () {
+            return User::select('id', 'name')
+                ->where('role_id', 3)
+                ->orderBy('name')
+                ->get();
+        });
+
+        $isTelecaller = $currentUser && $currentUser->role_id == 3;
+        $isTeamLead = $currentUser && AuthHelper::isTeamLead();
+
+        if ($isTeamLead && !$isSeniorManager) {
+            $teamId = $currentUser->team_id;
+            if ($teamId) {
+                $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+                $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                $telecallers = User::whereIn('id', $teamMemberIds)->get();
+            } else {
+                $telecallers = collect([$currentUser]);
             }
-        ])
-        ->where('lead_status_id', 2)
-        ->notConverted()
-        ->notDropped();
-
-        // Apply filters
-        if ($request->filled('search_key')) {
-            $searchTerm = $request->search_key;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('title', 'like', "%{$searchTerm}%")
-                  ->orWhere('phone', 'like', "%{$searchTerm}%")
-                  ->orWhere('email', 'like', "%{$searchTerm}%");
-            });
+        } elseif ($isTelecaller && !$isSeniorManager) {
+            $telecallers = collect([$currentUser]);
         }
 
-        if ($request->filled('lead_source_id')) {
-            $query->where('lead_source_id', $request->lead_source_id);
-        }
+        $isAdminOrSuperAdmin = RoleHelper::is_admin_or_super_admin();
+        $isTeamLeadRole = RoleHelper::is_team_lead();
+        $isGeneralManager = RoleHelper::is_general_manager();
+        $isTelecallerRole = RoleHelper::is_telecaller();
+        $isAcademicAssistant = RoleHelper::is_academic_assistant();
+        $isAdmissionCounsellor = RoleHelper::is_admission_counsellor();
+        $hasLeadActionPermission = \App\Helpers\PermissionHelper::has_lead_action_permission();
 
-        if ($request->filled('course_id')) {
-            $query->where('course_id', $request->course_id);
-        }
-
-        if ($request->filled('country_id')) {
-            $query->where('country_id', $request->country_id);
-        }
-
-        if ($request->filled('telecaller_id')) {
-            $query->where('telecaller_id', $request->telecaller_id);
-        }
-
-        // Role-based filtering (skip for senior managers)
-        if (!$isSeniorManager) {
-            if ($isTelecaller && !$isTeamLead) {
-                // Telecaller: Can only see their own leads
-                $query->where('telecaller_id', AuthHelper::getCurrentUserId());
-            } elseif ($isTeamLead) {
-                // Team Lead: Can see leads from their team
-                $teamId = AuthHelper::getCurrentUser()->team_id ?? null;
-                if ($teamId) {
-                    $query->whereHas('telecaller', function($q) use ($teamId) {
-                        $q->where('team_id', $teamId);
-                    });
-                }
-
-                // Admin/Super Admin: Can filter by specific telecaller
-                if ($request->filled('telecaller_id')) {
-                    $query->where('telecaller_id', $request->telecaller_id);
-                }
-            }
-        }
-
-        // Order by follow-up date: current date first, then tomorrow, then future dates, then past dates
-        $query->orderByRaw("
-            CASE 
-                WHEN DATE(followup_date) = CURDATE() THEN 1
-                WHEN DATE(followup_date) = DATE_ADD(CURDATE(), INTERVAL 1 DAY) THEN 2
-                WHEN DATE(followup_date) > CURDATE() THEN 3
-                ELSE 4
-            END,
-            followup_date ASC
-        ");
-
-        // Get all follow-up leads without pagination
-        $leads = $query->get();
-
-        // Get filter options (optimized with select only needed fields)
-        $leadStatuses = LeadStatus::select('id', 'title')->get();
-        $leadSources = LeadSource::select('id', 'title')->get();
-        $countries = Country::select('id', 'title')->get();
-        $courses = Course::select('id', 'title')->get();
-        $telecallers = User::select('id', 'name')->nonMarketingTelecallers()->get();
-
-        return view('admin.leads.followup', compact('leads', 'leadStatuses', 'leadSources', 'countries', 'courses', 'telecallers', 'isTelecaller', 'isTeamLead'));
+        return view('admin.leads.followup', compact(
+            'leadSources', 'countries', 'courses', 'telecallers',
+            'isTelecaller', 'isTeamLead',
+            'isAdminOrSuperAdmin', 'isTeamLeadRole', 'isGeneralManager', 'isTelecallerRole',
+            'isAcademicAssistant', 'isAdmissionCounsellor', 'hasLeadActionPermission'
+        ))->with('search_key', $request->search_key);
     }
 
     public function create()
@@ -2506,8 +2815,8 @@ class LeadController extends Controller
                 $leadUpdateData['course_id'] = $request->course_id;
             }
 
-            if (in_array($newStatusId, $followupRequiredStatuses, true) && $request->followup_date) {
-                $leadUpdateData['followup_date'] = $request->followup_date;
+            if (in_array($newStatusId, $followupRequiredStatuses, true) && $request->filled('followup_date')) {
+                $leadUpdateData['followup_date'] = Carbon::parse($request->followup_date)->toDateString();
             }
 
             // Generate automatic status change remark
@@ -2531,19 +2840,16 @@ class LeadController extends Controller
                 'updated_by' => $currentUserId,
             ];
 
-            if (in_array($newStatusId, $followupRequiredStatuses, true) && $request->followup_date) {
-                $activityPayload['followup_date'] = $request->followup_date;
+            if (in_array($newStatusId, $followupRequiredStatuses, true) && $request->filled('followup_date')) {
+                $activityPayload['followup_date'] = Carbon::parse($request->followup_date)->toDateString();
             }
 
             $updatedLead = DB::transaction(function () use ($lead, $leadUpdateData, $activityPayload, $activityTimestamp) {
                 $leadUpdatePayload = $leadUpdateData;
                 $leadUpdatePayload['updated_at'] = $activityTimestamp;
 
-                $updated = Lead::where('id', $lead->id)->update($leadUpdatePayload);
-
-                if (!$updated) {
-                    throw new \RuntimeException('Failed to update lead record.');
-                }
+                $lead->fill($leadUpdatePayload);
+                $lead->save();
 
                 $lead->leadActivities()->create(array_merge($activityPayload, [
                     'created_at' => $activityTimestamp,

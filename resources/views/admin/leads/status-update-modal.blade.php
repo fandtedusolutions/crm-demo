@@ -68,7 +68,8 @@
         <div class="mb-3">
             <label class="form-label" for="rating">Lead Rating (1 - 10) <span class="text-danger">*</span></label>
             <input type="number" class="form-control" name="rating" id="rating"
-                min="1" max="10" required placeholder="Enter rating between 1 and 10">
+                min="1" max="10" required placeholder="Enter rating between 1 and 10"
+                value="{{ old('rating', $lead->rating) }}">
         </div>
 
         <!-- Followup Date Section - Only shown when followup-required statuses are selected -->
@@ -83,7 +84,10 @@
                 <div class="col-md-12">
                     <label class="form-label" for="followup_date">Followup Date <span class="text-danger">*</span></label>
                     <input type="date" class="form-control" name="followup_date" id="followup_date"
-                        min="{{ date('Y-m-d') }}" value="{{ optional($lead->followup_date)->format('Y-m-d') }}">
+                        min="{{ date('Y-m-d') }}"
+                        data-saved-date="{{ optional($lead->followup_date)->format('Y-m-d') }}"
+                        value="{{ optional($lead->followup_date)->format('Y-m-d') }}">
+                    <small class="text-muted" id="followupDateHint" style="display: none;"></small>
                 </div>
             </div>
         </div>
@@ -250,14 +254,27 @@
                 console.log('Followup section display style:', followupDateSection.css('display'));
                 demoBookingSection.hide();
                 followupInput.prop('disabled', false);
-                followupInput.prop('required', true); // make required
-                followupInput.attr('required', 'required'); // ensure required attribute is set
+                followupInput.prop('required', true);
+                followupInput.attr('required', 'required');
                 followupInput.attr('min', todayStr);
-                if (followupInput.val() && followupInput.val() < todayStr) {
+
+                const savedFollowupDate = followupInput.data('saved-date') || followupInput.attr('value') || '';
+                if (!savedFollowupDate || savedFollowupDate < todayStr) {
                     followupInput.val(todayStr);
-                }
-                if (!followupInput.val()) {
-                    followupInput.val(todayStr);
+                    if (savedFollowupDate && savedFollowupDate < todayStr) {
+                        const parts = savedFollowupDate.split('-');
+                        const savedDisplay = parts.length === 3
+                            ? `${parts[2]}-${parts[1]}-${parts[0]}`
+                            : savedFollowupDate;
+                        $('#followupDateHint')
+                            .text(`Previous follow-up was ${savedDisplay}. Confirm the new date and click Update Status to save.`)
+                            .show();
+                    } else {
+                        $('#followupDateHint').hide();
+                    }
+                } else {
+                    followupInput.val(savedFollowupDate);
+                    $('#followupDateHint').hide();
                 }
                 // Enable update button
                 updateStatusBtn.prop('disabled', false);
@@ -273,6 +290,7 @@
                 followupInput.prop('disabled', true);
                 followupInput.removeAttr('min');
                 followupInput.val('');
+                $('#followupDateHint').hide();
                 updateStatusBtn.prop('disabled', false);
                 updateStatusBtn.html('Update Status');
                 formCompleted = true;
@@ -375,8 +393,11 @@
                         // Close modal
                         $('#ajax_modal').modal('hide');
 
-                        // Reload the page or update the table
-                        location.reload();
+                        if ($.fn.DataTable.isDataTable('#followupLeadsAjaxTable')) {
+                            $('#followupLeadsAjaxTable').DataTable().ajax.reload(null, false);
+                        } else {
+                            location.reload();
+                        }
                     } else {
                         // Show error message
                         if (typeof toast_error === 'function') {
