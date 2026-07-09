@@ -44,11 +44,29 @@ class NatXAppLog extends Model
     ];
 
     /**
+     * Normalize epoch values from the mobile app.
+     * Some devices send seconds; the API contract expects milliseconds.
+     */
+    public static function normalizeEpochMilliseconds(?int $value): ?int
+    {
+        if ($value === null || $value <= 0) {
+            return null;
+        }
+
+        if ($value < 1_000_000_000_000) {
+            return $value * 1000;
+        }
+
+        return $value;
+    }
+
+    /**
      * Convert epoch milliseconds from the NatX app to app-local datetime.
      */
     public static function dateTimeFromMilliseconds(?int $milliseconds): ?Carbon
     {
-        if ($milliseconds === null || $milliseconds <= 0) {
+        $milliseconds = self::normalizeEpochMilliseconds($milliseconds);
+        if ($milliseconds === null) {
             return null;
         }
 
@@ -66,6 +84,16 @@ class NatXAppLog extends Model
             Carbon::parse($startDate, $timezone)->startOfDay()->getTimestampMs(),
             Carbon::parse($endDate, $timezone)->endOfDay()->getTimestampMs(),
         ];
+    }
+
+    public function scopeForReportPeriod(Builder $query, string $fromDate, string $toDate): Builder
+    {
+        [$startMs, $endMs] = self::millisecondRangeForDates($fromDate, $toDate);
+
+        return $query->whereRaw(
+            'IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms) BETWEEN ? AND ?',
+            [$startMs, $endMs]
+        );
     }
 
     public static function notPickedSqlCondition(): string
@@ -103,6 +131,16 @@ class NatXAppLog extends Model
         }
 
         return sprintf('%d:%02d', $minutes, $secs);
+    }
+
+    public function getNormalizedStartedAtMsAttribute(): ?int
+    {
+        return self::normalizeEpochMilliseconds($this->started_at_ms);
+    }
+
+    public function getNormalizedEndAtMsAttribute(): ?int
+    {
+        return self::normalizeEpochMilliseconds($this->end_at_ms);
     }
 
     public function getDisplayStartedAtAttribute(): ?Carbon

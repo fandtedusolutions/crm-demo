@@ -386,11 +386,13 @@ class NatXSyncController extends Controller
 
     private function resolveCallTimestamps(array $item): array
     {
-        $startedAtMs = (int) $item['started_at_ms'];
+        $startedAtMs = NatXAppLog::normalizeEpochMilliseconds((int) $item['started_at_ms']);
         $startedAt = NatXAppLog::dateTimeFromMilliseconds($startedAtMs);
 
-        $endAtMs = isset($item['end_at_ms']) ? (int) $item['end_at_ms'] : null;
-        if (($endAtMs === null || $endAtMs <= 0) && !empty($item['duration_seconds'])) {
+        $endAtMs = isset($item['end_at_ms'])
+            ? NatXAppLog::normalizeEpochMilliseconds((int) $item['end_at_ms'])
+            : null;
+        if (($endAtMs === null || $endAtMs <= 0) && !empty($item['duration_seconds']) && $startedAtMs) {
             $endAtMs = $startedAtMs + ((int) $item['duration_seconds'] * 1000);
         }
 

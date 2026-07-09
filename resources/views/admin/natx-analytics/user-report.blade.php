@@ -83,7 +83,7 @@
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="ti ti-search me-1"></i> Apply
                             </button>
-                            <a href="{{ route('admin.natx-analytics.report.user', $user->id) }}" class="btn btn-outline-secondary btn-sm">
+                            <a href="{{ route('admin.natx-analytics.report.user', array_merge(['user' => $user->id], $filterQueryParams)) }}" class="btn btn-outline-secondary btn-sm">
                                 <i class="ti ti-refresh me-1"></i> Reset
                             </a>
                         </div>
@@ -94,7 +94,11 @@
     </div>
 </div>
 
-@include('admin.natx-analytics.partials.active-filters', ['filters' => $filters])
+@include('admin.natx-analytics.partials.active-filters', [
+    'filters' => $filters,
+    'users' => collect([$user]),
+    'defaultDateRange' => $defaultDateRange ?? \App\Helpers\DateRangeHelper::PRESET_THIS_MONTH,
+])
 
 @include('admin.natx-analytics.partials.stats-cards')
 
@@ -165,6 +169,7 @@
                                         <div class="ca-empty-state">
                                             <i class="ti ti-phone-off"></i>
                                             <p>No call logs found for the selected filters.</p>
+                                            <small class="text-muted">Try widening the date range if you expect older synced calls.</small>
                                         </div>
                                     </td>
                                 </tr>

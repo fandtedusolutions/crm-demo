@@ -82,7 +82,11 @@
     </div>
 </div>
 
-@include('admin.natx-analytics.partials.active-filters', ['filters' => $filters, 'users' => $users])
+@include('admin.natx-analytics.partials.active-filters', [
+    'filters' => $filters,
+    'users' => $users,
+    'defaultDateRange' => $defaultDateRange ?? \App\Helpers\DateRangeHelper::PRESET_THIS_MONTH,
+])
 
 @include('admin.natx-analytics.partials.stats-cards')
 
@@ -168,6 +172,7 @@
                                         <div class="ca-empty-state">
                                             <i class="ti ti-phone-off"></i>
                                             <p>No NatX call logs found for the selected filters.</p>
+                                            <small class="text-muted">Try widening the date range (e.g. This Month) if you expect older synced calls.</small>
                                         </div>
                                     </td>
                                 </tr>

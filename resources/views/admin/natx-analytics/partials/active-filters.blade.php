@@ -22,7 +22,8 @@
         $chips[] = ['label' => 'Search', 'value' => $filters['search']];
     }
 
-    $isDefaultDate = ($filters['date_range'] ?? DateRangeHelper::defaultPreset()) === DateRangeHelper::defaultPreset();
+    $defaultDateRange = $defaultDateRange ?? DateRangeHelper::defaultPreset();
+    $isDefaultDate = ($filters['date_range'] ?? $defaultDateRange) === $defaultDateRange;
     $hasExtraFilters = !empty($filters['user_id']) || !empty($filters['call_type']) || !empty($filters['search']) || !$isDefaultDate;
 @endphp
 

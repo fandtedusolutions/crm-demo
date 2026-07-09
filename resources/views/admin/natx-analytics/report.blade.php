@@ -91,7 +91,11 @@
     </div>
 </div>
 
-@include('admin.natx-analytics.partials.active-filters', ['filters' => $filters, 'users' => $users])
+@include('admin.natx-analytics.partials.active-filters', [
+    'filters' => $filters,
+    'users' => $users,
+    'defaultDateRange' => $defaultDateRange ?? \App\Helpers\DateRangeHelper::PRESET_THIS_MONTH,
+])
 
 @php $stats = $grandTotals; @endphp
 @include('admin.natx-analytics.partials.stats-cards')

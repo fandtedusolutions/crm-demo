@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Storage;
 
 class NatXAnalyticsController extends Controller
 {
+    public const DEFAULT_DATE_RANGE = DateRangeHelper::PRESET_THIS_MONTH;
+
     private function denyUnlessAllowed(): void
     {
         if (!PermissionHelper::can_access_natx_analytics()) {
@@ -54,6 +56,10 @@ class NatXAnalyticsController extends Controller
             $dateRange = DateRangeHelper::PRESET_CUSTOM;
         }
 
+        if (!$dateRange && !$startDate && !$endDate) {
+            $dateRange = self::DEFAULT_DATE_RANGE;
+        }
+
         $dates = DateRangeHelper::resolve($dateRange, $startDate, $endDate);
 
         return array_merge($dates, [
@@ -66,12 +72,7 @@ class NatXAnalyticsController extends Controller
 
     private function applyFilters($query, array $filters)
     {
-        [$startMs, $endMs] = NatXAppLog::millisecondRangeForDates(
-            $filters['start_date'],
-            $filters['end_date']
-        );
-
-        $query->whereBetween('started_at_ms', [$startMs, $endMs]);
+        $query->forReportPeriod($filters['start_date'], $filters['end_date']);
 
         if (!empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
@@ -184,11 +185,11 @@ class NatXAnalyticsController extends Controller
                 DB::raw('MAX(phone_number) as phone_number'),
                 DB::raw('MAX(contact_name) as contact_name'),
                 DB::raw('COUNT(*) as call_count'),
-                DB::raw('MAX(started_at_ms) as last_started_at_ms'),
+                DB::raw('MAX(IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms)) as last_started_at_ms'),
                 DB::raw('SUM(duration_seconds) as total_duration_seconds'),
-                DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(user_id ORDER BY started_at_ms DESC), ",", 1) as last_user_id'),
-                DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(id ORDER BY started_at_ms DESC), ",", 1) as last_call_id'),
-                DB::raw("SUBSTRING_INDEX(GROUP_CONCAT(IF(recording_uploaded = 1, id, NULL) ORDER BY started_at_ms DESC SEPARATOR ','), ',', 1) as recording_call_id"),
+                DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(user_id ORDER BY IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms) DESC), ",", 1) as last_user_id'),
+                DB::raw('SUBSTRING_INDEX(GROUP_CONCAT(id ORDER BY IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms) DESC), ",", 1) as last_call_id'),
+                DB::raw("SUBSTRING_INDEX(GROUP_CONCAT(IF(recording_uploaded = 1, id, NULL) ORDER BY IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms) DESC SEPARATOR ','), ',', 1) as recording_call_id"),
             ])
             ->groupBy(DB::raw("REGEXP_REPLACE(phone_number, '[^0-9]', '')"))
             ->orderByDesc('last_started_at_ms')
@@ -266,7 +267,7 @@ class NatXAnalyticsController extends Controller
             'label' => $this->getMetricLabel($metric),
             'records' => $detailQuery
                 ->with(['user', 'recording'])
-                ->orderByDesc('started_at_ms')
+                ->orderByDesc(DB::raw('IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms)'))
                 ->paginate(25)
                 ->appends($queryParams),
         ];
@@ -286,7 +287,7 @@ class NatXAnalyticsController extends Controller
         $stats = $this->computeCallStats($baseQuery);
 
         $calls = $baseQuery
-            ->orderByDesc('started_at_ms')
+            ->orderByDesc(DB::raw('IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms)'))
             ->paginate(25)
             ->appends($queryParams);
 
@@ -296,7 +297,7 @@ class NatXAnalyticsController extends Controller
             'filters',
             'stats',
             'queryParams'
-        ));
+        ) + ['defaultDateRange' => self::DEFAULT_DATE_RANGE]);
     }
 
     public function report(Request $request)
@@ -377,7 +378,7 @@ class NatXAnalyticsController extends Controller
             'detail',
             'activeUser',
             'queryParams'
-        ));
+        ) + ['defaultDateRange' => self::DEFAULT_DATE_RANGE]);
     }
 
     public function userReport(Request $request, User $user)
@@ -395,7 +396,7 @@ class NatXAnalyticsController extends Controller
         $stats = $this->computeCallStats($baseQuery);
 
         $calls = (clone $baseQuery)
-            ->orderByDesc('started_at_ms')
+            ->orderByDesc(DB::raw('IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms)'))
             ->paginate(25)
             ->appends($filterQueryParams);
 
@@ -405,7 +406,7 @@ class NatXAnalyticsController extends Controller
             'stats',
             'calls',
             'filterQueryParams'
-        ));
+        ) + ['defaultDateRange' => self::DEFAULT_DATE_RANGE]);
     }
 
     public function show(NatXAppLog $call)
