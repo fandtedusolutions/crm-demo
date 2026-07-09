@@ -8,6 +8,8 @@
 
 @section('content')
 @php
+    use App\Helpers\DateRangeHelper;
+
     $tabQuery = \Illuminate\Support\Arr::except($queryParams, ['user_id', 'metric']);
 
     $reportMetricUrl = function (string $metric, ?int $userId = null) use ($queryParams, $filters) {
@@ -63,13 +65,14 @@
                         <input type="hidden" name="metric" value="{{ $filters['metric'] }}">
                     @endif
                     <div class="row g-3 align-items-end">
+                        @include('admin.natx-analytics.partials.date-range-filter')
                         <div class="col-md-3">
                             <label class="form-label">User</label>
                             <select name="user_id" class="form-select form-select-sm">
                                 <option value="">All Users</option>
-                                @foreach($users as $user)
-                                    <option value="{{ $user->id }}" {{ (string) ($filters['user_id'] ?? '') === (string) $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }}
+                                @foreach($users as $filterUser)
+                                    <option value="{{ $filterUser->id }}" {{ (string) ($filters['user_id'] ?? '') === (string) $filterUser->id ? 'selected' : '' }}>
+                                        {{ $filterUser->name }}
                                     </option>
                                 @endforeach
                             </select>

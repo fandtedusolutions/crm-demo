@@ -7,6 +7,12 @@
 @endpush
 
 @section('content')
+@php
+    use App\Helpers\DateRangeHelper;
+
+    $tabQuery = \Illuminate\Support\Arr::except($queryParams, ['user_id', 'metric', 'call_type', 'search']);
+@endphp
+
 <div class="page-header">
     <div class="page-block">
         <div class="row align-items-center">
@@ -26,35 +32,43 @@
     </div>
 </div>
 
-@include('admin.natx-analytics.partials.nav-tabs', ['activeTab' => 'index', 'tabQuery' => $queryParams])
+@include('admin.natx-analytics.partials.nav-tabs', ['activeTab' => 'index', 'tabQuery' => $tabQuery])
 
 <div class="row mb-3 no-print">
     <div class="col-12">
         <div class="card">
-            <div class="card-body py-3">
-                <form method="GET" action="{{ route('admin.natx-analytics.index') }}" class="row g-2 align-items-end">
-                    <div class="col-md-2">
-                        <label class="form-label">Call Type</label>
-                        <select name="call_type" class="form-select form-select-sm">
-                            <option value="">All Types</option>
-                            @foreach(['incoming', 'outgoing', 'not_picked', 'missed', 'rejected', 'unknown'] as $type)
-                                <option value="{{ $type }}" {{ ($filters['call_type'] ?? '') === $type ? 'selected' : '' }}>{{ $type === 'not_picked' ? 'Not Picked' : ucfirst($type) }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Search</label>
-                        <input type="text" name="search" class="form-control form-control-sm" value="{{ $filters['search'] ?? '' }}" placeholder="Phone, contact, or device_call_id">
-                    </div>
-                    <div class="col-md-auto">
-                        <button type="submit" class="btn btn-primary btn-sm"><i class="ti ti-search me-1"></i> Search</button>
-                        <a href="{{ route('admin.natx-analytics.index') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+            <div class="card-header py-3">
+                <h5 class="mb-0"><i class="ti ti-filter me-2"></i>Search &amp; Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ route('admin.natx-analytics.index') }}">
+                    <div class="row g-3 align-items-end">
+                        @include('admin.natx-analytics.partials.date-range-filter')
+                        <div class="col-md-2">
+                            <label class="form-label">Call Type</label>
+                            <select name="call_type" class="form-select form-select-sm">
+                                <option value="">All Types</option>
+                                @foreach(['incoming', 'outgoing', 'not_picked', 'missed', 'rejected', 'unknown'] as $type)
+                                    <option value="{{ $type }}" {{ ($filters['call_type'] ?? '') === $type ? 'selected' : '' }}>{{ $type === 'not_picked' ? 'Not Picked' : ucfirst($type) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Search</label>
+                            <input type="text" name="search" class="form-control form-control-sm" value="{{ $filters['search'] ?? '' }}" placeholder="Phone, contact, or device_call_id">
+                        </div>
+                        <div class="col-md-auto">
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="ti ti-search me-1"></i> Apply</button>
+                            <a href="{{ route('admin.natx-analytics.index') }}" class="btn btn-outline-secondary btn-sm"><i class="ti ti-refresh me-1"></i> Reset</a>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+@include('admin.natx-analytics.partials.active-filters')
 
 @include('admin.natx-analytics.partials.stats-cards')
 
@@ -65,6 +79,9 @@
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <h5 class="mb-0">NatX Call Logs</h5>
                     <span class="badge bg-light text-dark border">All users</span>
+                    <span class="badge bg-light-primary border border-primary ca-period-badge">
+                        {{ DateRangeHelper::displayPeriod($filters) }}
+                    </span>
                     <span class="badge bg-light-primary border border-primary">{{ $calls->total() }} {{ $calls->total() === 1 ? 'record' : 'records' }}</span>
                 </div>
             </div>

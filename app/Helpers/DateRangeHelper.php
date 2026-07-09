@@ -13,6 +13,7 @@ class DateRangeHelper
     public const PRESET_THIS_MONTH = 'this_month';
     public const PRESET_LAST_MONTH = 'last_month';
     public const PRESET_CUSTOM = 'custom';
+    public const PRESET_ALL = 'all';
 
     public static function options(): array
     {
@@ -32,10 +33,30 @@ class DateRangeHelper
         return self::PRESET_TODAY;
     }
 
+    public static function natxOptions(): array
+    {
+        return [
+            self::PRESET_ALL => 'All Time',
+        ] + self::options();
+    }
+
+    public static function natxDefaultPreset(): string
+    {
+        return self::PRESET_ALL;
+    }
+
     public static function resolve(?string $dateRange = null, ?string $startDate = null, ?string $endDate = null): array
     {
         $today = Carbon::today();
         $preset = $dateRange ?: self::defaultPreset();
+
+        if ($preset === self::PRESET_ALL) {
+            return [
+                'date_range' => self::PRESET_ALL,
+                'start_date' => null,
+                'end_date' => null,
+            ];
+        }
 
         if ($preset === self::PRESET_CUSTOM) {
             return [
@@ -102,6 +123,10 @@ class DateRangeHelper
 
     public static function displayPeriod(array $filters, string $separator = ' · '): string
     {
+        if (($filters['date_range'] ?? '') === self::PRESET_ALL) {
+            return 'All Time';
+        }
+
         $label = self::options()[$filters['date_range'] ?? self::defaultPreset()] ?? 'Custom';
         $start = self::formatDisplay($filters['start_date'] ?? null);
         $end = self::formatDisplay($filters['end_date'] ?? null);

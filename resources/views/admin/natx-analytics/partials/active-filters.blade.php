@@ -1,5 +1,11 @@
 @php
+    use App\Helpers\DateRangeHelper;
+
     $chips = [];
+
+    if (($filters['date_range'] ?? DateRangeHelper::natxDefaultPreset()) !== DateRangeHelper::PRESET_ALL) {
+        $chips[] = ['label' => 'Period', 'value' => DateRangeHelper::displayPeriod($filters)];
+    }
 
     if (!empty($filters['call_type'])) {
         $chips[] = ['label' => 'Type', 'value' => $filters['call_type'] === 'not_picked' ? 'Not Picked' : ucfirst($filters['call_type'])];
@@ -9,7 +15,7 @@
         $chips[] = ['label' => 'Search', 'value' => $filters['search']];
     }
 
-    $hasExtraFilters = !empty($filters['call_type']) || !empty($filters['search']);
+    $hasExtraFilters = !empty($chips);
 @endphp
 
 @if($hasExtraFilters)

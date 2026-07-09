@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\DateRangeHelper;
 use App\Helpers\PermissionHelper;
 use App\Models\NatXAppLog;
 use App\Models\User;
@@ -21,6 +22,7 @@ class NatXAnalyticsController extends Controller
     private function buildQueryParams(array $filters, array $extra = []): array
     {
         return array_filter(array_merge(
+            DateRangeHelper::queryParams($filters),
             array_filter([
                 'user_id' => $filters['user_id'] ?? null,
                 'call_type' => $filters['call_type'] ?? null,
@@ -33,24 +35,45 @@ class NatXAnalyticsController extends Controller
 
     private function buildUserReportQueryParams(array $filters): array
     {
-        return array_filter([
-            'call_type' => $filters['call_type'] ?? null,
-            'search' => $filters['search'] ?? null,
-        ], fn ($value) => $value !== null && $value !== '');
+        return array_filter(array_merge(
+            DateRangeHelper::queryParams($filters),
+            array_filter([
+                'call_type' => $filters['call_type'] ?? null,
+                'search' => $filters['search'] ?? null,
+            ], fn ($value) => $value !== null && $value !== '')
+        ), fn ($value) => $value !== null && $value !== '');
     }
 
-    private function getFilterParams(Request $request): array
+    private function getFilterParams(Request $request, ?string $defaultDatePreset = null): array
     {
-        return [
+        $dateRange = $request->get('date_range');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        if ($dateRange === null || $dateRange === '') {
+            $dateRange = $defaultDatePreset ?? DateRangeHelper::natxDefaultPreset();
+        }
+
+        if (!$dateRange && ($startDate || $endDate)) {
+            $dateRange = DateRangeHelper::PRESET_CUSTOM;
+        }
+
+        $dates = DateRangeHelper::resolve($dateRange, $startDate, $endDate);
+
+        return array_merge($dates, [
             'user_id' => $request->get('user_id'),
             'call_type' => $request->get('call_type'),
             'search' => $request->get('search'),
             'metric' => $request->get('metric'),
-        ];
+        ]);
     }
 
     private function applyFilters($query, array $filters)
     {
+        if (!empty($filters['date_range']) && $filters['date_range'] !== DateRangeHelper::PRESET_ALL) {
+            $query->forReportPeriod($filters['start_date'], $filters['end_date']);
+        }
+
         if (!empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
         }
@@ -261,6 +284,8 @@ class NatXAnalyticsController extends Controller
         $this->denyUnlessAllowed();
 
         $filters = $this->getFilterParams($request);
+        unset($filters['user_id'], $filters['metric']);
+
         $queryParams = $this->buildQueryParams($filters);
 
         $baseQuery = NatXAppLog::query()->with(['user', 'recording']);
@@ -361,16 +386,21 @@ class NatXAnalyticsController extends Controller
         ));
     }
 
-    public function userReport(Request $request, User $user)
+    public function userReport(Request $request, int $user)
     {
         $this->denyUnlessAllowed();
 
+        $reportUser = User::findOrFail($user);
+
         $filters = $this->getFilterParams($request);
-        $filters['user_id'] = $user->id;
+        unset($filters['user_id'], $filters['metric']);
+        $filters['user_id'] = $reportUser->id;
 
         $filterQueryParams = $this->buildUserReportQueryParams($filters);
 
-        $baseQuery = NatXAppLog::query()->with(['user', 'recording']);
+        $baseQuery = NatXAppLog::query()
+            ->where('user_id', $reportUser->id)
+            ->with(['user', 'recording']);
         $this->applyFilters($baseQuery, $filters);
 
         $stats = $this->computeCallStats($baseQuery);
@@ -380,7 +410,7 @@ class NatXAnalyticsController extends Controller
             ->appends($filterQueryParams);
 
         return view('admin.natx-analytics.user-report', compact(
-            'user',
+            'reportUser',
             'filters',
             'stats',
             'calls',
