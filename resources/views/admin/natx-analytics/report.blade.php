@@ -64,17 +64,6 @@
                     @endif
                     <div class="row g-3 align-items-end">
                         @include('admin.natx-analytics.partials.date-range-filter')
-                        <div class="col-md-3">
-                            <label class="form-label">User</label>
-                            <select name="user_id" class="form-select form-select-sm">
-                                <option value="">All Users</option>
-                                @foreach($users as $filterUser)
-                                    <option value="{{ $filterUser->id }}" {{ (string) ($filters['user_id'] ?? '') === (string) $filterUser->id ? 'selected' : '' }}>
-                                        {{ $filterUser->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
                         <div class="col-md-auto">
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="ti ti-search me-1"></i> Apply

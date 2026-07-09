@@ -7,24 +7,6 @@
         $chips[] = ['label' => 'Period', 'value' => DateRangeHelper::displayPeriod($filters)];
     }
 
-    if (!empty($activeRole ?? null)) {
-        $chips[] = ['label' => 'Role', 'value' => $activeRole->title];
-    } elseif (!empty($filters['role_id']) && !empty($roles ?? null)) {
-        $role = $roles->firstWhere('id', (int) $filters['role_id']);
-        if ($role) {
-            $chips[] = ['label' => 'Role', 'value' => $role->title];
-        }
-    }
-
-    if (!empty($activeUser ?? null)) {
-        $chips[] = ['label' => 'User', 'value' => $activeUser->name];
-    } elseif (!empty($filters['user_id']) && !empty($users ?? null)) {
-        $user = $users->firstWhere('id', (int) $filters['user_id']);
-        if ($user) {
-            $chips[] = ['label' => 'User', 'value' => $user->name];
-        }
-    }
-
     if (!empty($filters['call_type'])) {
         $chips[] = ['label' => 'Type', 'value' => $filters['call_type'] === 'not_picked' ? 'Not Picked' : ucfirst($filters['call_type'])];
     }

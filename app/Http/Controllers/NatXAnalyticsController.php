@@ -6,7 +6,6 @@ use App\Helpers\DateRangeHelper;
 use App\Helpers\PermissionHelper;
 use App\Models\NatXAppLog;
 use App\Models\User;
-use App\Models\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -25,8 +24,6 @@ class NatXAnalyticsController extends Controller
         return array_filter(array_merge(
             DateRangeHelper::queryParams($filters),
             array_filter([
-                'role_id' => $filters['role_id'] ?? null,
-                'user_id' => $filters['user_id'] ?? null,
                 'call_type' => $filters['call_type'] ?? null,
                 'search' => $filters['search'] ?? null,
                 'metric' => $filters['metric'] ?? null,
@@ -52,8 +49,6 @@ class NatXAnalyticsController extends Controller
         $dates = DateRangeHelper::resolve($dateRange, $startDate, $endDate);
 
         return array_merge($dates, [
-            'role_id' => $this->queryFilterValue($request, 'role_id'),
-            'user_id' => $this->queryFilterValue($request, 'user_id'),
             'call_type' => $this->queryFilterValue($request, 'call_type'),
             'search' => $this->queryFilterValue($request, 'search'),
             'metric' => $this->queryFilterValue($request, 'metric'),
@@ -77,12 +72,6 @@ class NatXAnalyticsController extends Controller
 
         if (!empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
-        }
-
-        if (!empty($filters['role_id'])) {
-            $query->whereHas('user', function ($userQuery) use ($filters) {
-                $userQuery->where('role_id', $filters['role_id']);
-            });
         }
 
         if (!empty($filters['call_type'])) {
@@ -180,49 +169,30 @@ class NatXAnalyticsController extends Controller
         return (int) (clone $query)->attended()->count();
     }
 
-    private function getNatxRoles()
+    public function index(Request $request)
     {
-        $activeUserIds = NatXAppLog::query()->distinct()->pluck('user_id');
+        $this->denyUnlessAllowed();
 
-        $roleIds = User::query()
-            ->whereIn('id', $activeUserIds)
-            ->where('role_id', '!=', 3)
-            ->distinct()
-            ->pluck('role_id');
+        $filters = $this->getFilterParams($request);
+        unset($filters['metric'], $filters['user_id']);
 
-        return UserRole::query()
-            ->whereIn('id', $roleIds)
-            ->where('id', '!=', 3)
-            ->orderBy('title')
-            ->get(['id', 'title']);
-    }
+        $queryParams = $this->buildQueryParams($filters);
 
-    private function getFilterUsers(array $filters = [])
-    {
-        $userFilters = $filters;
-        unset($userFilters['user_id'], $userFilters['metric'], $userFilters['role_id']);
+        $baseQuery = NatXAppLog::query()->with(['user', 'recording']);
+        $this->applyFilters($baseQuery, $filters);
 
-        $query = NatXAppLog::query();
-        $this->applyFilters($query, $userFilters);
+        $stats = $this->computeCallStats($baseQuery);
 
-        $activeIds = (clone $query)->distinct()->pluck('user_id');
+        $calls = $this->orderCallsByLatest($baseQuery)
+            ->paginate(25)
+            ->appends($queryParams);
 
-        $userQuery = User::query()
-            ->whereIn('id', $activeIds)
-            ->where('role_id', '!=', 3);
-
-        if (!empty($filters['role_id'])) {
-            $userQuery->where('role_id', $filters['role_id']);
-        }
-
-        return $userQuery
-            ->orderBy('name')
-            ->get(['id', 'name', 'email', 'phone', 'role_id']);
-    }
-
-    private function getUsers(array $filters = [])
-    {
-        return $this->getFilterUsers($filters);
+        return view('admin.natx-analytics.index', compact(
+            'calls',
+            'filters',
+            'stats',
+            'queryParams'
+        ));
     }
 
     private function getConnectedContacts($query, array $queryParams, int $perPage = 25)
@@ -321,45 +291,6 @@ class NatXAnalyticsController extends Controller
         ];
     }
 
-    public function index(Request $request)
-    {
-        $this->denyUnlessAllowed();
-
-        $filters = $this->getFilterParams($request);
-        unset($filters['metric']);
-
-        $queryParams = $this->buildQueryParams($filters);
-        $roles = $this->getNatxRoles();
-        $users = $this->getFilterUsers($filters);
-
-        $baseQuery = NatXAppLog::query()->with(['user', 'recording']);
-        $this->applyFilters($baseQuery, $filters);
-
-        $stats = $this->computeCallStats($baseQuery);
-
-        $calls = $this->orderCallsByLatest($baseQuery)
-            ->paginate(25)
-            ->appends($queryParams);
-
-        $activeRole = !empty($filters['role_id'])
-            ? $roles->firstWhere('id', (int) $filters['role_id'])
-            : null;
-        $activeUser = !empty($filters['user_id'])
-            ? $users->firstWhere('id', (int) $filters['user_id'])
-            : null;
-
-        return view('admin.natx-analytics.index', compact(
-            'calls',
-            'filters',
-            'stats',
-            'queryParams',
-            'roles',
-            'users',
-            'activeRole',
-            'activeUser'
-        ));
-    }
-
     public function report(Request $request)
     {
         $this->denyUnlessAllowed();
@@ -367,7 +298,6 @@ class NatXAnalyticsController extends Controller
         $filters = $this->getFilterParams($request);
 
         $queryParams = $this->buildQueryParams($filters);
-        $users = $this->getUsers($filters);
 
         $summaryFilters = $filters;
         if (!$request->query->has('user_id')) {
@@ -429,7 +359,6 @@ class NatXAnalyticsController extends Controller
         return view('admin.natx-analytics.report', compact(
             'rows',
             'userMap',
-            'users',
             'filters',
             'grandTotals',
             'detail',
