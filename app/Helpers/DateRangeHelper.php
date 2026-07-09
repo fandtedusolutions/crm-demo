@@ -42,7 +42,7 @@ class DateRangeHelper
 
     public static function natxDefaultPreset(): string
     {
-        return self::PRESET_ALL;
+        return self::PRESET_TODAY;
     }
 
     public static function resolve(?string $dateRange = null, ?string $startDate = null, ?string $endDate = null): array
@@ -107,6 +107,10 @@ class DateRangeHelper
         if (($params['date_range'] ?? '') === self::PRESET_CUSTOM) {
             $params['start_date'] = $filters['start_date'] ?? null;
             $params['end_date'] = $filters['end_date'] ?? null;
+        }
+
+        if (($params['date_range'] ?? '') === self::PRESET_ALL) {
+            $params['date_range'] = self::PRESET_ALL;
         }
 
         return array_filter($params, fn ($value) => $value !== null && $value !== '');

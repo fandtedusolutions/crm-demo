@@ -50,11 +50,19 @@ class NatXAnalyticsController extends Controller
         $dates = DateRangeHelper::resolve($dateRange, $startDate, $endDate);
 
         return array_merge($dates, [
-            'user_id' => $request->query('user_id'),
-            'call_type' => $request->query('call_type'),
-            'search' => $request->query('search'),
-            'metric' => $request->query('metric'),
+            'call_type' => $this->queryFilterValue($request, 'call_type'),
+            'search' => $this->queryFilterValue($request, 'search'),
+            'metric' => $this->queryFilterValue($request, 'metric'),
         ]);
+    }
+
+    /**
+     * Read filter values from the URL query string only.
+     * AuthMiddleware merges logged-in user_id into the request input bag.
+     */
+    private function queryFilterValue(Request $request, string $key): mixed
+    {
+        return $request->query->has($key) ? $request->query($key) : null;
     }
 
     private function applyFilters($query, array $filters)
@@ -162,9 +170,15 @@ class NatXAnalyticsController extends Controller
         return (int) (clone $query)->attended()->count();
     }
 
-    private function getUsers()
+    private function getUsers(array $filters = [])
     {
-        $activeIds = NatXAppLog::query()->distinct()->pluck('user_id');
+        $userFilters = $filters;
+        unset($userFilters['user_id'], $userFilters['metric']);
+
+        $query = NatXAppLog::query();
+        $this->applyFilters($query, $userFilters);
+
+        $activeIds = (clone $query)->distinct()->pluck('user_id');
 
         return User::query()
             ->whereIn('id', $activeIds)
@@ -301,17 +315,21 @@ class NatXAnalyticsController extends Controller
         $filters = $this->getFilterParams($request);
 
         $queryParams = $this->buildQueryParams($filters);
-        $users = $this->getUsers();
+        $users = $this->getUsers($filters);
+
+        $summaryFilters = $filters;
+        if (!$request->query->has('user_id')) {
+            unset($summaryFilters['user_id']);
+        }
 
         $query = NatXAppLog::query();
-        $this->applyFilters($query, $filters);
+        $this->applyFilters($query, $summaryFilters);
 
         $rows = (clone $query)
             ->select([
                 'user_id',
                 DB::raw('COUNT(*) as total_calls'),
                 DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_calls"),
-                DB::raw(NatXAppLog::attendedCallsAggregateSql()),
                 DB::raw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls"),
                 DB::raw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls"),
                 DB::raw('SUM(CASE WHEN ' . NatXAppLog::notPickedSqlCondition() . ' THEN 1 ELSE 0 END) as not_picked_calls'),
@@ -352,7 +370,7 @@ class NatXAnalyticsController extends Controller
         ];
 
         $detail = $this->getReportDetail($filters, $queryParams);
-        $activeUser = !empty($filters['user_id'])
+        $activeUser = $request->query->has('user_id') && !empty($filters['user_id'])
             ? $userMap->get((int) $filters['user_id']) ?? User::find($filters['user_id'])
             : null;
 

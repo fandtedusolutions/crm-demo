@@ -105,6 +105,9 @@
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <h5 class="mb-0">User-wise Summary</h5>
                     <span class="badge bg-light text-dark border">{{ $rows->count() }} {{ $rows->count() === 1 ? 'user' : 'users' }}</span>
+                    <span class="badge bg-light-primary border border-primary ca-period-badge">
+                        {{ DateRangeHelper::displayPeriod($filters) }}
+                    </span>
                 </div>
                 <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print()">
                     <i class="ti ti-printer me-1"></i> Print
