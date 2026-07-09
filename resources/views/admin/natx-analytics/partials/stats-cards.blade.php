@@ -2,7 +2,7 @@
     <div class="col-6 col-md-4 col-lg">
         <div class="card ca-stat-card h-100">
             <div class="card-body">
-                <h6 class="mb-2 f-w-400 text-muted">Total Calls</h6>
+                <h6 class="mb-2 f-w-400 text-muted">Total Calls <small class="fw-normal">(all users)</small></h6>
                 <h4 class="mb-0">{{ number_format($stats['total_calls']) }}</h4>
             </div>
         </div>

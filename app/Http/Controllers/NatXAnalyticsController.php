@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\DateRangeHelper;
 use App\Helpers\PermissionHelper;
 use App\Models\NatXAppLog;
 use App\Models\User;
@@ -12,8 +11,6 @@ use Illuminate\Support\Facades\Storage;
 
 class NatXAnalyticsController extends Controller
 {
-    public const DEFAULT_DATE_RANGE = DateRangeHelper::PRESET_THIS_MONTH;
-
     private function denyUnlessAllowed(): void
     {
         if (!PermissionHelper::can_access_natx_analytics()) {
@@ -24,9 +21,7 @@ class NatXAnalyticsController extends Controller
     private function buildQueryParams(array $filters, array $extra = []): array
     {
         return array_filter(array_merge(
-            DateRangeHelper::queryParams($filters),
             array_filter([
-                'user_id' => $filters['user_id'] ?? null,
                 'call_type' => $filters['call_type'] ?? null,
                 'search' => $filters['search'] ?? null,
                 'metric' => $filters['metric'] ?? null,
@@ -37,47 +32,23 @@ class NatXAnalyticsController extends Controller
 
     private function buildUserReportQueryParams(array $filters): array
     {
-        return array_filter(array_merge(
-            DateRangeHelper::queryParams($filters),
-            array_filter([
-                'call_type' => $filters['call_type'] ?? null,
-                'search' => $filters['search'] ?? null,
-            ], fn ($value) => $value !== null && $value !== '')
-        ), fn ($value) => $value !== null && $value !== '');
+        return array_filter([
+            'call_type' => $filters['call_type'] ?? null,
+            'search' => $filters['search'] ?? null,
+        ], fn ($value) => $value !== null && $value !== '');
     }
 
     private function getFilterParams(Request $request): array
     {
-        $dateRange = $request->get('date_range');
-        $startDate = $request->get('start_date');
-        $endDate = $request->get('end_date');
-
-        if (!$dateRange && ($startDate || $endDate)) {
-            $dateRange = DateRangeHelper::PRESET_CUSTOM;
-        }
-
-        if (!$dateRange && !$startDate && !$endDate) {
-            $dateRange = self::DEFAULT_DATE_RANGE;
-        }
-
-        $dates = DateRangeHelper::resolve($dateRange, $startDate, $endDate);
-
-        return array_merge($dates, [
-            'user_id' => $request->get('user_id'),
+        return [
             'call_type' => $request->get('call_type'),
             'search' => $request->get('search'),
             'metric' => $request->get('metric'),
-        ]);
+        ];
     }
 
     private function applyFilters($query, array $filters)
     {
-        $query->forReportPeriod($filters['start_date'], $filters['end_date']);
-
-        if (!empty($filters['user_id'])) {
-            $query->where('user_id', $filters['user_id']);
-        }
-
         if (!empty($filters['call_type'])) {
             $query->where('call_type', $filters['call_type']);
         }
@@ -86,11 +57,17 @@ class NatXAnalyticsController extends Controller
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('phone_number', 'like', '%' . $search . '%')
-                    ->orWhere('contact_name', 'like', '%' . $search . '%');
+                    ->orWhere('contact_name', 'like', '%' . $search . '%')
+                    ->orWhere('device_call_id', 'like', '%' . $search . '%');
             });
         }
 
         return $query;
+    }
+
+    private function orderCallsByLatest($query)
+    {
+        return $query->orderByDesc(DB::raw('IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms)'));
     }
 
     private function applyMetricFilter($query, ?string $metric)
@@ -165,16 +142,6 @@ class NatXAnalyticsController extends Controller
     private function countAttendedCalls($query): int
     {
         return (int) (clone $query)->attended()->count();
-    }
-
-    private function getUsers()
-    {
-        $activeIds = NatXAppLog::query()->distinct()->pluck('user_id');
-
-        return User::query()
-            ->whereIn('id', $activeIds)
-            ->orderBy('name')
-            ->get(['id', 'name', 'email', 'phone']);
     }
 
     private function getConnectedContacts($query, array $queryParams, int $perPage = 25)
@@ -265,9 +232,9 @@ class NatXAnalyticsController extends Controller
         return [
             'type' => 'calls',
             'label' => $this->getMetricLabel($metric),
-            'records' => $detailQuery
-                ->with(['user', 'recording'])
-                ->orderByDesc(DB::raw('IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms)'))
+            'records' => $this->orderCallsByLatest(
+                $detailQuery->with(['user', 'recording'])
+            )
                 ->paginate(25)
                 ->appends($queryParams),
         ];
@@ -279,25 +246,22 @@ class NatXAnalyticsController extends Controller
 
         $filters = $this->getFilterParams($request);
         $queryParams = $this->buildQueryParams($filters);
-        $users = $this->getUsers();
 
         $baseQuery = NatXAppLog::query()->with(['user', 'recording']);
         $this->applyFilters($baseQuery, $filters);
 
         $stats = $this->computeCallStats($baseQuery);
 
-        $calls = $baseQuery
-            ->orderByDesc(DB::raw('IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms)'))
+        $calls = $this->orderCallsByLatest($baseQuery)
             ->paginate(25)
             ->appends($queryParams);
 
         return view('admin.natx-analytics.index', compact(
             'calls',
-            'users',
             'filters',
             'stats',
             'queryParams'
-        ) + ['defaultDateRange' => self::DEFAULT_DATE_RANGE]);
+        ));
     }
 
     public function report(Request $request)
@@ -305,16 +269,7 @@ class NatXAnalyticsController extends Controller
         $this->denyUnlessAllowed();
 
         $filters = $this->getFilterParams($request);
-
-        if (!empty($filters['user_id']) && empty($filters['metric'])) {
-            return redirect()->route('admin.natx-analytics.report.user', array_merge(
-                ['user' => $filters['user_id']],
-                $this->buildUserReportQueryParams($filters)
-            ));
-        }
-
         $queryParams = $this->buildQueryParams($filters);
-        $users = $this->getUsers();
 
         $query = NatXAppLog::query();
         $this->applyFilters($query, $filters);
@@ -365,20 +320,15 @@ class NatXAnalyticsController extends Controller
         ];
 
         $detail = $this->getReportDetail($filters, $queryParams);
-        $activeUser = !empty($filters['user_id'])
-            ? $userMap->get((int) $filters['user_id']) ?? User::find($filters['user_id'])
-            : null;
 
         return view('admin.natx-analytics.report', compact(
             'rows',
             'userMap',
-            'users',
             'filters',
             'grandTotals',
             'detail',
-            'activeUser',
             'queryParams'
-        ) + ['defaultDateRange' => self::DEFAULT_DATE_RANGE]);
+        ));
     }
 
     public function userReport(Request $request, User $user)
@@ -395,8 +345,7 @@ class NatXAnalyticsController extends Controller
 
         $stats = $this->computeCallStats($baseQuery);
 
-        $calls = (clone $baseQuery)
-            ->orderByDesc(DB::raw('IF(started_at_ms < 1000000000000, started_at_ms * 1000, started_at_ms)'))
+        $calls = $this->orderCallsByLatest(clone $baseQuery)
             ->paginate(25)
             ->appends($filterQueryParams);
 
@@ -406,7 +355,7 @@ class NatXAnalyticsController extends Controller
             'stats',
             'calls',
             'filterQueryParams'
-        ) + ['defaultDateRange' => self::DEFAULT_DATE_RANGE]);
+        ));
     }
 
     public function show(NatXAppLog $call)

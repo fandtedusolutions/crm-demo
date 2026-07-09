@@ -1,6 +1,4 @@
 @php
-    use App\Helpers\DateRangeHelper;
-
     $records = $detail['records'];
     $isContacts = $detail['type'] === 'contacts';
 @endphp
@@ -10,13 +8,7 @@
         <div>
             <h5 class="mb-1 text-primary"><i class="ti ti-list-details me-1"></i>{{ $detail['label'] }}</h5>
             <small class="text-muted">
-                @if($activeUser)
-                    User: <strong>{{ $activeUser->name }}</strong>
-                @else
-                    All users
-                @endif
-                &middot; {{ DateRangeHelper::options()[$filters['date_range']] ?? 'Custom' }}
-                ({{ DateRangeHelper::formatDisplay($filters['start_date'] ?? null) }} to {{ DateRangeHelper::formatDisplay($filters['end_date'] ?? null) }})
+                All users
                 &middot; {{ $records->total() }} {{ $records->total() === 1 ? 'record' : 'records' }}
             </small>
         </div>
@@ -34,9 +26,7 @@
                         <th class="no-print"></th>
                         <th>Phone</th>
                         <th>Contact Name</th>
-                        @if(empty($filters['user_id']))
-                            <th>Last User</th>
-                        @endif
+                        <th>Last User</th>
                         <th class="text-center">Call Count</th>
                         <th class="text-center">Talk Time</th>
                         <th>Last Called</th>
@@ -58,9 +48,7 @@
                             </td>
                             <td class="fw-semibold">{{ $contact->phone_number }}</td>
                             <td>{{ $contact->contact_name ?: '-' }}</td>
-                            @if(empty($filters['user_id']))
-                                <td>{{ $detail['user_names'][$contact->last_user_id] ?? 'N/A' }}</td>
-                            @endif
+                            <td>{{ $detail['user_names'][$contact->last_user_id] ?? 'N/A' }}</td>
                             <td class="text-center">{{ number_format($contact->call_count) }}</td>
                             <td class="text-center">{{ \App\Models\NatXAppLog::formatDuration((int) $contact->total_duration_seconds) }}</td>
                             <td>
@@ -82,7 +70,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ empty($filters['user_id']) ? 9 : 8 }}">
+                            <td colspan="9">
                                 <div class="ca-empty-state">
                                     <i class="ti ti-users"></i>
                                     <p>No connected contacts found.</p>
@@ -93,11 +81,15 @@
                 </tbody>
             </table>
         @else
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0" style="min-width: 1800px;">
                 <thead>
+                    <tr>
+                        <th colspan="14" class="text-center table-light">natx_app_logs + natx_app_recordings</th>
+                    </tr>
                     <tr>
                         <th>#</th>
                         <th class="no-print"></th>
+                        <th>Log ID</th>
                         <th>User</th>
                         <th>Phone</th>
                         <th>Contact</th>
@@ -105,6 +97,9 @@
                         <th>Remarks</th>
                         <th>Duration</th>
                         <th>Call Date/Time</th>
+                        <th>has_recording</th>
+                        <th>recording_uploaded</th>
+                        <th>Rec file</th>
                         <th>Recording</th>
                     </tr>
                 </thead>
@@ -117,9 +112,10 @@
                                     <i class="ti ti-eye"></i>
                                 </a>
                             </td>
+                            <td>{{ $call->id }}</td>
                             <td>
                                 <div class="fw-semibold">{{ $call->user?->name ?? 'N/A' }}</div>
-                                <small class="text-muted">{{ $call->user?->email }}</small>
+                                <small class="text-muted">ID {{ $call->user_id }}</small>
                             </td>
                             <td class="fw-medium">{{ $call->phone_number }}</td>
                             <td>{{ $call->contact_name ?: '-' }}</td>
@@ -130,11 +126,14 @@
                                 <div>{{ $call->display_started_at?->format('d M Y') }}</div>
                                 <small class="text-muted">{{ $call->display_started_at?->format('h:i A') }}</small>
                             </td>
+                            <td>{{ $call->has_recording ? 'Yes' : 'No' }}</td>
+                            <td>{{ $call->recording_uploaded ? 'Yes' : 'No' }}</td>
+                            <td><small>{{ $call->recording?->file_name ?: '-' }}</small></td>
                             <td>@include('admin.natx-analytics.partials.recording-cell', ['call' => $call])</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10">
+                            <td colspan="14">
                                 <div class="ca-empty-state">
                                     <i class="ti ti-phone-off"></i>
                                     <p>No calls found for this filter.</p>

@@ -1,18 +1,5 @@
 @php
-    use App\Helpers\DateRangeHelper;
-
     $chips = [];
-    $dateLabel = DateRangeHelper::options()[$filters['date_range'] ?? DateRangeHelper::defaultPreset()] ?? 'Custom';
-    $start = DateRangeHelper::formatDisplay($filters['start_date'] ?? null);
-    $end = DateRangeHelper::formatDisplay($filters['end_date'] ?? null);
-    $chips[] = ['label' => 'Period', 'value' => $dateLabel . ' (' . $start . ' - ' . $end . ')'];
-
-    if (!empty($filters['user_id']) && isset($users)) {
-        $selectedUser = $users->firstWhere('id', (int) $filters['user_id']);
-        if ($selectedUser) {
-            $chips[] = ['label' => 'User', 'value' => $selectedUser->name];
-        }
-    }
 
     if (!empty($filters['call_type'])) {
         $chips[] = ['label' => 'Type', 'value' => $filters['call_type'] === 'not_picked' ? 'Not Picked' : ucfirst($filters['call_type'])];
@@ -22,9 +9,7 @@
         $chips[] = ['label' => 'Search', 'value' => $filters['search']];
     }
 
-    $defaultDateRange = $defaultDateRange ?? DateRangeHelper::defaultPreset();
-    $isDefaultDate = ($filters['date_range'] ?? $defaultDateRange) === $defaultDateRange;
-    $hasExtraFilters = !empty($filters['user_id']) || !empty($filters['call_type']) || !empty($filters['search']) || !$isDefaultDate;
+    $hasExtraFilters = !empty($filters['call_type']) || !empty($filters['search']);
 @endphp
 
 @if($hasExtraFilters)
