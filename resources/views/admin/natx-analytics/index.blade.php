@@ -13,7 +13,7 @@
             <div class="col-md-6">
                 <div class="page-header-title">
                     <h5 class="m-b-10">NatX Analytics</h5>
-                    <p class="m-b-0 text-muted">All users · full call log and recording details</p>
+                    <p class="m-b-0 text-muted">All users · call log and recording details</p>
                 </div>
             </div>
             <div class="col-md-6">
@@ -63,7 +63,7 @@
         <div class="card ca-table-card">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <h5 class="mb-0">NatX Call Logs &amp; Recordings</h5>
+                    <h5 class="mb-0">NatX Call Logs</h5>
                     <span class="badge bg-light text-dark border">All users</span>
                     <span class="badge bg-light-primary border border-primary">{{ $calls->total() }} {{ $calls->total() === 1 ? 'record' : 'records' }}</span>
                 </div>
