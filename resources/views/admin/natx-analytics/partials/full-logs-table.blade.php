@@ -2,6 +2,7 @@
     <table class="table table-hover table-sm mb-0 align-middle">
         <thead class="table-light">
             <tr>
+                <th>#</th>
                 <th>User</th>
                 <th>Phone Number</th>
                 <th>Contact</th>
@@ -21,8 +22,9 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($calls as $call)
+            @forelse($calls as $index => $call)
                 <tr>
+                    <td class="text-muted">{{ $calls->firstItem() + $index }}</td>
                     <td>
                         <div class="fw-semibold">{{ $call->user?->name ?? 'N/A' }}</div>
                         @if($call->user?->email)
@@ -67,7 +69,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="16">
+                    <td colspan="17">
                         <div class="ca-empty-state">
                             <i class="ti ti-phone-off"></i>
                             <p>No NatX call logs found.</p>

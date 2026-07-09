@@ -8,7 +8,11 @@
         <div>
             <h5 class="mb-1 text-primary"><i class="ti ti-list-details me-1"></i>{{ $detail['label'] }}</h5>
             <small class="text-muted">
-                All users
+                @if(!empty($activeUser))
+                    User: <strong>{{ $activeUser->name }}</strong>
+                @else
+                    All users
+                @endif
                 &middot; {{ $records->total() }} {{ $records->total() === 1 ? 'record' : 'records' }}
             </small>
         </div>
@@ -17,9 +21,9 @@
             <i class="ti ti-x me-1"></i> Close
         </a>
     </div>
+    @if($isContacts)
     <div class="ca-table-scroll">
-        @if($isContacts)
-            <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -80,73 +84,12 @@
                     @endforelse
                 </tbody>
             </table>
-        @else
-            <table class="table table-hover align-middle mb-0" style="min-width: 1800px;">
-                <thead>
-                    <tr>
-                        <th colspan="14" class="text-center table-light">natx_app_logs + natx_app_recordings</th>
-                    </tr>
-                    <tr>
-                        <th>#</th>
-                        <th class="no-print"></th>
-                        <th>Log ID</th>
-                        <th>User</th>
-                        <th>Phone</th>
-                        <th>Contact</th>
-                        <th>Type</th>
-                        <th>Remarks</th>
-                        <th>Duration</th>
-                        <th>Call Date/Time</th>
-                        <th>has_recording</th>
-                        <th>recording_uploaded</th>
-                        <th>Rec file</th>
-                        <th>Recording</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($records as $index => $call)
-                        <tr>
-                            <td class="text-muted">{{ $records->firstItem() + $index }}</td>
-                            <td class="no-print">
-                                <a href="{{ route('admin.natx-analytics.show', $call->id) }}" class="btn btn-outline-primary btn-sm ca-btn-icon" title="View">
-                                    <i class="ti ti-eye"></i>
-                                </a>
-                            </td>
-                            <td>{{ $call->id }}</td>
-                            <td>
-                                <div class="fw-semibold">{{ $call->user?->name ?? 'N/A' }}</div>
-                                <small class="text-muted">ID {{ $call->user_id }}</small>
-                            </td>
-                            <td class="fw-medium">{{ $call->phone_number }}</td>
-                            <td>{{ $call->contact_name ?: '-' }}</td>
-                            <td>@include('admin.natx-analytics.partials.call-type-badge', ['call' => $call])</td>
-                            <td>{{ $call->remarks ?: '-' }}</td>
-                            <td>{{ $call->formatted_duration }}</td>
-                            <td>
-                                <div>{{ $call->display_started_at?->format('d M Y') }}</div>
-                                <small class="text-muted">{{ $call->display_started_at?->format('h:i A') }}</small>
-                            </td>
-                            <td>{{ $call->has_recording ? 'Yes' : 'No' }}</td>
-                            <td>{{ $call->recording_uploaded ? 'Yes' : 'No' }}</td>
-                            <td><small>{{ $call->recording?->file_name ?: '-' }}</small></td>
-                            <td>@include('admin.natx-analytics.partials.recording-cell', ['call' => $call])</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="14">
-                                <div class="ca-empty-state">
-                                    <i class="ti ti-phone-off"></i>
-                                    <p>No calls found for this filter.</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        @endif
     </div>
+    @else
+        @include('admin.natx-analytics.partials.full-logs-table', ['calls' => $records])
+    @endif
 
-    @if($records->hasPages())
+    @if($isContacts && $records->hasPages())
         <div class="ca-pagination no-print">
             {{ $records->links('pagination::bootstrap-5') }}
         </div>

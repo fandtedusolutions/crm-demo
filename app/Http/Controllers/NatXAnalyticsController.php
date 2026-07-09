@@ -22,6 +22,7 @@ class NatXAnalyticsController extends Controller
     {
         return array_filter(array_merge(
             array_filter([
+                'user_id' => $filters['user_id'] ?? null,
                 'call_type' => $filters['call_type'] ?? null,
                 'search' => $filters['search'] ?? null,
                 'metric' => $filters['metric'] ?? null,
@@ -41,6 +42,7 @@ class NatXAnalyticsController extends Controller
     private function getFilterParams(Request $request): array
     {
         return [
+            'user_id' => $request->get('user_id'),
             'call_type' => $request->get('call_type'),
             'search' => $request->get('search'),
             'metric' => $request->get('metric'),
@@ -49,6 +51,10 @@ class NatXAnalyticsController extends Controller
 
     private function applyFilters($query, array $filters)
     {
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
         if (!empty($filters['call_type'])) {
             $query->where('call_type', $filters['call_type']);
         }
@@ -142,6 +148,16 @@ class NatXAnalyticsController extends Controller
     private function countAttendedCalls($query): int
     {
         return (int) (clone $query)->attended()->count();
+    }
+
+    private function getUsers()
+    {
+        $activeIds = NatXAppLog::query()->distinct()->pluck('user_id');
+
+        return User::query()
+            ->whereIn('id', $activeIds)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'phone']);
     }
 
     private function getConnectedContacts($query, array $queryParams, int $perPage = 25)
@@ -269,21 +285,78 @@ class NatXAnalyticsController extends Controller
         $this->denyUnlessAllowed();
 
         $filters = $this->getFilterParams($request);
+
+        if (!empty($filters['user_id']) && empty($filters['metric'])) {
+            return redirect()->route('admin.natx-analytics.report.user', array_merge(
+                ['user' => $filters['user_id']],
+                $this->buildUserReportQueryParams($filters)
+            ));
+        }
+
         $queryParams = $this->buildQueryParams($filters);
+        $users = $this->getUsers();
 
-        $baseQuery = NatXAppLog::query()->with(['user', 'recording']);
-        $this->applyFilters($baseQuery, $filters);
+        $query = NatXAppLog::query();
+        $this->applyFilters($query, $filters);
 
-        $stats = $this->computeCallStats($baseQuery);
+        $rows = (clone $query)
+            ->select([
+                'user_id',
+                DB::raw('COUNT(*) as total_calls'),
+                DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_calls"),
+                DB::raw(NatXAppLog::attendedCallsAggregateSql()),
+                DB::raw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls"),
+                DB::raw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls"),
+                DB::raw('SUM(CASE WHEN ' . NatXAppLog::notPickedSqlCondition() . ' THEN 1 ELSE 0 END) as not_picked_calls'),
+                DB::raw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls"),
+                DB::raw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls"),
+                DB::raw('SUM(duration_seconds) as total_duration_seconds'),
+                DB::raw('SUM(CASE WHEN has_recording = 1 THEN 1 ELSE 0 END) as with_recording'),
+                DB::raw('SUM(CASE WHEN recording_uploaded = 1 THEN 1 ELSE 0 END) as recordings_uploaded'),
+            ])
+            ->groupBy('user_id')
+            ->orderByDesc('total_calls')
+            ->get()
+            ->map(function ($row) {
+                $row->attended_calls = NatXAppLog::attendedCallCount(
+                    (int) $row->incoming_calls,
+                    (int) $row->outgoing_calls
+                );
 
-        $calls = $this->orderCallsByLatest($baseQuery)
-            ->paginate(25)
-            ->appends($queryParams);
+                return $row;
+            });
+
+        $userMap = User::whereIn('id', $rows->pluck('user_id'))
+            ->get(['id', 'name', 'email', 'phone'])
+            ->keyBy('id');
+
+        $grandTotals = [
+            'total_calls' => $rows->sum('total_calls'),
+            'connected_calls' => $this->countConnectedCalls($query),
+            'incoming_calls' => $incomingTotal = (int) $rows->sum('incoming_calls'),
+            'outgoing_calls' => $outgoingTotal = (int) $rows->sum('outgoing_calls'),
+            'attended_calls' => NatXAppLog::attendedCallCount($incomingTotal, $outgoingTotal),
+            'not_picked_calls' => $rows->sum('not_picked_calls'),
+            'missed_calls' => $rows->sum('missed_calls'),
+            'rejected_calls' => $rows->sum('rejected_calls'),
+            'total_duration_seconds' => (int) $rows->sum('total_duration_seconds'),
+            'with_recording' => $rows->sum('with_recording'),
+            'recordings_uploaded' => $rows->sum('recordings_uploaded'),
+        ];
+
+        $detail = $this->getReportDetail($filters, $queryParams);
+        $activeUser = !empty($filters['user_id'])
+            ? $userMap->get((int) $filters['user_id']) ?? User::find($filters['user_id'])
+            : null;
 
         return view('admin.natx-analytics.report', compact(
-            'calls',
+            'rows',
+            'userMap',
+            'users',
             'filters',
-            'stats',
+            'grandTotals',
+            'detail',
+            'activeUser',
             'queryParams'
         ));
     }
