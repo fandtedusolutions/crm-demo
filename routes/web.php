@@ -470,7 +470,14 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         });
 
         // NatX Analytics
-        Route::get('/natx-analytics', [NatXAnalyticsController::class, 'index'])->name('natx-analytics.index');
+        Route::prefix('natx-analytics')->name('natx-analytics.')->group(function () {
+            Route::get('/', [NatXAnalyticsController::class, 'index'])->name('index');
+            Route::get('/report', [NatXAnalyticsController::class, 'report'])->name('report');
+            Route::get('/report/user/{user}', [NatXAnalyticsController::class, 'userReport'])->name('report.user')->whereNumber('user');
+            Route::get('/{call}/recording/stream', [NatXAnalyticsController::class, 'streamRecording'])->name('recording.stream')->whereNumber('call');
+            Route::get('/{call}/recording/download', [NatXAnalyticsController::class, 'downloadRecording'])->name('recording.download')->whereNumber('call');
+            Route::get('/{call}', [NatXAnalyticsController::class, 'show'])->name('show')->whereNumber('call');
+        });
 
         // Department Routes
         Route::get('/departments', [App\Http\Controllers\DepartmentController::class, 'index'])->name('departments.index');

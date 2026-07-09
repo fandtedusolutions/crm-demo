@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -54,6 +55,56 @@ class NatXAppLog extends Model
         return Carbon::createFromTimestampMs($milliseconds, config('app.timezone'));
     }
 
+    /**
+     * @return array{0: int, 1: int}
+     */
+    public static function millisecondRangeForDates(string $startDate, string $endDate): array
+    {
+        $timezone = config('app.timezone');
+
+        return [
+            Carbon::parse($startDate, $timezone)->startOfDay()->getTimestampMs(),
+            Carbon::parse($endDate, $timezone)->endOfDay()->getTimestampMs(),
+        ];
+    }
+
+    public static function notPickedSqlCondition(): string
+    {
+        return "(call_type = 'not_picked' OR remarks = 'Not Picked')";
+    }
+
+    public static function attendedCallsAggregateSql(): string
+    {
+        return "SUM(CASE WHEN call_type IN ('incoming', 'outgoing') THEN 1 ELSE 0 END) as attended_calls";
+    }
+
+    public static function attendedCallCount(int $incoming, int $outgoing): int
+    {
+        return $incoming + $outgoing;
+    }
+
+    public function scopeAttended(Builder $query): Builder
+    {
+        return $query->whereIn('call_type', ['incoming', 'outgoing']);
+    }
+
+    public static function formatDuration(int $seconds): string
+    {
+        if ($seconds <= 0) {
+            return '0:00';
+        }
+
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $secs = $seconds % 60;
+
+        if ($hours > 0) {
+            return sprintf('%d:%02d:%02d', $hours, $minutes, $secs);
+        }
+
+        return sprintf('%d:%02d', $minutes, $secs);
+    }
+
     public function getDisplayStartedAtAttribute(): ?Carbon
     {
         return self::dateTimeFromMilliseconds($this->started_at_ms)
@@ -74,5 +125,18 @@ class NatXAppLog extends Model
     public function recording(): HasOne
     {
         return $this->hasOne(NatXAppRecording::class, 'natx_app_log_id');
+    }
+
+    public function getFormattedDurationAttribute(): string
+    {
+        return self::formatDuration((int) $this->duration_seconds);
+    }
+
+    public function getCallTypeLabelAttribute(): string
+    {
+        return match ($this->call_type) {
+            'not_picked' => 'Not Picked',
+            default => ucfirst(str_replace('_', ' ', $this->call_type ?? 'unknown')),
+        };
     }
 }

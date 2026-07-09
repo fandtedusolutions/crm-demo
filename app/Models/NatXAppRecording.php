@@ -44,7 +44,16 @@ class NatXAppRecording extends Model
             return null;
         }
 
-        return Storage::disk('public')->url($path);
+        return asset('storage/' . $path);
+    }
+
+    public function getStreamUrlAttribute(): ?string
+    {
+        if (!$this->natx_app_log_id) {
+            return null;
+        }
+
+        return route('admin.natx-analytics.recording.stream', $this->natx_app_log_id);
     }
 
     /**
@@ -69,5 +78,38 @@ class NatXAppRecording extends Model
         }
 
         return null;
+    }
+
+    public function playbackMimeType(): string
+    {
+        $mime = strtolower(trim((string) ($this->mime_type ?? '')));
+        if ($mime !== '' && $mime !== 'application/octet-stream') {
+            return $mime;
+        }
+
+        $extension = strtolower(pathinfo((string) ($this->file_name ?: $this->file_path), PATHINFO_EXTENSION));
+
+        return match ($extension) {
+            'aac' => 'audio/aac',
+            'm4a' => 'audio/mp4',
+            'mp3' => 'audio/mpeg',
+            'wav' => 'audio/wav',
+            'amr' => 'audio/amr',
+            '3gp' => 'audio/3gpp',
+            default => 'application/octet-stream',
+        };
+    }
+
+    public function getFormattedFileSizeAttribute(): string
+    {
+        $bytes = (int) $this->file_size_bytes;
+        if ($bytes >= 1048576) {
+            return round($bytes / 1048576, 2) . ' MB';
+        }
+        if ($bytes >= 1024) {
+            return round($bytes / 1024, 2) . ' KB';
+        }
+
+        return $bytes . ' B';
     }
 }
