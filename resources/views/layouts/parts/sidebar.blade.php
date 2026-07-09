@@ -840,6 +840,14 @@
                         <span class="pc-mtext">CRM App Settings</span>
                     </a>
                 </li>
+                <li class="pc-item {{ request()->routeIs('admin.natx-app.settings*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.natx-app.settings') }}" class="pc-link">
+                        <span class="pc-micon">
+                            <i class="ti ti-phone-call"></i>
+                        </span>
+                        <span class="pc-mtext">NatX App Settings</span>
+                    </a>
+                </li>
                 @endif
                 @if(has_permission('profile/index'))
                 <li class="pc-item {{ request()->routeIs('profile*') ? 'active' : '' }}">

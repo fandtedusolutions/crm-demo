@@ -43,6 +43,28 @@
                     <div class="row g-3 align-items-end">
                         @include('admin.natx-analytics.partials.date-range-filter')
                         <div class="col-md-2">
+                            <label class="form-label">Role</label>
+                            <select name="role_id" id="natxRoleFilter" class="form-select form-select-sm">
+                                <option value="">All Roles</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->id }}" {{ (string) ($filters['role_id'] ?? '') === (string) $role->id ? 'selected' : '' }}>
+                                        {{ $role->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">User</label>
+                            <select name="user_id" id="natxUserFilter" class="form-select form-select-sm">
+                                <option value="">All Users</option>
+                                @foreach($users as $filterUser)
+                                    <option value="{{ $filterUser->id }}" data-role="{{ $filterUser->role_id }}" {{ (string) ($filters['user_id'] ?? '') === (string) $filterUser->id ? 'selected' : '' }}>
+                                        {{ $filterUser->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <label class="form-label">Call Type</label>
                             <select name="call_type" class="form-select form-select-sm">
                                 <option value="">All Types</option>
@@ -76,7 +98,13 @@
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <h5 class="mb-0">NatX Call Logs</h5>
-                    <span class="badge bg-light text-dark border">All users</span>
+                    @if(!empty($activeUser))
+                        <span class="badge bg-light text-dark border">{{ $activeUser->name }}</span>
+                    @elseif(!empty($activeRole))
+                        <span class="badge bg-light text-dark border">{{ $activeRole->title }}</span>
+                    @else
+                        <span class="badge bg-light text-dark border">All users</span>
+                    @endif
                     <span class="badge bg-light-primary border border-primary ca-period-badge">
                         {{ DateRangeHelper::displayPeriod($filters) }}
                     </span>
@@ -93,4 +121,36 @@
 
 @push('scripts')
 @include('admin.natx-analytics.partials.recording-scripts')
+<script>
+    function filterNatxUsersByRole() {
+        const roleId = document.getElementById('natxRoleFilter')?.value || '';
+        const userSelect = document.getElementById('natxUserFilter');
+        if (!userSelect) {
+            return;
+        }
+
+        let hasVisibleSelection = false;
+
+        Array.from(userSelect.options).forEach((option) => {
+            if (option.value === '') {
+                option.hidden = false;
+                return;
+            }
+
+            const matchesRole = !roleId || option.dataset.role === roleId;
+            option.hidden = !matchesRole;
+
+            if (matchesRole && option.selected) {
+                hasVisibleSelection = true;
+            }
+        });
+
+        if (!hasVisibleSelection) {
+            userSelect.value = '';
+        }
+    }
+
+    document.getElementById('natxRoleFilter')?.addEventListener('change', filterNatxUsersByRole);
+    filterNatxUsersByRole();
+</script>
 @endpush

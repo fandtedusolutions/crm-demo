@@ -281,6 +281,40 @@ class SettingsSeeder extends Seeder
                 'group' => 'crm_app',
                 'is_public' => false,
             ],
+
+            // NatX app settings (version, force update, download)
+            [
+                'key' => 'natx_app_version',
+                'value' => '1.0.0',
+                'type' => 'text',
+                'description' => 'Latest NatX app version',
+                'group' => 'natx_app',
+                'is_public' => false,
+            ],
+            [
+                'key' => 'natx_app_force_update',
+                'value' => '0',
+                'type' => 'boolean',
+                'description' => 'Force users to update the NatX app',
+                'group' => 'natx_app',
+                'is_public' => false,
+            ],
+            [
+                'key' => 'natx_app_download_url',
+                'value' => '',
+                'type' => 'text',
+                'description' => 'External NatX app download URL',
+                'group' => 'natx_app',
+                'is_public' => false,
+            ],
+            [
+                'key' => 'natx_app_apk_path',
+                'value' => '',
+                'type' => 'file',
+                'description' => 'Uploaded NatX APK file path',
+                'group' => 'natx_app',
+                'is_public' => false,
+            ],
         ];
 
         foreach ($settings as $setting) {
