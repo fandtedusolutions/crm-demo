@@ -729,6 +729,7 @@ class PostSalesConvertedLeadController extends Controller
             // Update converted lead
             $convertedLead->batch_id = $newBatch->id;
             $convertedLead->admission_batch_id = null;
+            $convertedLead->admission_batch_assigned_at = null;
             $convertedLead->is_postpond_batch = 1;
             $convertedLead->updated_by = AuthHelper::getCurrentUserId();
             $convertedLead->save();

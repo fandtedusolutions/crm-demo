@@ -4367,12 +4367,21 @@ class ConvertedLeadController extends Controller
             $mentorDetail->save();
         } else {
             // Update in ConvertedLead
+            $oldAdmissionBatchId = $field === 'admission_batch_id'
+                ? $convertedLead->admission_batch_id
+                : null;
+
             $convertedLead->{$field} = $value;
             $convertedLead->updated_by = AuthHelper::getCurrentUserId();
             if ($field === 'name') {
                 $convertedLead->name_updated_by = AuthHelper::getCurrentUserId();
                 $convertedLead->name_updated_at = now();
             }
+
+            if ($field === 'admission_batch_id' && (string) $oldAdmissionBatchId !== (string) $value) {
+                $convertedLead->admission_batch_assigned_at = $value ? now() : null;
+            }
+
             $convertedLead->save();
         }
 

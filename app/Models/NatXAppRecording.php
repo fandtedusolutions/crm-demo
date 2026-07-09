@@ -12,7 +12,7 @@ class NatXAppRecording extends Model
 
     protected $fillable = [
         'natx_app_log_id',
-        'telecaller_id',
+        'user_id',
         'file_path',
         'file_name',
         'mime_type',
@@ -32,9 +32,9 @@ class NatXAppRecording extends Model
         return $this->belongsTo(NatXAppLog::class, 'natx_app_log_id');
     }
 
-    public function telecaller(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'telecaller_id');
+        return $this->belongsTo(User::class);
     }
 
     public function getFileUrlAttribute(): ?string

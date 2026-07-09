@@ -769,6 +769,10 @@ class SupportConvertedLeadController extends Controller
             $leadDetailFields = ['whatsapp_number', 'whatsapp_code', 'class_time_id', 'parents_number', 'parents_code'];
 
             if ($courseId === 25 && in_array($field, $convertedLeadFields)) {
+                $oldAdmissionBatchId = $field === 'admission_batch_id'
+                    ? $convertedLead->admission_batch_id
+                    : null;
+
                 if ($field === 'phone') {
                     $convertedLead->phone = $value;
                     if ($request->has('code')) {
@@ -777,6 +781,11 @@ class SupportConvertedLeadController extends Controller
                 } else {
                     $convertedLead->$field = $value;
                 }
+
+                if ($field === 'admission_batch_id' && (string) $oldAdmissionBatchId !== (string) $value) {
+                    $convertedLead->admission_batch_assigned_at = $value ? now() : null;
+                }
+
                 $convertedLead->save();
                 $responseValue = $this->formatSupportResponseValue($field, $value, $convertedLead);
             } elseif ($courseId === 25 && in_array($field, $leadDetailFields)) {

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('natx_app_logs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('telecaller_id');
+            $table->unsignedBigInteger('user_id');
             $table->string('device_id', 100);
             $table->string('device_call_id', 120);
             $table->string('phone_number', 30);
@@ -29,9 +29,9 @@ return new class extends Migration
             $table->string('app_version', 20)->nullable();
             $table->timestamps();
 
-            $table->foreign('telecaller_id')->references('id')->on('users')->onDelete('cascade');
-            $table->unique(['telecaller_id', 'device_call_id'], 'natx_app_logs_telecaller_device_call_unique');
-            $table->index(['telecaller_id', 'started_at_ms'], 'natx_app_logs_telecaller_started_idx');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unique(['user_id', 'device_call_id'], 'natx_app_logs_user_device_call_unique');
+            $table->index(['user_id', 'started_at_ms'], 'natx_app_logs_user_started_idx');
             $table->index('device_id');
         });
     }

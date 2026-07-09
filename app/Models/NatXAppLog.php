@@ -12,7 +12,7 @@ class NatXAppLog extends Model
     protected $table = 'natx_app_logs';
 
     protected $fillable = [
-        'telecaller_id',
+        'user_id',
         'device_id',
         'device_call_id',
         'phone_number',
@@ -66,9 +66,9 @@ class NatXAppLog extends Model
             ?? ($this->ended_at ? $this->ended_at->copy()->timezone(config('app.timezone')) : null);
     }
 
-    public function telecaller(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'telecaller_id');
+        return $this->belongsTo(User::class);
     }
 
     public function recording(): HasOne

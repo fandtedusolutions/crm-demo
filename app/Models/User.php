@@ -247,6 +247,7 @@ class User extends Authenticatable
 
         // Determine if user is marketing (role_id == 13)
         $isMarketing = $this->role_id == 13 ? 1 : 0;
+        $roleName = $this->role ? $this->role->title : null;
 
         return [
             'id' => $this->id,
@@ -254,6 +255,7 @@ class User extends Authenticatable
             'phone' => $phone,
             'email' => $this->email,
             'role_id' => $this->role_id,
+            'role_name' => $roleName,
             'user_role' => $userRole,
             'is_team_lead' => $this->is_team_lead ? 1 : 0,
             'is_senior_manager' => $this->is_senior_manager ? 1 : 0,

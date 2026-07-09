@@ -51,7 +51,7 @@ class NatXSyncController extends Controller
             ], 422);
         }
 
-        $telecallerId = $request->user()->id;
+        $userId = $request->user()->id;
         $results = [];
         $synced = 0;
         $skipped = 0;
@@ -68,7 +68,7 @@ class NatXSyncController extends Controller
 
             $call = NatXAppLog::updateOrCreate(
                 [
-                    'telecaller_id' => $telecallerId,
+                    'user_id' => $userId,
                     'device_call_id' => $item['device_call_id'],
                 ],
                 [
@@ -141,8 +141,8 @@ class NatXSyncController extends Controller
             ], 422);
         }
 
-        $telecallerId = $request->user()->id;
-        $call = $this->findCallForRecordingUpload($request, $telecallerId);
+        $userId = $request->user()->id;
+        $call = $this->findCallForRecordingUpload($request, $userId);
 
         if (!$call) {
             return response()->json([
@@ -212,7 +212,7 @@ class NatXSyncController extends Controller
 
         $extension = $this->resolveRecordingExtension($file, $originalFileName) ?? 'bin';
         $path = $file->storeAs(
-            "natx-recordings/{$telecallerId}/{$call->id}",
+            "natx-recordings/{$userId}/{$call->id}",
             'recording.' . $extension,
             'public'
         );
@@ -227,7 +227,7 @@ class NatXSyncController extends Controller
         $recording = NatXAppRecording::updateOrCreate(
             ['natx_app_log_id' => $call->id],
             [
-                'telecaller_id' => $telecallerId,
+                'user_id' => $userId,
                 'file_path' => $path,
                 'file_name' => $originalFileName ?: $file->getClientOriginalName(),
                 'mime_type' => $this->resolveRecordingMimeType($file, $originalFileName),
@@ -265,10 +265,10 @@ class NatXSyncController extends Controller
             ], 422);
         }
 
-        $telecallerId = $request->user()->id;
+        $userId = $request->user()->id;
         $ids = array_values(array_unique($validated['device_call_ids']));
 
-        $calls = NatXAppLog::where('telecaller_id', $telecallerId)
+        $calls = NatXAppLog::where('user_id', $userId)
             ->whereIn('device_call_id', $ids)
             ->with('recording')
             ->get()
@@ -316,9 +316,9 @@ class NatXSyncController extends Controller
     public function status(Request $request)
     {
         $sinceMs = $request->query('since_ms');
-        $telecallerId = $request->user()->id;
+        $userId = $request->user()->id;
 
-        $query = NatXAppLog::where('telecaller_id', $telecallerId);
+        $query = NatXAppLog::where('user_id', $userId);
 
         if ($sinceMs) {
             $query->where('started_at_ms', '>=', (int) $sinceMs);
@@ -338,7 +338,7 @@ class NatXSyncController extends Controller
             ->values()
             ->all();
 
-        $lastSyncedAt = NatXAppLog::where('telecaller_id', $telecallerId)
+        $lastSyncedAt = NatXAppLog::where('user_id', $userId)
             ->latest('updated_at')
             ->value('updated_at');
 
@@ -404,9 +404,9 @@ class NatXSyncController extends Controller
         ];
     }
 
-    private function findCallForRecordingUpload(Request $request, int $telecallerId): ?NatXAppLog
+    private function findCallForRecordingUpload(Request $request, int $userId): ?NatXAppLog
     {
-        $query = NatXAppLog::where('telecaller_id', $telecallerId);
+        $query = NatXAppLog::where('user_id', $userId);
 
         if ($request->filled('server_call_id')) {
             $query->where('id', $request->input('server_call_id'));
