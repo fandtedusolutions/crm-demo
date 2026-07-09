@@ -15,6 +15,10 @@ use App\Http\Controllers\API\Call_Api\AuthController as CallApiAuthController;
 use App\Http\Controllers\API\Call_Api\ProfileController as CallApiProfileController;
 use App\Http\Controllers\API\Call_Api\CallSyncController as CallApiSyncController;
 use App\Http\Controllers\API\Call_Api\AppVersionController as CallApiAppVersionController;
+use App\Http\Controllers\API\NatX_Api\AuthController as NatXApiAuthController;
+use App\Http\Controllers\API\NatX_Api\ProfileController as NatXApiProfileController;
+use App\Http\Controllers\API\NatX_Api\NatXSyncController as NatXApiSyncController;
+use App\Http\Controllers\API\NatX_Api\AppVersionController as NatXApiAppVersionController;
 use App\Http\Controllers\API\AppVersionController as CrmAppVersionController;
 
 //Call App API Routes
@@ -32,6 +36,24 @@ Route::prefix('v1/call')->group(function () {
         Route::post('sync/recordings', [CallApiSyncController::class, 'uploadRecording']);
         Route::post('sync/recordings/status', [CallApiSyncController::class, 'recordingStatus']);
         Route::get('sync/status', [CallApiSyncController::class, 'status']);
+    });
+});
+
+//NatX API Routes
+Route::prefix('v1/natx')->group(function () {
+    Route::get('app/version', [NatXApiAppVersionController::class, 'check']);
+    Route::post('app/version', [NatXApiAppVersionController::class, 'check']);
+
+    Route::post('auth/login', [NatXApiAuthController::class, 'login']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('auth/logout', [NatXApiAuthController::class, 'logout']);
+        Route::get('profile', [NatXApiProfileController::class, 'index']);
+
+        Route::post('sync/calls', [NatXApiSyncController::class, 'syncCalls']);
+        Route::post('sync/recordings', [NatXApiSyncController::class, 'uploadRecording']);
+        Route::post('sync/recordings/status', [NatXApiSyncController::class, 'recordingStatus']);
+        Route::get('sync/status', [NatXApiSyncController::class, 'status']);
     });
 });
 

@@ -1,0 +1,611 @@
+================================================================================
+                         NATX APP - API DOCUMENTATION
+================================================================================
+
+Base URL (Production):  https://crm.natdemy.com/api/v1/natx
+
+Authentication:         Bearer Token (Laravel Sanctum)
+Content-Type (JSON):    application/json
+Accept:                 application/json
+
+All endpoints except /auth/login and /app/version require:
+  Authorization: Bearer {auth_token}
+
+Important:
+  - Users with role_id = 3 are NOT allowed to login to NatX.
+  - Login creates a NatX token only after email/password and role validation.
+  - Sync call details before uploading recordings.
+  - Use the same stable device_call_id for call sync, recording status, and upload.
+
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+  1. App Flow
+  2. Authentication APIs
+     2.1 Login
+     2.2 Logout
+     2.3 Profile
+  3. App Version API
+  4. Sync APIs
+     4.1 Sync Call Details
+     4.2 Upload Recording
+     4.3 Recording Upload Status
+     4.4 Sync Status
+  5. Common Error Responses
+  6. App Integration Notes
+  7. Endpoint Summary
+
+
+================================================================================
+1. APP FLOW
+================================================================================
+
+Recommended mobile app flow:
+
+  1. Check version         -> GET  /app/version
+  2. Login                 -> POST /auth/login
+  3. Store auth_token      -> use in Authorization header
+  4. Sync call details     -> POST /sync/calls
+  5. Upload recordings     -> POST /sync/recordings
+  6. Check recording state -> POST /sync/recordings/status
+  7. Check sync state      -> GET  /sync/status
+  8. Logout when needed    -> POST /auth/logout
+
+Important rules:
+
+  - /sync/calls must run before /sync/recordings.
+  - device_call_id must be unique and stable in the app.
+  - Recommended device_call_id format: {started_at_ms}_{phone_digits}
+    Example: 1718700000000_919876543210
+  - Re-sending the same device_call_id updates the server record instead of
+    creating a duplicate.
+  - One recording is stored for one synced call.
+
+
+================================================================================
+2. AUTHENTICATION APIs
+================================================================================
+
+--------------------------------------------------------------------------------
+2.1 LOGIN
+--------------------------------------------------------------------------------
+
+Endpoint:   POST /auth/login
+Auth:       Not required
+
+Request Headers:
+  Content-Type: application/json
+  Accept: application/json
+
+Request Body:
+{
+  "email": "user@example.com",
+  "password": "your_password"
+}
+
+Fields:
+  email       string   required   User email address
+  password    string   required   User password
+
+Success Response (200):
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "User Name",
+    "phone": "+91 9876543210",
+    "email": "user@example.com",
+    "role_id": 2,
+    "user_role": "Role Name",
+    "is_team_lead": 0,
+    "is_senior_manager": 0,
+    "is_marketing": 0,
+    "auth_token": "1|xxxxxxxxxxxxxxxxxxxxxxxx"
+  }
+}
+
+Invalid Login Response (401):
+{
+  "success": false,
+  "message": "Invalid email or password"
+}
+
+Role Not Allowed Response (403):
+{
+  "success": false,
+  "message": "You do not have access to login to NatX"
+}
+
+Validation Response (422):
+{
+  "success": false,
+  "message": "The email field is required."
+}
+
+cURL Example:
+curl -X POST "https://crm.natdemy.com/api/v1/natx/auth/login" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"email":"user@example.com","password":"your_password"}'
+
+
+--------------------------------------------------------------------------------
+2.2 LOGOUT
+--------------------------------------------------------------------------------
+
+Endpoint:   POST /auth/logout
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Request Body:
+  None
+
+Success Response (200):
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+
+cURL Example:
+curl -X POST "https://crm.natdemy.com/api/v1/natx/auth/logout" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json"
+
+
+--------------------------------------------------------------------------------
+2.3 PROFILE
+--------------------------------------------------------------------------------
+
+Endpoint:   GET /profile
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Request Body:
+  None
+
+Success Response (200):
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "User Name",
+    "phone": "+91 9876543210",
+    "email": "user@example.com",
+    "role_id": 2,
+    "user_role": "Role Name",
+    "is_team_lead": 0,
+    "is_senior_manager": 0,
+    "is_marketing": 0,
+    "auth_token": "1|xxxxxxxxxxxxxxxxxxxxxxxx"
+  }
+}
+
+cURL Example:
+curl -X GET "https://crm.natdemy.com/api/v1/natx/profile" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json"
+
+
+================================================================================
+3. APP VERSION API
+================================================================================
+
+Endpoint:   GET /app/version
+Endpoint:   POST /app/version
+Auth:       Not required
+
+Request Headers:
+  Accept: application/json
+
+Query Parameter or JSON Body:
+{
+  "app_version": "1.0.0"
+}
+
+Success Response (200):
+{
+  "success": true,
+  "data": {
+    "latest_version": "1.0.0",
+    "app_version": "1.0.0",
+    "update_required": false,
+    "force_update": false,
+    "download_url": "https://example.com/natx.apk"
+  }
+}
+
+cURL Example:
+curl -X GET "https://crm.natdemy.com/api/v1/natx/app/version?app_version=1.0.0" \
+  -H "Accept: application/json"
+
+
+================================================================================
+4. SYNC APIs
+================================================================================
+
+--------------------------------------------------------------------------------
+4.1 SYNC CALL DETAILS
+--------------------------------------------------------------------------------
+
+Endpoint:   POST /sync/calls
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Content-Type: application/json
+  Accept: application/json
+
+Request Body:
+{
+  "device_id": "android-abc123-unique-install-id",
+  "app_version": "1.0.0",
+  "calls": [
+    {
+      "device_call_id": "1718700000000_919876543210",
+      "phone_number": "+919876543210",
+      "contact_name": "John Doe",
+      "call_type": "incoming",
+      "duration_seconds": 125,
+      "remarks": null,
+      "started_at_ms": 1718700000000,
+      "started_at": "2025-06-18T10:30:00+05:30",
+      "end_at_ms": 1718700125000,
+      "ended_at": "2025-06-18T10:32:05+05:30",
+      "has_recording": true,
+      "recording_duration_seconds": 120,
+      "recording_file_name": "call_recording.amr"
+    },
+    {
+      "device_call_id": "1718700500000_918888888888",
+      "phone_number": "918888888888",
+      "contact_name": null,
+      "call_type": "not_picked",
+      "remarks": "Not Picked",
+      "duration_seconds": 0,
+      "started_at_ms": 1718700500000,
+      "started_at": "2025-06-18T10:38:20+05:30",
+      "end_at_ms": 1718700500000,
+      "ended_at": "2025-06-18T10:38:20+05:30",
+      "has_recording": false
+    }
+  ]
+}
+
+Main Request Fields:
+  device_id                       string    required   Unique app/device install id
+  app_version                     string    optional   NatX app version
+  calls                           array     required   Minimum 1 call
+  calls.*.device_call_id          string    required   Stable unique id from app
+  calls.*.phone_number            string    required   Phone number
+  calls.*.contact_name            string    optional   Contact name if available
+  calls.*.call_type               string    required   incoming, outgoing, missed,
+                                                       rejected, not_picked, unknown
+  calls.*.duration_seconds        integer   required   Call duration in seconds
+  calls.*.remarks                 string    optional   Example: Not Picked
+  calls.*.started_at_ms           integer   required   Call start epoch milliseconds
+  calls.*.started_at              date      optional   ISO date string
+  calls.*.end_at_ms               integer   optional   Call end epoch milliseconds
+  calls.*.ended_at                date      optional   ISO date string
+  calls.*.has_recording           boolean   optional   true if recording exists on device
+  calls.*.recording_duration_seconds integer optional  Recording duration
+  calls.*.recording_file_name     string    optional   Original recording file name
+
+Success Response (200):
+{
+  "success": true,
+  "message": "Calls synced successfully",
+  "data": {
+    "synced": 1,
+    "skipped": 1,
+    "calls": [
+      {
+        "device_call_id": "1718700000000_919876543210",
+        "server_call_id": 501,
+        "status": "created",
+        "started_at_ms": 1718700000000,
+        "started_at": "2025-06-18T10:30:00+05:30",
+        "end_at_ms": 1718700125000,
+        "ended_at": "2025-06-18T10:32:05+05:30",
+        "recording_upload_required": true,
+        "recording_already_uploaded": false
+      }
+    ]
+  }
+}
+
+cURL Example:
+curl -X POST "https://crm.natdemy.com/api/v1/natx/sync/calls" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"device_id":"android-abc123","app_version":"1.0.0","calls":[{"device_call_id":"1718700000000_919876543210","phone_number":"+919876543210","contact_name":"John Doe","call_type":"incoming","duration_seconds":125,"started_at_ms":1718700000000,"end_at_ms":1718700125000,"has_recording":true,"recording_duration_seconds":120,"recording_file_name":"call_recording.amr"}]}'
+
+
+--------------------------------------------------------------------------------
+4.2 UPLOAD RECORDING
+--------------------------------------------------------------------------------
+
+Endpoint:      POST /sync/recordings
+Auth:          Required
+Content-Type:  multipart/form-data
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Form Fields:
+  device_call_id       string    required*  Same id sent in /sync/calls
+  server_call_id       integer   required*  server_call_id returned from /sync/calls
+  recording            file      required   Audio file
+  duration_seconds     integer   optional   Recording duration in seconds
+  recorded_at_ms       integer   optional   Recording created time in epoch ms
+  file_size_bytes      integer   optional   File size in bytes
+  original_file_name   string    optional   Original file name with extension
+
+* Send device_call_id or server_call_id. Sending both is also accepted.
+
+Allowed recording extensions:
+  amr, m4a, mp3, wav, 3gp, aac
+
+Maximum upload size:
+  25 MB
+
+Success Response (200):
+{
+  "success": true,
+  "message": "Recording uploaded successfully",
+  "data": {
+    "server_call_id": 501,
+    "device_call_id": "1718700000000_919876543210",
+    "recording_id": 88,
+    "recording_url": "https://crm.natdemy.com/storage/natx-recordings/1/501/recording.amr",
+    "duration_seconds": 120,
+    "file_size_bytes": 524288,
+    "recording_uploaded": true,
+    "skipped": false
+  }
+}
+
+Already Uploaded Response (200):
+{
+  "success": true,
+  "message": "Recording already exists on server",
+  "data": {
+    "server_call_id": 501,
+    "device_call_id": "1718700000000_919876543210",
+    "recording_id": 88,
+    "recording_url": "https://crm.natdemy.com/storage/natx-recordings/1/501/recording.amr",
+    "duration_seconds": 120,
+    "file_size_bytes": 524288,
+    "recording_uploaded": true,
+    "skipped": true
+  }
+}
+
+cURL Example:
+curl -X POST "https://crm.natdemy.com/api/v1/natx/sync/recordings" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json" \
+  -F "device_call_id=1718700000000_919876543210" \
+  -F "server_call_id=501" \
+  -F "duration_seconds=120" \
+  -F "recorded_at_ms=1718700120000" \
+  -F "file_size_bytes=524288" \
+  -F "original_file_name=call_recording.amr" \
+  -F "recording=@/path/to/call_recording.amr"
+
+
+--------------------------------------------------------------------------------
+4.3 RECORDING UPLOAD STATUS
+--------------------------------------------------------------------------------
+
+Endpoint:   POST /sync/recordings/status
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Content-Type: application/json
+  Accept: application/json
+
+Request Body:
+{
+  "device_call_ids": [
+    "1718700000000_919876543210",
+    "1718700500000_918888888888"
+  ]
+}
+
+Fields:
+  device_call_ids    array    required   Max 100 ids per request
+
+Success Response (200):
+{
+  "success": true,
+  "data": {
+    "recordings": [
+      {
+        "device_call_id": "1718700000000_919876543210",
+        "server_call_id": 501,
+        "has_recording": true,
+        "recording_uploaded": true,
+        "upload_required": false,
+        "recording_url": "https://crm.natdemy.com/storage/natx-recordings/1/501/recording.amr",
+        "recording_id": 88
+      },
+      {
+        "device_call_id": "1718700500000_918888888888",
+        "server_call_id": 502,
+        "has_recording": true,
+        "recording_uploaded": false,
+        "upload_required": true,
+        "recording_url": null,
+        "recording_id": null
+      }
+    ],
+    "not_found": []
+  }
+}
+
+cURL Example:
+curl -X POST "https://crm.natdemy.com/api/v1/natx/sync/recordings/status" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"device_call_ids":["1718700000000_919876543210","1718700500000_918888888888"]}'
+
+
+--------------------------------------------------------------------------------
+4.4 SYNC STATUS
+--------------------------------------------------------------------------------
+
+Endpoint:   GET /sync/status
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Optional Query Parameter:
+  since_ms    integer   Return calls from this started_at_ms onward
+
+Success Response (200):
+{
+  "success": true,
+  "data": {
+    "last_synced_at": "2026-07-09T15:30:00+05:30",
+    "uploaded_device_call_ids": [
+      "1718700000000_919876543210"
+    ],
+    "pending_recordings": [
+      "1718700500000_918888888888"
+    ]
+  }
+}
+
+cURL Example:
+curl -X GET "https://crm.natdemy.com/api/v1/natx/sync/status?since_ms=1718700000000" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json"
+
+
+================================================================================
+5. COMMON ERROR RESPONSES
+================================================================================
+
+Unauthorized (401):
+{
+  "message": "Unauthenticated."
+}
+
+NatX Role Blocked (403):
+{
+  "success": false,
+  "message": "You do not have access to login to NatX"
+}
+
+Validation Failed (422):
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": {
+    "calls.0.phone_number": [
+      "The calls.0.phone number field is required."
+    ]
+  }
+}
+
+Call Not Found For Recording Upload (404):
+{
+  "success": false,
+  "message": "Call record not found"
+}
+
+Server Storage Failed (500):
+{
+  "success": false,
+  "message": "Failed to store recording file on server"
+}
+
+
+================================================================================
+6. APP INTEGRATION NOTES
+================================================================================
+
+Headers for JSON APIs:
+  Authorization: Bearer {auth_token}
+  Content-Type: application/json
+  Accept: application/json
+
+Headers for recording upload:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+  Content-Type must be multipart/form-data
+
+Recommended local app storage keys:
+  natx_auth_token
+  natx_user
+  natx_synced_call_ids
+  natx_synced_recording_ids
+  natx_last_sync_ms
+
+Recommended call sync logic:
+
+  1. Read device call logs.
+  2. Generate stable device_call_id for every call.
+  3. POST unsynced calls to /sync/calls.
+  4. Save returned server_call_id against device_call_id locally.
+  5. If recording_upload_required is true and file exists, upload it.
+  6. If recording file appears later, call /sync/recordings/status first.
+  7. Upload only where upload_required is true.
+
+Call type values:
+  incoming
+  outgoing
+  missed
+  rejected
+  not_picked
+  unknown
+
+Recording file fields:
+  The file input can be named recording, file, or audio.
+  Preferred field name: recording
+
+Date/time:
+  started_at_ms and end_at_ms should be epoch milliseconds.
+  started_at and ended_at are optional ISO date strings.
+  Server mainly uses millisecond fields for sync and status.
+
+
+================================================================================
+7. ENDPOINT SUMMARY
+================================================================================
+
+Public endpoints:
+
+  GET   /api/v1/natx/app/version
+  POST  /api/v1/natx/app/version
+  POST  /api/v1/natx/auth/login
+
+Protected endpoints:
+
+  POST  /api/v1/natx/auth/logout
+  GET   /api/v1/natx/profile
+  POST  /api/v1/natx/sync/calls
+  POST  /api/v1/natx/sync/recordings
+  POST  /api/v1/natx/sync/recordings/status
+  GET   /api/v1/natx/sync/status
+
+Protected endpoints require:
+  Authorization: Bearer {auth_token}
+
+================================================================================
+END OF NATX API DOCUMENTATION
+================================================================================
