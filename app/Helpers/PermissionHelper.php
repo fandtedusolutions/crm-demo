@@ -17,11 +17,20 @@ class PermissionHelper
         return self::can_manage_subject_areas_mails_flags();
     }
 
+    public static function can_access_natx_analytics(): bool
+    {
+        return RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor();
+    }
+
     /**
      * Check if user has permission for a specific page
      */
     public static function has_permission($permission = '')
     {
+        if ($permission === 'admin/natx-analytics/index') {
+            return self::can_access_natx_analytics();
+        }
+
         // Check if super admin
         if (RoleHelper::is_super_admin()) {
             return self::has_permission_super_admin($permission);

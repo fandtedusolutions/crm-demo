@@ -174,6 +174,17 @@
                 </li>
                 @endif
 
+                @if(has_permission('admin/natx-analytics/index'))
+                <li class="pc-item {{ request()->routeIs('admin.natx-analytics.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.natx-analytics.index') }}" class="pc-link">
+                        <span class="pc-micon">
+                            <i class="ti ti-chart-line"></i>
+                        </span>
+                        <span class="pc-mtext">NatX Analytics</span>
+                    </a>
+                </li>
+                @endif
+
                 {{-- User Management Section --}}
                 @if(has_permission('admin/telecallers/index') || has_permission('admin/marketing/index') || has_permission('admin/admins/index') || has_permission('admin/admission-counsellors/index') || has_permission('admin/academic-assistants/index') || has_permission('admin/teachers/index') || has_permission('admin/support-team/index') || has_permission('admin/mentor/index') || has_permission('admin/faculty/index') || has_permission('admin/finance/index') || has_permission('admin/hod/index') || has_permission('admin/placement-officers/index'))
                 <li class="pc-item pc-caption">

@@ -31,6 +31,7 @@ use App\Http\Controllers\MetaLeadController;
 use App\Http\Controllers\VoxbayCallController;
 use App\Http\Controllers\OnlineTeachingFacultyController;
 use App\Http\Controllers\CallAnalyticsController;
+use App\Http\Controllers\NatXAnalyticsController;
 
 // Public routes
 Route::get('/', [AuthController::class, 'index'])->name('login');
@@ -467,6 +468,9 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
             Route::get('/{call}/recording/download', [CallAnalyticsController::class, 'downloadRecording'])->name('recording.download')->whereNumber('call');
             Route::get('/{call}', [CallAnalyticsController::class, 'show'])->name('show')->whereNumber('call');
         });
+
+        // NatX Analytics
+        Route::get('/natx-analytics', [NatXAnalyticsController::class, 'index'])->name('natx-analytics.index');
 
         // Department Routes
         Route::get('/departments', [App\Http\Controllers\DepartmentController::class, 'index'])->name('departments.index');
