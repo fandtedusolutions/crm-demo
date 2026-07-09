@@ -11,6 +11,8 @@
     use App\Helpers\DateRangeHelper;
 @endphp
 
+@include('admin.natx-analytics.partials.nav-tabs', ['activeTab' => 'user', 'tabQuery' => DateRangeHelper::queryParams($filters)])
+
 <div class="page-header">
     <div class="page-block">
         <div class="row align-items-center">

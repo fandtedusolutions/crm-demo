@@ -9,8 +9,6 @@
 @section('content')
 @php
     use App\Helpers\DateRangeHelper;
-
-    $tabQuery = \Illuminate\Support\Arr::except($queryParams, ['user_id', 'metric', 'call_type', 'search']);
 @endphp
 
 <div class="page-header">
@@ -32,7 +30,7 @@
     </div>
 </div>
 
-@include('admin.natx-analytics.partials.nav-tabs', ['activeTab' => 'index', 'tabQuery' => $tabQuery])
+@include('admin.natx-analytics.partials.nav-tabs', ['activeTab' => 'index'])
 
 <div class="row mb-3 no-print">
     <div class="col-12">

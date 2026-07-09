@@ -1,6 +1,12 @@
 @php
+    use App\Helpers\DateRangeHelper;
+
     $activeTab = $activeTab ?? 'index';
-    $tabQuery = $tabQuery ?? [];
+    $tabQuery = $tabQuery ?? \Illuminate\Support\Arr::only(request()->query(), ['date_range', 'start_date', 'end_date']);
+
+    if (empty($tabQuery['date_range'])) {
+        $tabQuery['date_range'] = DateRangeHelper::natxDefaultPreset();
+    }
 @endphp
 <div class="ca-page-tabs no-print">
     <ul class="nav nav-pills">

@@ -33,22 +33,11 @@ class NatXAnalyticsController extends Controller
         ), fn ($value) => $value !== null && $value !== '');
     }
 
-    private function buildUserReportQueryParams(array $filters): array
-    {
-        return array_filter(array_merge(
-            DateRangeHelper::queryParams($filters),
-            array_filter([
-                'call_type' => $filters['call_type'] ?? null,
-                'search' => $filters['search'] ?? null,
-            ], fn ($value) => $value !== null && $value !== '')
-        ), fn ($value) => $value !== null && $value !== '');
-    }
-
     private function getFilterParams(Request $request, ?string $defaultDatePreset = null): array
     {
-        $dateRange = $request->get('date_range');
-        $startDate = $request->get('start_date');
-        $endDate = $request->get('end_date');
+        $dateRange = $request->query('date_range');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
 
         if ($dateRange === null || $dateRange === '') {
             $dateRange = $defaultDatePreset ?? DateRangeHelper::natxDefaultPreset();
@@ -61,10 +50,10 @@ class NatXAnalyticsController extends Controller
         $dates = DateRangeHelper::resolve($dateRange, $startDate, $endDate);
 
         return array_merge($dates, [
-            'user_id' => $request->get('user_id'),
-            'call_type' => $request->get('call_type'),
-            'search' => $request->get('search'),
-            'metric' => $request->get('metric'),
+            'user_id' => $request->query('user_id'),
+            'call_type' => $request->query('call_type'),
+            'search' => $request->query('search'),
+            'metric' => $request->query('metric'),
         ]);
     }
 
@@ -311,13 +300,6 @@ class NatXAnalyticsController extends Controller
 
         $filters = $this->getFilterParams($request);
 
-        if (!empty($filters['user_id']) && empty($filters['metric'])) {
-            return redirect()->route('admin.natx-analytics.report.user', array_merge(
-                ['user' => $filters['user_id']],
-                $this->buildUserReportQueryParams($filters)
-            ));
-        }
-
         $queryParams = $this->buildQueryParams($filters);
         $users = $this->getUsers();
 
@@ -390,32 +372,14 @@ class NatXAnalyticsController extends Controller
     {
         $this->denyUnlessAllowed();
 
-        $reportUser = User::findOrFail($user);
+        User::findOrFail($user);
 
         $filters = $this->getFilterParams($request);
         unset($filters['user_id'], $filters['metric']);
-        $filters['user_id'] = $reportUser->id;
+        $filters['user_id'] = $user;
+        $filters['metric'] = 'total';
 
-        $filterQueryParams = $this->buildUserReportQueryParams($filters);
-
-        $baseQuery = NatXAppLog::query()
-            ->where('user_id', $reportUser->id)
-            ->with(['user', 'recording']);
-        $this->applyFilters($baseQuery, $filters);
-
-        $stats = $this->computeCallStats($baseQuery);
-
-        $calls = $this->orderCallsByLatest(clone $baseQuery)
-            ->paginate(25)
-            ->appends($filterQueryParams);
-
-        return view('admin.natx-analytics.user-report', compact(
-            'reportUser',
-            'filters',
-            'stats',
-            'calls',
-            'filterQueryParams'
-        ));
+        return redirect()->route('admin.natx-analytics.report', $this->buildQueryParams($filters));
     }
 
     public function show(NatXAppLog $call)

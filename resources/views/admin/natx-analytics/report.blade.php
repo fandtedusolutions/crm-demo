@@ -10,8 +10,6 @@
 @php
     use App\Helpers\DateRangeHelper;
 
-    $tabQuery = \Illuminate\Support\Arr::except($queryParams, ['user_id', 'metric']);
-
     $reportMetricUrl = function (string $metric, ?int $userId = null) use ($queryParams, $filters) {
         $params = array_merge($queryParams, array_filter([
             'user_id' => $userId ?? ($filters['user_id'] ?? null),
@@ -21,9 +19,9 @@
     };
 
     $userReportUrl = function (int $userId) use ($queryParams) {
-        return route('admin.natx-analytics.report.user', array_merge(
-            ['user' => $userId],
-            \Illuminate\Support\Arr::except($queryParams, ['user_id', 'metric'])
+        return route('admin.natx-analytics.report', array_merge(
+            $queryParams,
+            ['user_id' => $userId, 'metric' => 'total']
         ));
     };
 
@@ -51,7 +49,7 @@
     </div>
 </div>
 
-@include('admin.natx-analytics.partials.nav-tabs', ['activeTab' => 'report', 'tabQuery' => $tabQuery])
+@include('admin.natx-analytics.partials.nav-tabs', ['activeTab' => 'report'])
 
 <div class="row mb-3 no-print">
     <div class="col-12">
