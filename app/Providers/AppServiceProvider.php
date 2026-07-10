@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\ConvertedLead;
+use App\Observers\ConvertedLeadObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,5 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Load helper functions
         require_once app_path('helpers.php');
+
+        ConvertedLead::observe(ConvertedLeadObserver::class);
     }
 }

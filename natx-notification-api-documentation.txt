@@ -1,0 +1,215 @@
+================================================================================
+                 NATX APP - NOTIFICATION API DOCUMENTATION
+================================================================================
+
+Base URL (Production):  https://crm.natdemy.com/api/v1/natx
+
+Authentication:         Bearer Token (Laravel Sanctum)
+Accept:                 application/json
+
+All endpoints require:
+  Authorization: Bearer {auth_token}
+
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+  1. Overview
+  2. Auto Notification On Admission Batch Assign
+  3. List Notifications (marks unread as read)
+  4. Profile Notification Count
+  5. Common Error Responses
+  6. Endpoint Summary
+
+
+================================================================================
+1. OVERVIEW
+================================================================================
+
+Tables:
+  natx_notifications
+    - title
+    - type            (low | medium | high)
+    - description
+    - date
+    - upto_date
+    - is_active
+    - created_by
+    - user_id         (mentor user id who should receive this notification)
+    - created_at / updated_at
+
+  natx_notification_reads
+    - natx_notification_id
+    - user_id
+    - read_at
+    - created_at / updated_at
+
+API visibility rules:
+  - Only notifications for the logged-in mentor (user_id = auth user id)
+  - Only notifications where upto_date is set AND upto_date >= today
+  - Expired notifications (upto_date < today) are NOT returned
+
+App flow:
+  1. Open app / profile     -> GET /profile
+                               use data.notification_count for badge
+  2. Open notifications     -> GET /notifications
+                               returns list and marks unread as read
+  3. Refresh profile        -> GET /profile
+                               notification_count becomes 0 after load
+
+
+================================================================================
+2. AUTO NOTIFICATION ON ADMISSION BATCH ASSIGN
+================================================================================
+
+When admin assigns / changes Admission Batch for a student in the admin panel:
+
+  - A new row is inserted into natx_notifications
+  - user_id = mentor_id of the selected admission batch
+  - title = "New Student Assigned"
+  - type = high
+  - description includes student name and admission batch name
+  - date = assignment date (today)
+  - upto_date = assignment date + 7 days
+
+Example description:
+  "Rahul Kumar has been assigned to January 2026 Morning Batch."
+
+Notes:
+  - Notification is created only when admission_batch_id actually changes
+  - Notification is created only if the admission batch has a mentor_id
+  - After 7 days (upto_date passed), API will stop returning this notification
+
+
+================================================================================
+3. LIST NOTIFICATIONS
+================================================================================
+
+Endpoint:   GET /notifications
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Query Parameters:
+  None
+
+Behavior:
+  - Returns only this mentor's notifications
+  - Returns only notifications with upto_date >= today
+  - For the logged-in user, any unread notifications in this list are
+    marked as read in natx_notification_reads during this same request
+  - After this API succeeds, unread count for those items becomes 0
+
+Example Request:
+  GET /api/v1/natx/notifications
+
+cURL Example:
+curl -X GET "https://crm.natdemy.com/api/v1/natx/notifications" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json"
+
+Success Response (200):
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "title": "New Student Assigned",
+      "type": "high",
+      "description": "Rahul Kumar has been assigned to January 2026 Morning Batch.",
+      "date": "2026-07-10",
+      "upto_date": "2026-07-17",
+      "is_read": true,
+      "was_unread": true,
+      "created_at": "2026-07-10 09:00:00",
+      "updated_at": "2026-07-10 09:00:00"
+    }
+  ],
+  "marked_read_count": 1
+}
+
+Response Fields:
+  id                  integer        Notification id
+  title               string         Notification title
+  type                string         low | medium | high
+  description         string|null    Notification description
+  date                string|null    Notification date (YYYY-MM-DD)
+  upto_date           string|null    Valid until date (YYYY-MM-DD)
+  is_read             boolean        Always true after this API runs
+  was_unread          boolean        true if it was unread before this load
+  created_at          string|null    Created timestamp
+  updated_at          string|null    Updated timestamp
+  marked_read_count   integer        How many unread items were marked read
+
+
+================================================================================
+4. PROFILE NOTIFICATION COUNT
+================================================================================
+
+Endpoint:   GET /profile
+Auth:       Required
+
+The existing profile API also returns unread NatX notification count.
+
+Example Request:
+  GET /api/v1/natx/profile
+
+Success Response (200) - relevant fields:
+{
+  "success": true,
+  "data": {
+    "id": 31,
+    "name": "NEELIMA",
+    "phone": "+91 92076 66623",
+    "email": "neelima@mentor",
+    "role_id": 9,
+    "role_name": "Mentor",
+    "user_role": "Mentor",
+    "is_team_lead": 0,
+    "is_senior_manager": 0,
+    "is_marketing": 0,
+    "auth_token": "231|xxxxxxxx",
+    "notification_count": 3
+  }
+}
+
+Field:
+  notification_count   integer   Count of unread active notifications for this
+                                 mentor where upto_date >= today
+
+Notes:
+  - Count is only for logged-in mentor (user_id match)
+  - Count excludes expired notifications (upto_date < today)
+  - Count excludes notifications already present in natx_notification_reads
+  - After calling GET /notifications, this count should become 0
+    (for currently visible notifications)
+
+
+================================================================================
+5. COMMON ERROR RESPONSES
+================================================================================
+
+Unauthorized (401):
+{
+  "message": "Unauthenticated."
+}
+
+
+================================================================================
+6. ENDPOINT SUMMARY
+================================================================================
+
+Protected endpoints:
+
+  GET   /api/v1/natx/notifications
+  GET   /api/v1/natx/profile   (includes notification_count)
+
+Protected endpoints require:
+  Authorization: Bearer {auth_token}
+
+================================================================================
+END OF NATX NOTIFICATION API DOCUMENTATION
+================================================================================

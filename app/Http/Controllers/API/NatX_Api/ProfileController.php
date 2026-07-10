@@ -24,6 +24,7 @@ class ProfileController extends Controller
         $user->load('role');
         $currentToken = $request->bearerToken();
         $data = $user->getApiUserData($currentToken);
+        $data['notification_count'] = NotificationController::unreadCount($user->id);
 
         return response()->json([
             'success' => true,

@@ -1,0 +1,224 @@
+================================================================================
+              NATX APP - DEVICE TOKEN / PUSH NOTIFICATION API DOCS
+================================================================================
+
+Base URL (Production):  https://crm.natdemy.com/api/v1/natx
+
+Authentication:         Bearer Token (Laravel Sanctum)
+Content-Type (JSON):    application/json
+Accept:                 application/json
+
+All endpoints require:
+  Authorization: Bearer {auth_token}
+
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+  1. Overview / Why Separate Table
+  2. App Flow
+  3. Register / Update Device Token
+  4. Remove Device Token
+  5. Common Error Responses
+  6. Endpoint Summary
+
+
+================================================================================
+1. OVERVIEW / WHY SEPARATE TABLE
+================================================================================
+
+Device tokens are stored in a dedicated table: natx_device_tokens
+
+  Why NOT on users table:
+  - One mentor can have multiple devices (phone + tablet)
+  - FCM tokens rotate / change over time
+  - Same token should not belong to two users after re-login
+  - Keeps users table clean (users is shared across CRM / Call / NatX)
+
+Table: natx_device_tokens
+  - id
+  - user_id          (mentor user id)
+  - fcm_token        (unique Firebase Cloud Messaging token)
+  - device_type      (android | ios | web)
+  - device_name      (optional, e.g. "Pixel 7", "iPhone 14")
+  - last_used_at
+  - created_at / updated_at
+
+Rules:
+  - fcm_token is unique globally
+  - If the same fcm_token is registered again, it is reassigned to the
+    current logged-in mentor (updateOrCreate)
+  - One user can have many rows (multi-device support)
+
+
+================================================================================
+2. APP FLOW
+================================================================================
+
+Recommended push setup flow:
+
+  1. Login                         -> POST /auth/login
+  2. Get FCM token from Firebase   -> (client side)
+  3. Register token with backend   -> POST /device-token
+  4. On token refresh              -> POST /device-token  (same API, upsert)
+  5. On logout                     -> DELETE /device-token
+                                     then POST /auth/logout
+
+When backend creates a NatX notification for a mentor, it can look up all
+fcm_token rows for that user_id and send FCM push to those devices.
+
+
+================================================================================
+3. REGISTER / UPDATE DEVICE TOKEN
+================================================================================
+
+Endpoint:   POST /device-token
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Content-Type: application/json
+  Accept: application/json
+
+Request Body:
+  fcm_token     string   required   Firebase device token (max 512 chars)
+  device_type   string   required   android | ios | web
+  device_name   string   optional   Human-readable device label
+
+Example Request:
+  POST /api/v1/natx/device-token
+
+{
+  "fcm_token": "dXyzAbc123_FIREBASE_TOKEN_HERE",
+  "device_type": "android",
+  "device_name": "Pixel 7"
+}
+
+cURL Example:
+curl -X POST "https://crm.natdemy.com/api/v1/natx/device-token" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d "{\"fcm_token\":\"dXyzAbc123_FIREBASE_TOKEN_HERE\",\"device_type\":\"android\",\"device_name\":\"Pixel 7\"}"
+
+Success Response (200):
+{
+  "success": true,
+  "message": "Device token saved successfully",
+  "data": {
+    "id": 1,
+    "user_id": 31,
+    "fcm_token": "dXyzAbc123_FIREBASE_TOKEN_HERE",
+    "device_type": "android",
+    "device_name": "Pixel 7",
+    "last_used_at": "2026-07-10 10:30:00"
+  }
+}
+
+Behavior:
+  - Creates a new row if fcm_token is new
+  - Updates existing row if fcm_token already exists
+    (reassigns user_id to current mentor if needed)
+  - Updates last_used_at on every successful call
+
+Validation Error (422):
+{
+  "success": false,
+  "message": "The fcm token field is required."
+}
+
+
+================================================================================
+4. REMOVE DEVICE TOKEN
+================================================================================
+
+Endpoint:   DELETE /device-token
+Auth:       Required
+
+Call this on logout (or when user disables notifications) so the device
+stops receiving push for that mentor account.
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Content-Type: application/json
+  Accept: application/json
+
+Request Body:
+  fcm_token   string   required   Firebase device token to remove
+
+Example Request:
+  DELETE /api/v1/natx/device-token
+
+{
+  "fcm_token": "dXyzAbc123_FIREBASE_TOKEN_HERE"
+}
+
+cURL Example:
+curl -X DELETE "https://crm.natdemy.com/api/v1/natx/device-token" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d "{\"fcm_token\":\"dXyzAbc123_FIREBASE_TOKEN_HERE\"}"
+
+Success Response (200) - token found and deleted:
+{
+  "success": true,
+  "message": "Device token removed successfully",
+  "deleted": true
+}
+
+Success Response (200) - token not found for this user:
+{
+  "success": true,
+  "message": "Device token not found",
+  "deleted": false
+}
+
+Notes:
+  - Only deletes the token if it belongs to the logged-in user
+  - Safe to call even if token was already removed
+
+
+================================================================================
+5. COMMON ERROR RESPONSES
+================================================================================
+
+Unauthorized (401):
+{
+  "message": "Unauthenticated."
+}
+
+Validation Error (422):
+{
+  "success": false,
+  "message": "The device type field is required."
+}
+
+Invalid device_type example message:
+{
+  "success": false,
+  "message": "The selected device type is invalid."
+}
+
+
+================================================================================
+6. ENDPOINT SUMMARY
+================================================================================
+
+Protected endpoints:
+
+  POST     /api/v1/natx/device-token     Register / update FCM token
+  DELETE   /api/v1/natx/device-token     Remove FCM token
+
+Protected endpoints require:
+  Authorization: Bearer {auth_token}
+
+Migration to run:
+  php artisan migrate
+
+  Creates table: natx_device_tokens
+
+================================================================================
+END OF NATX DEVICE TOKEN / PUSH NOTIFICATION API DOCUMENTATION
+================================================================================

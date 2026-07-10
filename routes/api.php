@@ -20,6 +20,8 @@ use App\Http\Controllers\API\NatX_Api\ProfileController as NatXApiProfileControl
 use App\Http\Controllers\API\NatX_Api\NatXSyncController as NatXApiSyncController;
 use App\Http\Controllers\API\NatX_Api\AppVersionController as NatXApiAppVersionController;
 use App\Http\Controllers\API\NatX_Api\MentorStudentsController as NatXApiMentorStudentsController;
+use App\Http\Controllers\API\NatX_Api\NotificationController as NatXApiNotificationController;
+use App\Http\Controllers\API\NatX_Api\DeviceTokenController as NatXApiDeviceTokenController;
 use App\Http\Controllers\API\AppVersionController as CrmAppVersionController;
 
 //Call App API Routes
@@ -50,6 +52,9 @@ Route::prefix('v1/natx')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [NatXApiAuthController::class, 'logout']);
         Route::get('profile', [NatXApiProfileController::class, 'index']);
+        Route::get('notifications', [NatXApiNotificationController::class, 'index']);
+        Route::post('device-token', [NatXApiDeviceTokenController::class, 'store']);
+        Route::delete('device-token', [NatXApiDeviceTokenController::class, 'destroy']);
 
         Route::get('mentor/students', [NatXApiMentorStudentsController::class, 'students']);
         Route::get('mentor/courses', [NatXApiMentorStudentsController::class, 'courses']);
