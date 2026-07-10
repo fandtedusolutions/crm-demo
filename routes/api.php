@@ -19,6 +19,7 @@ use App\Http\Controllers\API\NatX_Api\AuthController as NatXApiAuthController;
 use App\Http\Controllers\API\NatX_Api\ProfileController as NatXApiProfileController;
 use App\Http\Controllers\API\NatX_Api\NatXSyncController as NatXApiSyncController;
 use App\Http\Controllers\API\NatX_Api\AppVersionController as NatXApiAppVersionController;
+use App\Http\Controllers\API\NatX_Api\MentorStudentsController as NatXApiMentorStudentsController;
 use App\Http\Controllers\API\AppVersionController as CrmAppVersionController;
 
 //Call App API Routes
@@ -49,6 +50,10 @@ Route::prefix('v1/natx')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [NatXApiAuthController::class, 'logout']);
         Route::get('profile', [NatXApiProfileController::class, 'index']);
+
+        Route::get('mentor/students', [NatXApiMentorStudentsController::class, 'students']);
+        Route::get('mentor/courses', [NatXApiMentorStudentsController::class, 'courses']);
+        Route::get('mentor/batches', [NatXApiMentorStudentsController::class, 'batches']);
 
         Route::post('sync/calls', [NatXApiSyncController::class, 'syncCalls']);
         Route::post('sync/recordings', [NatXApiSyncController::class, 'uploadRecording']);

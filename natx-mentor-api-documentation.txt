@@ -1,0 +1,247 @@
+================================================================================
+                    NATX APP - MENTOR API DOCUMENTATION
+================================================================================
+
+Base URL (Production):  https://crm.natdemy.com/api/v1/natx
+
+Authentication:         Bearer Token (Laravel Sanctum)
+Content-Type (JSON):    application/json
+Accept:                 application/json
+
+All mentor endpoints require:
+  Authorization: Bearer {auth_token}
+
+Important:
+  - Only users with role_id = 9 (Mentor) can login via POST /auth/login
+
+These APIs return students assigned to the logged-in mentor (same scope as
+mentor web login), plus filter dropdown data for course and batch.
+
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+  1. App Flow
+  2. Mentor Students
+  3. Active Courses
+  4. Batches By Course
+  5. Common Error Responses
+  6. Endpoint Summary
+
+
+================================================================================
+1. APP FLOW
+================================================================================
+
+Recommended mentor screen flow:
+
+  1. Login                   -> POST /auth/login  (see main NatX docs)
+  2. Load courses            -> GET  /mentor/courses
+  3. On course select        -> GET  /mentor/batches?course_id={id}
+  4. Load / filter students  -> GET  /mentor/students?...
+
+Notes:
+  - Students are NOT split by course pages; one list returns all mentor students
+  - Only support-verified students are returned (is_support_verified = 1)
+  - Mentor scope uses admission batches where mentor_id = logged-in user id
+  - Date filters use student created_at (YYYY-MM-DD)
+
+
+================================================================================
+2. MENTOR STUDENTS
+================================================================================
+
+Endpoint:   GET /mentor/students
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Query Parameters (all optional):
+  from_date   date      optional   Filter students created on/after this date
+                                   Format: YYYY-MM-DD
+  to_date     date      optional   Filter students created on/before this date
+                                   Format: YYYY-MM-DD
+                                   Must be >= from_date when both are sent
+  course      integer   optional   Filter by course_id
+  batch       integer   optional   Filter by batch_id
+
+Example Requests:
+  GET /api/v1/natx/mentor/students
+  GET /api/v1/natx/mentor/students?from_date=2026-01-01&to_date=2026-07-10
+  GET /api/v1/natx/mentor/students?course=2
+  GET /api/v1/natx/mentor/students?course=2&batch=15
+  GET /api/v1/natx/mentor/students?from_date=2026-01-01&to_date=2026-07-10&course=2&batch=15
+
+cURL Example:
+curl -X GET "https://crm.natdemy.com/api/v1/natx/mentor/students?from_date=2026-01-01&to_date=2026-07-10&course=2&batch=15" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json"
+
+Success Response (200):
+{
+  "success": true,
+  "data": [
+    {
+      "id": 101,
+      "name": "Student Name",
+      "phone": "9876543210",
+      "register_number": "REG12345",
+      "batch_name": "January 2026 Batch",
+      "whatsapp_no": "9876543210"
+    }
+  ]
+}
+
+Empty Result (200):
+{
+  "success": true,
+  "data": []
+}
+
+Response Fields:
+  id                 integer        Converted student id
+  name               string|null    Student name
+  phone              string|null    Student phone number
+  register_number    string|null    Student register number
+  batch_name         string|null    Batch title (from batches.title)
+  whatsapp_no        string|null    WhatsApp number (from lead details)
+
+Validation Failed Response (422):
+{
+  "success": false,
+  "message": "The to date must be a date after or equal to from date."
+}
+
+
+================================================================================
+3. ACTIVE COURSES
+================================================================================
+
+Endpoint:   GET /mentor/courses
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Query Parameters:
+  None
+
+Example Request:
+  GET /api/v1/natx/mentor/courses
+
+cURL Example:
+curl -X GET "https://crm.natdemy.com/api/v1/natx/mentor/courses" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json"
+
+Success Response (200):
+{
+  "success": true,
+  "data": [
+    {
+      "id": 2,
+      "title": "Board of Open Schooling and Skill Education",
+      "code": "BOSSE"
+    }
+  ]
+}
+
+Response Fields:
+  id       integer        Course id (use as `course` filter in students API)
+  title    string         Course name
+  code     string|null    Course code
+
+Notes:
+  - Returns only courses where is_active = true
+  - Use `id` as the `course` query param in /mentor/students
+  - Use `id` as `course_id` in /mentor/batches
+
+
+================================================================================
+4. BATCHES BY COURSE
+================================================================================
+
+Endpoint:   GET /mentor/batches
+Auth:       Required
+
+Request Headers:
+  Authorization: Bearer {auth_token}
+  Accept: application/json
+
+Query Parameters:
+  course_id   integer   required   Course id
+
+Example Request:
+  GET /api/v1/natx/mentor/batches?course_id=2
+
+cURL Example:
+curl -X GET "https://crm.natdemy.com/api/v1/natx/mentor/batches?course_id=2" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Accept: application/json"
+
+Success Response (200):
+{
+  "success": true,
+  "data": [
+    {
+      "id": 15,
+      "title": "January 2026 Batch",
+      "course_id": 2,
+      "is_active": true
+    }
+  ]
+}
+
+Response Fields:
+  id           integer     Batch id (use as `batch` filter in students API)
+  title        string      Batch name
+  course_id    integer     Parent course id
+  is_active    boolean     Whether batch is active
+
+Validation Failed Response (422):
+{
+  "success": false,
+  "message": "The course id field is required."
+}
+
+Notes:
+  - course_id is required
+  - Use returned `id` as the `batch` query param in /mentor/students
+
+
+================================================================================
+5. COMMON ERROR RESPONSES
+================================================================================
+
+Unauthorized (401):
+{
+  "message": "Unauthenticated."
+}
+
+Validation Failed (422):
+{
+  "success": false,
+  "message": "The course id field is required."
+}
+
+
+================================================================================
+6. ENDPOINT SUMMARY
+================================================================================
+
+Protected endpoints:
+
+  GET   /api/v1/natx/mentor/students
+  GET   /api/v1/natx/mentor/courses
+  GET   /api/v1/natx/mentor/batches
+
+Protected endpoints require:
+  Authorization: Bearer {auth_token}
+
+================================================================================
+END OF NATX MENTOR API DOCUMENTATION
+================================================================================

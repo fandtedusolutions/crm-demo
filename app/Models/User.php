@@ -234,20 +234,19 @@ class User extends Authenticatable
             $phone = $this->phone;
         }
 
-        // Determine user role based on flags
+        $roleName = $this->role ? $this->role->title : null;
+
+        // Prefer hierarchy flags for telecaller-style users; otherwise use role title
         if ($this->is_senior_manager) {
             $userRole = 'Senior Manager';
-        }
-        elseif ($this->is_team_lead) {
+        } elseif ($this->is_team_lead) {
             $userRole = 'Team Lead';
-        }
-        else {
-            $userRole = 'Telecaller';
+        } else {
+            $userRole = $roleName ?? 'Telecaller';
         }
 
         // Determine if user is marketing (role_id == 13)
         $isMarketing = $this->role_id == 13 ? 1 : 0;
-        $roleName = $this->role ? $this->role->title : null;
 
         return [
             'id' => $this->id,

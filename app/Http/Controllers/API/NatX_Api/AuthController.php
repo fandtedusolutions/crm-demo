@@ -36,7 +36,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if ((int) $user->role_id === 3) {
+        if ((int) $user->role_id !== 9) {
             return response()->json([
                 'success' => false,
                 'message' => 'You do not have access to login to NatX',

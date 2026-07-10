@@ -12,7 +12,7 @@ All endpoints except /auth/login and /app/version require:
   Authorization: Bearer {auth_token}
 
 Important:
-  - Users with role_id = 3 are NOT allowed to login to NatX.
+  - Only users with role_id = 9 (Mentor) are allowed to login to NatX.
   - Login creates a NatX token only after email/password and role validation.
   - Sync call details before uploading recordings.
   - Use the same stable device_call_id for call sync, recording status, and upload.
@@ -97,9 +97,9 @@ Success Response (200):
     "name": "User Name",
     "phone": "+91 9876543210",
     "email": "user@example.com",
-    "role_id": 2,
-    "role_name": "Admin",
-    "user_role": "Role Name",
+    "role_id": 9,
+    "role_name": "Mentor",
+    "user_role": "Mentor",
     "is_team_lead": 0,
     "is_senior_manager": 0,
     "is_marketing": 0,
@@ -114,6 +114,7 @@ Invalid Login Response (401):
 }
 
 Role Not Allowed Response (403):
+Returned when the user is not a Mentor (role_id must be 9).
 {
   "success": false,
   "message": "You do not have access to login to NatX"
@@ -180,9 +181,9 @@ Success Response (200):
     "name": "User Name",
     "phone": "+91 9876543210",
     "email": "user@example.com",
-    "role_id": 2,
-    "role_name": "Admin",
-    "user_role": "Role Name",
+    "role_id": 9,
+    "role_name": "Mentor",
+    "user_role": "Mentor",
     "is_team_lead": 0,
     "is_senior_manager": 0,
     "is_marketing": 0,
