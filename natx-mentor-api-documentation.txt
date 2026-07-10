@@ -89,6 +89,7 @@ Success Response (200):
       "name": "Student Name",
       "phone": "9876543210",
       "register_number": "REG12345",
+      "course_name": "Board of Open Schooling and Skill Education",
       "batch_name": "January 2026 Batch",
       "whatsapp_no": "9876543210"
     }
@@ -106,6 +107,7 @@ Response Fields:
   name               string|null    Student name
   phone              string|null    Student phone number
   register_number    string|null    Student register number
+  course_name        string|null    Course title (from courses.title)
   batch_name         string|null    Batch title (from batches.title)
   whatsapp_no        string|null    WhatsApp number (from lead details)
 

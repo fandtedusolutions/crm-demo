@@ -55,6 +55,7 @@ class MentorStudentsController extends Controller
 
         $query = ConvertedLead::with([
             'batch:id,title',
+            'course:id,title',
             'leadDetail:id,lead_id,whatsapp_number,whatsapp_code',
         ])
             ->where('is_support_verified', 1)
@@ -84,6 +85,7 @@ class MentorStudentsController extends Controller
                     'name' => $student->name,
                     'phone' => $student->phone,
                     'register_number' => $student->register_number,
+                    'course_name' => $student->course?->title,
                     'batch_name' => $student->batch?->title,
                     'whatsapp_no' => $student->leadDetail?->whatsapp_number,
                 ];
