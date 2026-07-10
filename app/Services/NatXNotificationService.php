@@ -6,6 +6,7 @@ use App\Helpers\AuthHelper;
 use App\Models\AdmissionBatch;
 use App\Models\ConvertedLead;
 use App\Models\NatXNotification;
+use Illuminate\Support\Facades\Log;
 
 class NatXNotificationService
 {
@@ -36,7 +37,7 @@ class NatXNotificationService
 
         $today = now()->toDateString();
 
-        return NatXNotification::create([
+        $notification = NatXNotification::create([
             'title' => 'New Student Assigned',
             'type' => 'high',
             'description' => "{$studentName} has been assigned to {$batchName}.",
@@ -46,5 +47,16 @@ class NatXNotificationService
             'user_id' => $admissionBatch->mentor_id,
             'created_by' => AuthHelper::getCurrentUserId(),
         ]);
+
+        try {
+            FcmPushService::sendNatXNotification($notification);
+        } catch (\Throwable $e) {
+            Log::error(
+                'NatX push notification failed: ' . $e->getMessage(),
+                ['notification_id' => $notification->id]
+            );
+        }
+
+        return $notification;
     }
 }

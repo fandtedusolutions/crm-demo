@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\NatX_Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\NatXDeviceToken;
+use App\Services\FcmPushService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -96,5 +97,50 @@ class DeviceTokenController extends Controller
                 : 'Device token not found',
             'deleted' => (bool) $deleted,
         ], 200);
+    }
+
+    /**
+     * Send a test push to the logged-in mentor's registered devices.
+     */
+    public function test(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $tokens = NatXDeviceToken::forUser($user->id)
+            ->pluck('fcm_token')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($tokens)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No device token registered for this user. Call POST /device-token first.',
+            ], 404);
+        }
+
+        $result = FcmPushService::sendToTokens(
+            $tokens,
+            'NatX Test Push',
+            'Push notification is working correctly.',
+            [
+                'type' => 'test',
+                'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+            ]
+        );
+
+        return response()->json([
+            'success' => (bool) ($result['success'] ?? false),
+            'message' => $result['message'] ?? 'Push attempted',
+            'data' => $result,
+        ], ($result['success'] ?? false) ? 200 : 500);
     }
 }

@@ -42,4 +42,14 @@ return [
         'lead_form_id' => env('FB_LEAD_FORM_ID'),
     ],
 
+    /*
+    | NatX Firebase Cloud Messaging (HTTP v1).
+    | google-services.json is for the mobile app only.
+    | Server needs a Firebase service account JSON file.
+    */
+    'firebase' => [
+        'project_id' => env('FIREBASE_PROJECT_ID', 'natx-da485'),
+        'credentials' => env('FIREBASE_CREDENTIALS', 'storage/app/firebase/natx-firebase-credentials.json'),
+    ],
+
 ];

@@ -55,6 +55,7 @@ Route::prefix('v1/natx')->group(function () {
         Route::get('notifications', [NatXApiNotificationController::class, 'index']);
         Route::post('device-token', [NatXApiDeviceTokenController::class, 'store']);
         Route::delete('device-token', [NatXApiDeviceTokenController::class, 'destroy']);
+        Route::post('device-token/test', [NatXApiDeviceTokenController::class, 'test']);
 
         Route::get('mentor/students', [NatXApiMentorStudentsController::class, 'students']);
         Route::get('mentor/courses', [NatXApiMentorStudentsController::class, 'courses']);
