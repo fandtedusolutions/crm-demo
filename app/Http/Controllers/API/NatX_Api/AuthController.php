@@ -36,13 +36,6 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if ((int) $user->role_id !== 9) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You do not have access to login to NatX',
-            ], 403);
-        }
-
         $token = $user->createToken('natx_api_auth_token')->plainTextToken;
         $data = $user->getApiUserData($token);
 
