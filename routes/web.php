@@ -327,6 +327,8 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
     Route::get('leads/{lead}/ajax-edit', [LeadController::class, 'ajax_edit'])->name('leads.ajax-edit');
     Route::get('leads/{lead}/status-update', [LeadController::class, 'status_update'])->name('leads.status-update');
     Route::post('leads/{lead}/status-update', [LeadController::class, 'status_update_submit'])->name('leads.status-update-submit');
+    Route::get('leads/{lead}/reassign', [LeadController::class, 'reassign'])->name('leads.reassign');
+    Route::post('leads/{lead}/reassign', [LeadController::class, 'reassignSubmit'])->name('leads.reassign.submit');
     Route::get('/leads/{lead}/history', [LeadController::class, 'history'])->name('leads.history');
     Route::get('/leads/{lead}/convert', [LeadController::class, 'convert'])->name('leads.convert');
     Route::post('/leads/{lead}/convert', [LeadController::class, 'convertSubmit'])->name('leads.convert.submit');

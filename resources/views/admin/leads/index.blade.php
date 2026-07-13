@@ -1163,6 +1163,10 @@ $columns = array_merge($columns, [
                 if (data.permissions && data.permissions.can_edit) {
                     cardHtml += '<a href="javascript:void(0);" class="btn btn-sm btn-outline-secondary" onclick="show_ajax_modal(\'' + editRoute + '\', \'Edit Lead\')" title="Edit Lead"><i class="ti ti-edit f-12"></i></a>';
                 }
+                if (data.permissions && data.permissions.can_reassign) {
+                    const reassignRoute = (data.routes && data.routes.reassign) ? data.routes.reassign : '#';
+                    cardHtml += '<a href="javascript:void(0);" class="btn btn-sm btn-outline-info" onclick="show_ajax_modal(\'' + reassignRoute + '\', \'Re-assign Lead\')" title="Re-assign Lead"><i class="ti ti-exchange f-12"></i></a>';
+                }
                 if (data.permissions && data.permissions.can_delete) {
                     cardHtml += '<a href="javascript:void(0);" class="btn btn-sm btn-outline-danger" onclick="delete_modal(\'' + deleteRoute + '\')" title="Delete Lead"><i class="ti ti-trash f-12"></i></a>';
                 }

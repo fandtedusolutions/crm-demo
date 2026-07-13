@@ -1601,6 +1601,12 @@ class LeadController extends Controller
             $whatsappUrl = 'https://wa.me/' . $phoneNumber . '?text=' . $message;
             $html .= '<a href="' . htmlspecialchars($whatsappUrl, ENT_QUOTES, 'UTF-8') . '" target="_blank" class="btn btn-sm btn-outline-success" title="WhatsApp"><i class="ti ti-brand-whatsapp"></i></a>';
         }
+
+        $canReassignLead = $isAdminOrSuperAdmin || $isGeneralManager;
+
+        if ($canReassignLead && !$lead->is_converted) {
+            $html .= '<a href="javascript:void(0);" class="btn btn-sm btn-outline-info" onclick="show_ajax_modal(\'' . route('leads.reassign', $lead->id) . '\', \'Re-assign Lead\')" title="Re-assign Lead"><i class="ti ti-exchange"></i></a>';
+        }
         
         if ($isAdminOrSuperAdmin || $isGeneralManager) {
             $html .= '<a href="javascript:void(0);" class="btn btn-sm btn-outline-danger" onclick="delete_modal(\'' . route('leads.destroy', $lead->id) . '\')" title="Delete Lead"><i class="ti ti-trash"></i></a>';
@@ -1957,6 +1963,7 @@ class LeadController extends Controller
                 'view' => route('leads.ajax-show', $lead->id),
                 'edit' => route('leads.ajax-edit', $lead->id),
                 'status_update' => route('leads.status-update', $lead->id),
+                'reassign' => route('leads.reassign', $lead->id),
                 'convert' => route('leads.convert', $lead->id),
                 'call_logs' => route('leads.call-logs', $lead),
                 'delete' => route('leads.destroy', $lead->id),
@@ -1967,6 +1974,9 @@ class LeadController extends Controller
             'permissions' => [
                 'can_edit' => $isAdminOrSuperAdmin || RoleHelper::is_team_lead() || RoleHelper::is_general_manager(),
                 'can_delete' => $isAdminOrSuperAdmin || RoleHelper::is_general_manager(),
+                'can_reassign' => !$lead->is_converted && (
+                    $isAdminOrSuperAdmin || RoleHelper::is_general_manager()
+                ),
                 'can_update_status' => $hasLeadActionPermission,
                 'can_convert' => !$lead->is_converted && $lead->studentDetails && (strtolower($lead->studentDetails->status ?? '') === 'approved'),
                 'can_view_registration' => $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor,
@@ -2887,6 +2897,137 @@ class LeadController extends Controller
         }
     }
 
+    /**
+     * Show single-lead reassign modal.
+     */
+    public function reassign(Lead $lead)
+    {
+        $canReassign = RoleHelper::is_admin_or_super_admin() ||
+            RoleHelper::is_general_manager();
+
+        if (!$canReassign) {
+            abort(403, 'You do not have permission to reassign leads.');
+        }
+
+        if ($lead->is_converted) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Converted leads cannot be reassigned.',
+            ], 422);
+        }
+
+        $lead->load(['telecaller.team', 'team']);
+
+        $teams = Team::where('is_active', true)->nonMarketing()->get();
+
+        return view('admin.leads.reassign-modal', compact('lead', 'teams'));
+    }
+
+    /**
+     * Reassign a single lead to another telecaller.
+     */
+    public function reassignSubmit(Request $request, Lead $lead)
+    {
+        $canReassign = RoleHelper::is_admin_or_super_admin() ||
+            RoleHelper::is_general_manager();
+
+        if (!$canReassign) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not have permission to reassign leads.',
+            ], 403);
+        }
+
+        if ($lead->is_converted) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Converted leads cannot be reassigned.',
+            ], 422);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'team_id' => 'required|exists:teams,id',
+            'telecaller_id' => 'required|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $telecaller = User::where('id', $request->telecaller_id)
+            ->where('role_id', 3)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$telecaller) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Selected telecaller is invalid.',
+                'errors' => ['telecaller_id' => ['Selected telecaller is invalid.']],
+            ], 422);
+        }
+
+        if ((int) $telecaller->team_id !== (int) $request->team_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Selected telecaller does not belong to the selected team.',
+                'errors' => ['telecaller_id' => ['Selected telecaller does not belong to the selected team.']],
+            ], 422);
+        }
+
+        if ((int) $lead->telecaller_id === (int) $request->telecaller_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Lead is already assigned to the selected telecaller.',
+            ], 422);
+        }
+
+        try {
+            $oldTelecallerId = $lead->telecaller_id;
+            $fromTelecaller = $oldTelecallerId ? User::find($oldTelecallerId) : null;
+            $fromTelecallerName = $fromTelecaller ? $fromTelecaller->name : 'Unassigned';
+            $toTelecallerName = $telecaller->name;
+
+            Lead::where('id', $lead->id)->update([
+                'telecaller_id' => $telecaller->id,
+                'team_id' => $request->team_id,
+                'lead_status_id' => 1,
+                'is_b2b' => $telecaller->is_b2b ? 1 : 0,
+                'created_at' => now(),
+                'updated_by' => AuthHelper::getCurrentUserId(),
+            ]);
+
+            LeadActivity::create([
+                'lead_id' => $lead->id,
+                'lead_status_id' => 1,
+                'activity_type' => 'reassign',
+                'description' => 'Lead reassigned',
+                'remarks' => "reassigned from {$fromTelecallerName} to {$toTelecallerName}",
+                'created_by' => AuthHelper::getCurrentUserId(),
+                'updated_by' => AuthHelper::getCurrentUserId(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Lead reassigned from {$fromTelecallerName} to {$toTelecallerName}.",
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Lead reassign failed', [
+                'lead_id' => $lead->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while reassigning the lead. Please try again.',
+            ], 500);
+        }
+    }
+
     public function edit(Lead $lead)
     {
         // Check edit permission: Admin/Super Admin, General Manager, Team Lead, or Senior Manager only
@@ -3176,7 +3317,7 @@ class LeadController extends Controller
                         'lead_status_id' => 1, // Set status to 1 when reassigned
                         'activity_type' => 'reassign',
                         'description' => 'Lead reassigned',
-                        'remarks' => "Lead has been reassigned from telecaller {$fromTelecallerName} to telecaller {$toTelecallerName}.",
+                        'remarks' => "reassigned from {$fromTelecallerName} to {$toTelecallerName}",
                         'created_by' => AuthHelper::getCurrentUserId(),
                         'updated_by' => AuthHelper::getCurrentUserId(),
                     ]);
@@ -3419,6 +3560,14 @@ class LeadController extends Controller
             $duplicateCount = 0;
             $seenInUpload = [];
 
+            // Map telecaller -> team for lead.team_id on create
+            $telecallerTeamMap = User::whereIn('id', $telecallers)
+                ->pluck('team_id', 'id')
+                ->toArray();
+            $selectedTeamId = ($request->team_id && $request->team_id !== 'all')
+                ? (int) $request->team_id
+                : null;
+
             // Limit the number of rows to prevent timeout
             $maxRows = min($highestRow, config('timeout.bulk_upload.max_rows', 1000));
             
@@ -3458,6 +3607,7 @@ class LeadController extends Controller
 
                 // Ensure we have a valid telecaller index
                 $telecallerId = $telecallers[$telecallerIndex] ?? $telecallers[0];
+                $teamId = $selectedTeamId ?: ($telecallerTeamMap[$telecallerId] ?? null);
                 
                 // Get interest_status from lead_status
                 $leadStatus = LeadStatus::find($request->lead_status_id);
@@ -3474,6 +3624,7 @@ class LeadController extends Controller
                     'interest_status' => $interestStatus,
                     'course_id' => $request->course_id,
                     'telecaller_id' => $telecallerId,
+                    'team_id' => $teamId,
                     'created_by' => AuthHelper::getCurrentUserId(),
                     'updated_by' => AuthHelper::getCurrentUserId(),
                     'is_converted' => false,
@@ -3759,18 +3910,25 @@ class LeadController extends Controller
         
         $toTelecallerName = $toTelecaller ? $toTelecaller->name : 'Unknown';
         $fromTelecallerName = $fromTelecaller ? $fromTelecaller->name : 'Unknown';
+        $toTeamId = $request->to_team_id ?: ($toTelecaller->team_id ?? null);
 
         $successCount = 0;
         foreach ($request->lead_id as $leadId) {
             // Update the lead directly without loading the full model
             // Set lead_status_id to 1 when reassigning
-            $updated = Lead::where('id', $leadId)->update([
+            $updateData = [
                 'telecaller_id' => $request->telecaller_id,
                 'lead_source_id' => $request->lead_source_id,
                 'lead_status_id' => 1, // Always set to 1 when reassigned
                 'created_at' => now(),
                 'updated_by' => AuthHelper::getCurrentUserId(),
-            ]);
+            ];
+
+            if ($toTeamId) {
+                $updateData['team_id'] = $toTeamId;
+            }
+
+            $updated = Lead::where('id', $leadId)->update($updateData);
 
             if ($updated) {
                 // Create lead activity history
@@ -3779,7 +3937,7 @@ class LeadController extends Controller
                     'lead_status_id' => 1, // Set status to 1 when reassigned
                     'activity_type' => 'bulk_reassign',
                     'description' => 'Lead reassigned via bulk operation',
-                    'remarks' => "Lead has been reassigned from telecaller {$fromTelecallerName} to telecaller {$toTelecallerName}.",
+                    'remarks' => "reassigned from {$fromTelecallerName} to {$toTelecallerName}",
                     'created_by' => AuthHelper::getCurrentUserId(),
                     'updated_by' => AuthHelper::getCurrentUserId(),
                 ]);
