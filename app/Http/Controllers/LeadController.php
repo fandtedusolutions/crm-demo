@@ -1979,7 +1979,7 @@ class LeadController extends Controller
                 ),
                 'can_update_status' => $hasLeadActionPermission,
                 'can_convert' => !$lead->is_converted && $lead->studentDetails && (strtolower($lead->studentDetails->status ?? '') === 'approved'),
-                'can_view_registration' => $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor,
+                'can_view_registration' => $isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || RoleHelper::is_general_manager(),
                 'can_view_call_logs' => true, // Show to everyone, including admission counsellor and post sales
                 'can_call' => $lead->phone && is_telecaller(),
                 'telecaller_id' => $lead->phone && is_telecaller() ? (session('user_id') ?? (\App\Helpers\AuthHelper::getCurrentUserId() ?? 0)) : 0

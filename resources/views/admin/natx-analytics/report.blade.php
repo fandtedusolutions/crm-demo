@@ -64,6 +64,39 @@
                     @endif
                     <div class="row g-3 align-items-end">
                         @include('admin.natx-analytics.partials.date-range-filter')
+                        <div class="col-md-2">
+                            <label class="form-label">Role</label>
+                            <select name="role_id" class="form-select form-select-sm js-analytics-role-filter">
+                                <option value="">All Roles</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role->id }}" {{ (string)($filters['role_id'] ?? '') === (string)$role->id ? 'selected' : '' }}>
+                                        {{ $role->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2 js-analytics-team-filter-container" style="display: none;">
+                            <label class="form-label">Team</label>
+                            <select name="team_id" class="form-select form-select-sm js-analytics-team-filter">
+                                <option value="">All Teams</option>
+                                @foreach($teams as $team)
+                                    <option value="{{ $team->id }}" {{ (string)($filters['team_id'] ?? '') === (string)$team->id ? 'selected' : '' }}>
+                                        {{ $team->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">User</label>
+                            <select name="user_id" class="form-select form-select-sm js-analytics-user-filter">
+                                <option value="">All Users</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" data-role-id="{{ $user->role_id }}" data-team-id="{{ $user->team_id }}" {{ (string)($filters['user_id'] ?? '') === (string)$user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="col-md-auto">
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="ti ti-search me-1"></i> Apply
@@ -218,4 +251,59 @@
 
 @push('scripts')
 @include('admin.natx-analytics.partials.recording-scripts')
+<script>
+    $(function () {
+        const $roleSelect = $('.js-analytics-role-filter');
+        const $teamSelect = $('.js-analytics-team-filter');
+        const $teamContainer = $('.js-analytics-team-filter-container');
+        const $userSelect = $('.js-analytics-user-filter');
+
+        function filterUsersAndTeams() {
+            const selectedRole = $roleSelect.val();
+
+            // Toggle Team filter visibility (only for role_id = 3)
+            if (selectedRole === '3') {
+                $teamContainer.show().find('select').prop('disabled', false);
+            } else {
+                $teamContainer.hide().find('select').prop('disabled', true).val('');
+            }
+
+            const currentSelectedRole = $roleSelect.val();
+            const currentSelectedTeam = $teamSelect.is(':visible') ? $teamSelect.val() : '';
+
+            $userSelect.find('option').each(function () {
+                const $option = $(this);
+                const userRole = $option.attr('data-role-id');
+                const userTeam = $option.attr('data-team-id');
+
+                let match = true;
+                if (currentSelectedRole && userRole !== currentSelectedRole) {
+                    match = false;
+                }
+                if (currentSelectedRole === '3' && currentSelectedTeam && userTeam !== currentSelectedTeam) {
+                    match = false;
+                }
+
+                if (match || !$option.val()) {
+                    $option.show().prop('disabled', false);
+                } else {
+                    $option.hide().prop('disabled', true);
+                }
+            });
+
+            const $selectedOption = $userSelect.find('option:selected');
+            if ($selectedOption.is(':disabled')) {
+                $userSelect.val('');
+            }
+        }
+
+        $roleSelect.on('change', function () {
+            $teamSelect.val('');
+            filterUsersAndTeams();
+        });
+        $teamSelect.on('change', filterUsersAndTeams);
+
+        filterUsersAndTeams();
+    });
+</script>
 @endpush

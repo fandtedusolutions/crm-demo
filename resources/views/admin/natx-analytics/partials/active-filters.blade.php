@@ -15,6 +15,27 @@
         $chips[] = ['label' => 'Search', 'value' => $filters['search']];
     }
 
+    if (!empty($filters['role_id']) && isset($roles)) {
+        $activeRole = $roles->firstWhere('id', $filters['role_id']);
+        if ($activeRole) {
+            $chips[] = ['label' => 'Role', 'value' => $activeRole->title];
+        }
+    }
+
+    if (!empty($filters['role_id']) && (int)$filters['role_id'] === 3 && !empty($filters['team_id']) && isset($teams)) {
+        $activeTeam = $teams->firstWhere('id', $filters['team_id']);
+        if ($activeTeam) {
+            $chips[] = ['label' => 'Team', 'value' => $activeTeam->name];
+        }
+    }
+
+    if (!empty($filters['user_id']) && isset($users)) {
+        $activeUser = $users->firstWhere('id', $filters['user_id']);
+        if ($activeUser) {
+            $chips[] = ['label' => 'User', 'value' => $activeUser->name];
+        }
+    }
+
     $hasExtraFilters = !empty($chips);
 @endphp
 

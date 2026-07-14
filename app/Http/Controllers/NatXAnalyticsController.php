@@ -6,6 +6,8 @@ use App\Helpers\DateRangeHelper;
 use App\Helpers\PermissionHelper;
 use App\Models\NatXAppLog;
 use App\Models\User;
+use App\Models\UserRole;
+use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,6 +29,9 @@ class NatXAnalyticsController extends Controller
                 'call_type' => $filters['call_type'] ?? null,
                 'search' => $filters['search'] ?? null,
                 'metric' => $filters['metric'] ?? null,
+                'user_id' => $filters['user_id'] ?? null,
+                'role_id' => $filters['role_id'] ?? null,
+                'team_id' => $filters['team_id'] ?? null,
             ], fn ($value) => $value !== null && $value !== ''),
             $extra
         ), fn ($value) => $value !== null && $value !== '');
@@ -52,6 +57,9 @@ class NatXAnalyticsController extends Controller
             'call_type' => $this->queryFilterValue($request, 'call_type'),
             'search' => $this->queryFilterValue($request, 'search'),
             'metric' => $this->queryFilterValue($request, 'metric'),
+            'user_id' => $this->queryFilterValue($request, 'user_id'),
+            'role_id' => $this->queryFilterValue($request, 'role_id'),
+            'team_id' => $this->queryFilterValue($request, 'team_id'),
         ]);
     }
 
@@ -61,7 +69,7 @@ class NatXAnalyticsController extends Controller
      */
     private function queryFilterValue(Request $request, string $key): mixed
     {
-        return $request->query->has($key) ? $request->query($key) : null;
+        return isset($_GET[$key]) ? $_GET[$key] : null;
     }
 
     private function applyFilters($query, array $filters)
@@ -72,6 +80,15 @@ class NatXAnalyticsController extends Controller
 
         if (!empty($filters['user_id'])) {
             $query->where('user_id', $filters['user_id']);
+        }
+
+        if (!empty($filters['role_id'])) {
+            $query->whereHas('user', function ($q) use ($filters) {
+                $q->where('role_id', $filters['role_id']);
+                if ((int)$filters['role_id'] === 3 && !empty($filters['team_id'])) {
+                    $q->where('team_id', $filters['team_id']);
+                }
+            });
         }
 
         if (!empty($filters['call_type'])) {
@@ -174,7 +191,7 @@ class NatXAnalyticsController extends Controller
         $this->denyUnlessAllowed();
 
         $filters = $this->getFilterParams($request);
-        unset($filters['metric'], $filters['user_id']);
+        unset($filters['metric']);
 
         $queryParams = $this->buildQueryParams($filters);
 
@@ -187,11 +204,18 @@ class NatXAnalyticsController extends Controller
             ->paginate(25)
             ->appends($queryParams);
 
+        $roles = UserRole::orderBy('title')->get(['id', 'title']);
+        $users = User::where('is_active', true)->orderBy('name')->get(['id', 'name', 'role_id', 'team_id']);
+        $teams = Team::whereIn('id', [2, 3])->orderBy('name')->get(['id', 'name']);
+
         return view('admin.natx-analytics.index', compact(
             'calls',
             'filters',
             'stats',
-            'queryParams'
+            'queryParams',
+            'roles',
+            'users',
+            'teams'
         ));
     }
 
@@ -300,7 +324,7 @@ class NatXAnalyticsController extends Controller
         $queryParams = $this->buildQueryParams($filters);
 
         $summaryFilters = $filters;
-        if (!$request->query->has('user_id')) {
+        if (!isset($_GET['user_id'])) {
             unset($summaryFilters['user_id']);
         }
 
@@ -352,9 +376,13 @@ class NatXAnalyticsController extends Controller
         ];
 
         $detail = $this->getReportDetail($filters, $queryParams);
-        $activeUser = $request->query->has('user_id') && !empty($filters['user_id'])
+        $activeUser = isset($_GET['user_id']) && !empty($filters['user_id'])
             ? $userMap->get((int) $filters['user_id']) ?? User::find($filters['user_id'])
             : null;
+
+        $roles = UserRole::orderBy('title')->get(['id', 'title']);
+        $users = User::where('is_active', true)->orderBy('name')->get(['id', 'name', 'role_id', 'team_id']);
+        $teams = Team::whereIn('id', [2, 3])->orderBy('name')->get(['id', 'name']);
 
         return view('admin.natx-analytics.report', compact(
             'rows',
@@ -363,7 +391,10 @@ class NatXAnalyticsController extends Controller
             'grandTotals',
             'detail',
             'activeUser',
-            'queryParams'
+            'queryParams',
+            'roles',
+            'users',
+            'teams'
         ));
     }
 
