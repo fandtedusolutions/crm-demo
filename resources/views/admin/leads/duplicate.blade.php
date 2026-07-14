@@ -277,7 +277,7 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Actions</th>
-                                    @if($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor)
+                                    @if($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isGeneralManager)
                                     <th>Registration Details</th>
                                     @endif
                                     <th>Created At</th>
@@ -333,7 +333,7 @@ $columns = [
 ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],
 ];
 
-if ($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor) {
+if ($isAdminOrSuperAdmin || $isTelecallerRole || $isAcademicAssistant || $isAdmissionCounsellor || $isGeneralManager) {
 $columns[] = ['data' => 'registration_details', 'name' => 'registration_details', 'orderable' => false, 'searchable' => false];
 }
 
