@@ -277,6 +277,23 @@
                                 </select>
                             </div>
                         </div>
+                        @if(isset($course) && $course->needs_time)
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Class Time <span class="required">*</span></label>
+                                <select class="form-control" name="class_time_id" required>
+                                    <option value="">Select Class Time</option>
+                                    @foreach($classTimes as $time)
+                                        @php
+                                        $from = date('h:i A', strtotime($time->from_time));
+                                        $to = date('h:i A', strtotime($time->to_time));
+                                        @endphp
+                                        <option value="{{ $time->id }}">{{ $from }} - {{ $to }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
 

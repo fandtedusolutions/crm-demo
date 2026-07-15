@@ -44,18 +44,28 @@ abstract class BaseCandidateRegistrationController extends Controller
 
         $countryCodes = \App\Helpers\CountriesHelper::get_country_code();
 
+        $course = \App\Models\Course::find($this->courseId());
+        $classTimes = collect();
+        if ($course && $course->needs_time) {
+            $classTimes = \App\Models\ClassTime::where('course_id', $this->courseId())->where('is_active', true)->get();
+        }
+
         return view('public.candidate-registration', [
             'lead' => $lead,
             'countryCodes' => $countryCodes,
             'registrationTitle' => $this->courseTitle() . ' – Candidate Registration',
             'courseTitle' => $this->courseTitle(),
             'storeRouteName' => $this->storeRouteName(),
+            'course' => $course,
+            'classTimes' => $classTimes,
         ]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $course = \App\Models\Course::find($this->courseId());
+
+        $rules = [
             'lead_id' => 'required|exists:leads,id',
             'student_name' => 'required|string|max:255',
             'gender' => 'required|in:male,female,other',
@@ -76,7 +86,13 @@ abstract class BaseCandidateRegistrationController extends Controller
             'other_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'message' => 'nullable|string',
             'terms_accepted' => 'required|accepted',
-        ], [
+        ];
+
+        if ($course && $course->needs_time) {
+            $rules['class_time_id'] = 'required|exists:class_times,id';
+        }
+
+        $request->validate($rules, [
             'lead_id.required' => 'Lead ID is required.',
             'lead_id.exists' => 'Invalid lead.',
             'student_name.required' => 'Candidate full name is required.',
@@ -96,6 +112,8 @@ abstract class BaseCandidateRegistrationController extends Controller
             'adhar_front.required' => 'Aadhaar card is required.',
             'sslc_certificate.required' => 'SSLC certificate is required.',
             'terms_accepted.accepted' => 'You must accept the Declaration & Consent.',
+            'class_time_id.required' => 'Class time selection is required.',
+            'class_time_id.exists' => 'Please select a valid class time.',
         ]);
 
         $filePaths = [];
@@ -127,6 +145,7 @@ abstract class BaseCandidateRegistrationController extends Controller
             $studentDetail = LeadDetail::create([
                 'lead_id' => $request->lead_id,
                 'course_id' => $this->courseId(),
+                'class_time_id' => $request->class_time_id,
                 'student_name' => $request->student_name,
                 'gender' => $request->gender,
                 'date_of_birth' => $request->date_of_birth,
