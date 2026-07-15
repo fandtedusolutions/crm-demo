@@ -5741,7 +5741,8 @@ class LeadController extends Controller
                 'email', 'phone', 'whatsapp', 'parents_phone', 'father_contact_number', 'father_contact_code',
                 'mother_contact_number', 'mother_contact_code', 'street', 'locality', 'post_office', 'district', 'state', 'pin_code',
                 'message', 'subject_id', 'batch_id', 'sub_course_id', 'passed_year', 'programme_type', 'location', 'class_time_id', 'class',
-                'course_type', 'edumaster_course_name', 'selected_courses', 'sslc_back_year', 'plustwo_back_year', 'back_year', 'degree_back_year'
+                'course_type', 'edumaster_course_name', 'selected_courses', 'sslc_back_year', 'plustwo_back_year', 'back_year', 'degree_back_year',
+                'second_language'
             ];
 
             if (!in_array($field, $allowedFields)) {
@@ -5996,6 +5997,26 @@ class LeadController extends Controller
                     'success' => true,
                     'message' => 'Registration details updated successfully.',
                     'new_value' => $displayValue
+                ]);
+            } elseif ($field === 'second_language') {
+                if ($value) {
+                    $value = strtolower($value);
+                    if (!in_array($value, ['malayalam', 'hindi', 'arabic'])) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Invalid language value. Must be Malayalam, Hindi or Arabic.'
+                        ], 400);
+                    }
+                } else {
+                    $value = null;
+                }
+                
+                $studentDetail->update([$field => $value]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Registration details updated successfully.',
+                    'new_value' => $value ? ucfirst($value) : 'N/A'
                 ]);
             } elseif (in_array($field, ['course_type', 'edumaster_course_name', 'plustwo_subject', 'selected_courses', 'sslc_back_year', 'plustwo_back_year', 'back_year', 'degree_back_year'])) {
                 // EduMaster fields

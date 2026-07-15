@@ -58,7 +58,7 @@ class ConvertedLeadRegistrationController extends Controller
             'subject_id' => 'required|exists:subjects,id',
             'batch_id' => 'required|exists:batches,id',
             'class' => 'required|in:sslc,plustwo',
-            'second_language' => 'required|in:malayalam,hindi',
+            'second_language' => 'required|in:malayalam,hindi,arabic',
             'street' => 'required|string',
             'locality' => 'required|string|max:255',
             'post_office' => 'required|string|max:255',

@@ -4153,7 +4153,7 @@ class ConvertedLeadController extends Controller
             // Lead detail personal fields
             'father_name' => 'nullable|string|max:255',
             'mother_name' => 'nullable|string|max:255',
-            'second_language' => 'nullable|string|in:malayalam,hindi',
+            'second_language' => 'nullable|string|in:malayalam,hindi,arabic',
             'personal_number' => 'nullable|string|max:20',
             'personal_code' => 'nullable|string|max:5',
             'parents_number' => 'nullable|string|max:20',

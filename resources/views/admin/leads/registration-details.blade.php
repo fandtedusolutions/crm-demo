@@ -571,6 +571,26 @@
                                     </div>
                                 </div>
                             </div>
+                            @if(in_array($lead->course_id, [1, 2]) || $studentDetail->second_language)
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-icon">
+                                        <i class="ti ti-language text-warning"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <label class="info-label">Second Language</label>
+                                        <p class="info-value" data-field="second_language" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ strtolower($studentDetail->second_language ?? '') }}">
+                                            {{ $studentDetail->second_language ? ucfirst($studentDetail->second_language) : 'N/A' }}
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
+                                            <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{"malayalam":"Malayalam","hindi":"Hindi","arabic":"Arabic"}' title="Edit">
+                                                <i class="ti ti-edit"></i>
+                                            </button>
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                             @if($lead->course_id == 23 || $lead->course_id == '23')
                             {{-- Course Type --}}
                             <div class="col-md-6">
@@ -2832,7 +2852,7 @@
                             editButton = `<button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="${fieldName}" data-lead-detail-id="${leadDetailIdValue}" data-course-id="${courseId}" data-current-id="${updatedId}" title="Edit"><i class="ti ti-edit"></i></button>`;
                         } else if (fieldName === 'class_time_id') {
                             editButton = `<button class="btn btn-sm btn-outline-primary ms-2 edit-class-time-field" title="Edit"><i class="ti ti-edit"></i></button>`;
-                        } else if (['gender', 'is_employed', 'programme_type', 'location', 'class', 'course_type'].includes(fieldName)) {
+                        } else if (['gender', 'is_employed', 'programme_type', 'location', 'class', 'course_type', 'second_language'].includes(fieldName)) {
                             // For select fields, preserve data attributes
                             const dataValue = data.new_value || value;
                             let optionsAttr = '';
@@ -2848,6 +2868,8 @@
                                 optionsAttr = `data-options='{"sslc":"SSLC","plustwo":"Plus Two"}'`;
                             } else if (fieldName === 'course_type') {
                                 optionsAttr = `data-options='{"UG":"UG","PG":"PG"}'`;
+                            } else if (fieldName === 'second_language') {
+                                optionsAttr = `data-options='{"malayalam":"Malayalam","hindi":"Hindi","arabic":"Arabic"}'`;
                             }
                             editButton = `<button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="${fieldName}" data-lead-detail-id="${leadDetailIdValue}" data-field-type="select" ${optionsAttr} title="Edit"><i class="ti ti-edit"></i></button>`;
                             if (infoValue.dataset) {
