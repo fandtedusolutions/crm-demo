@@ -498,7 +498,10 @@
             fetch('{{ route($storeRouteName) }}', {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+                headers: { 
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
             })
             .then(r => r.json())
             .then(data => {
@@ -512,7 +515,14 @@
                     };
                     modal.show();
                 } else {
-                    alert(data.message || 'Something went wrong.');
+                    let errMsg = data.message || 'Something went wrong.';
+                    if (data.errors) {
+                        const firstKey = Object.keys(data.errors)[0];
+                        if (firstKey && data.errors[firstKey][0]) {
+                            errMsg = data.errors[firstKey][0];
+                        }
+                    }
+                    alert(errMsg);
                     isSubmitting = false;
                     btn.innerHTML = orig;
                     btn.disabled = false;
