@@ -284,6 +284,7 @@
                                     @if($canViewFirstCreated)
                                     <th>First Created At</th>
                                     @endif
+                                    <th>Team</th>
                                     <th>Name</th>
                                     <th>Profile</th>
                                     <th>Phone</th>
@@ -344,6 +345,8 @@ $columns = array_merge($columns, [
 if ($canViewFirstCreated) {
 $columns[] = ['data' => 'first_created_at', 'name' => 'first_created_at'];
 }
+
+$columns[] = ['data' => 'team', 'name' => 'team'];
 
 $columns = array_merge($columns, [
 ['data' => 'name', 'name' => 'name'],
@@ -1145,6 +1148,7 @@ $columns = array_merge($columns, [
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-flame f-12 text-muted me-1"></i><span class="badge bg-' + interestColor + ' f-10">' + escapeHtml(interestLabel) + '</span></div></div>';
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-star f-12 text-muted me-1"></i><span class="badge bg-primary f-10">' + escapeHtml(data.rating || 'Not Rated') + '</span></div></div>';
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-user f-12 text-muted me-1"></i><small class="text-muted f-11">' + escapeHtml(data.telecaller || 'Unassigned') + '</small></div></div>';
+                cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-users f-12 text-muted me-1"></i><small class="text-muted f-11">' + escapeHtml(data.team || '-') + '</small></div></div>';
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-book f-12 text-muted me-1"></i><small class="text-muted f-11">' + escapeHtml(data.course || '-') + '</small></div></div>';
                 const createdDate = data.created_at ? (data.created_at.split(' ')[0] || '') : '';
                 cardHtml += '<div class="col-6"><div class="d-flex align-items-center"><i class="ti ti-calendar f-12 text-muted me-1"></i><small class="text-muted f-11">' + createdDate + '</small></div></div>';

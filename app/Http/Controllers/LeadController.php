@@ -571,7 +571,9 @@ class LeadController extends Controller
             'leadStatus:id,title',
             'leadSource:id,title',
             'course:id,title',
-            'telecaller:id,name',
+            'telecaller:id,name,team_id',
+            'telecaller.team:id,name',
+            'team:id,name',
             'studentDetails' => function ($query) {
                 $query->select([
                     'id', 'lead_id', 'status', 'course_id',
@@ -1241,6 +1243,7 @@ class LeadController extends Controller
             if ($canViewFirstCreated) {
                 $columns[$columnIndex++] = 'first_created_at';
             }
+            $columns[$columnIndex++] = 'team_id';
             $columns[$columnIndex++] = 'title';
             $columns[$columnIndex++] = 'id';
             $columns[$columnIndex++] = 'phone';
@@ -1307,6 +1310,17 @@ class LeadController extends Controller
                 return Course::select('id', 'title')->orderBy('title')->get();
             });
             $courseName = $courses->pluck('title', 'id')->toArray();
+
+            $teamIds = $leads->pluck('team_id')->filter()->unique()->values();
+            $telecallerTeamIds = $leads
+                ->map(fn ($lead) => $lead->telecaller?->team_id)
+                ->filter()
+                ->unique()
+                ->values();
+            $allTeamIds = $teamIds->merge($telecallerTeamIds)->unique()->values();
+            $teamNameMap = $allTeamIds->isNotEmpty()
+                ? Team::whereIn('id', $allTeamIds)->pluck('name', 'id')
+                : collect();
 
             // Build response data (same structure as getLeadsData)
             $data = [];
@@ -1376,7 +1390,11 @@ class LeadController extends Controller
                         ? $lead->first_created_at->format('d-m-Y h:i A')
                         : '-';
                 }
-                
+
+                $teamId = $lead->team_id ?? $lead->telecaller?->team_id;
+                $leadTeamName = $this->cleanUtf8($teamId ? ($teamNameMap->get($teamId) ?? null) : null);
+                $row['team'] = $leadTeamName ?: '-';
+
                 $data[] = $row;
             }
 
@@ -1804,6 +1822,9 @@ class LeadController extends Controller
             ],
             'rating' => $lead->rating ? $lead->rating . '/10' : 'Not Rated',
             'telecaller' => $this->cleanUtf8($lead->telecaller->name ?? 'Unassigned'),
+            'team' => $this->cleanUtf8(
+                ($lead->team?->name ?? $lead->telecaller?->team?->name) ?: '-'
+            ),
             'course' => $this->cleanUtf8($lead->course->title ?? '-'),
             'source' => $this->cleanUtf8($lead->leadSource->title ?? '-'),
             'plus_two_questionnaire_html' => (int) $lead->lead_source_id === PlusTwoFollowUpQuestionnaire::LEAD_SOURCE_ID
