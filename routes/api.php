@@ -22,6 +22,7 @@ use App\Http\Controllers\API\NatX_Api\AppVersionController as NatXApiAppVersionC
 use App\Http\Controllers\API\NatX_Api\MentorStudentsController as NatXApiMentorStudentsController;
 use App\Http\Controllers\API\NatX_Api\NotificationController as NatXApiNotificationController;
 use App\Http\Controllers\API\NatX_Api\DeviceTokenController as NatXApiDeviceTokenController;
+use App\Http\Controllers\API\NatX_Api\WorkStatusController as NatXApiWorkStatusController;
 use App\Http\Controllers\API\AppVersionController as CrmAppVersionController;
 
 //Call App API Routes
@@ -65,6 +66,9 @@ Route::prefix('v1/natx')->group(function () {
         Route::post('sync/recordings', [NatXApiSyncController::class, 'uploadRecording']);
         Route::post('sync/recordings/status', [NatXApiSyncController::class, 'recordingStatus']);
         Route::get('sync/status', [NatXApiSyncController::class, 'status']);
+
+        Route::get('work-status', [NatXApiWorkStatusController::class, 'index']);
+        Route::post('work-status', [NatXApiWorkStatusController::class, 'store']);
     });
 });
 
