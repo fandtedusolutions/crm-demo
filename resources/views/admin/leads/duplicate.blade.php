@@ -582,8 +582,7 @@ $columns = array_merge($columns, [
                     course_id: $('#course_id').val() || '',
                     rating: $('#rating').val() || '',
                     telecaller_id: $('#telecaller_id_filter').val() || '',
-                    search_key: getUrlParameter('search_key') || '{{ request('
-                    search_key ') }}' || ''
+                    search_key: getUrlParameter('search_key') || @json(request('search_key', ''))
                 };
 
                 // Add lead_type if the field exists (only for admin/super admin, senior manager, general manager)

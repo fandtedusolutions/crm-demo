@@ -525,149 +525,54 @@ class LeadController extends Controller
     }
 
     /**
-     * Build the base query for duplicate leads (same code and phone)
+     * Column list for duplicate leads listing queries.
      */
-    private function buildDuplicateLeadsQuery(Request $request)
+    private function duplicateLeadsSelectColumns(bool $qualified = true): array
     {
-        // First, build a base query with all filters applied (except duplicate detection)
-        // Include both converted and non-converted leads
-        $baseQuery = Lead::select([
-            'id', 'title', 'code', 'phone', 'email', 'lead_status_id', 'lead_source_id', 
-            'course_id', 'telecaller_id', 'team_id', 'place', 'rating', 'interest_status', 
-            'followup_date', 'remarks', 'is_converted', 'created_at', 'updated_at',
-            'gender', 'age', 'whatsapp', 'whatsapp_code', 'qualification', 'country_id', 
-            'address', 'first_created_at'
-        ])
-        ->whereNotNull('code')
-        ->whereNotNull('phone');
+        $prefix = $qualified ? 'leads.' : '';
 
-        // Apply date filters
-        $fromDate = $request->get('date_from');
-        $toDate = $request->get('date_to');
-        
-        if ($fromDate && !$request->filled('search_key')) {
-            $baseQuery->whereDate('created_at', '>=', $fromDate);
-        }
-        if ($toDate && !$request->filled('search_key')) {
-            $baseQuery->whereDate('created_at', '<=', $toDate);
-        }
+        return [
+            $prefix . 'id',
+            $prefix . 'title',
+            $prefix . 'code',
+            $prefix . 'phone',
+            $prefix . 'email',
+            $prefix . 'lead_status_id',
+            $prefix . 'lead_source_id',
+            $prefix . 'course_id',
+            $prefix . 'telecaller_id',
+            $prefix . 'team_id',
+            $prefix . 'place',
+            $prefix . 'rating',
+            $prefix . 'interest_status',
+            $prefix . 'followup_date',
+            $prefix . 'remarks',
+            $prefix . 'marketing_remarks',
+            $prefix . 'is_converted',
+            $prefix . 'created_at',
+            $prefix . 'updated_at',
+            $prefix . 'gender',
+            $prefix . 'age',
+            $prefix . 'whatsapp',
+            $prefix . 'whatsapp_code',
+            $prefix . 'qualification',
+            $prefix . 'country_id',
+            $prefix . 'address',
+            $prefix . 'first_created_at',
+        ];
+    }
 
-        // Apply other filters
-        if ($request->filled('lead_status_id')) {
-            $baseQuery->where('lead_status_id', $request->lead_status_id);
-        }
-
-        if ($request->filled('lead_source_id')) {
-            $baseQuery->where('lead_source_id', $request->lead_source_id);
-        }
-
-        if ($request->filled('course_id')) {
-            $baseQuery->where('course_id', $request->course_id);
-        }
-
-        if ($request->filled('telecaller_id')) {
-            $baseQuery->where('telecaller_id', $request->telecaller_id);
-        }
-
-        if ($request->filled('rating')) {
-            $baseQuery->where('rating', $request->rating);
-        }
-
-        // Lead Type filter
-        $currentUser = AuthHelper::getCurrentUser();
-        $isAdminOrSuperAdmin = RoleHelper::is_admin_or_super_admin();
-        $isSeniorManager = $currentUser && RoleHelper::is_senior_manager();
-        $isGeneralManager = RoleHelper::is_general_manager();
-        
-        if (($isAdminOrSuperAdmin || $isSeniorManager || $isGeneralManager) && $request->filled('lead_type')) {
-            $leadType = $request->lead_type;
-            if ($leadType === 'pullback') {
-                $baseQuery->withoutGlobalScope('exclude_pullbacked');
-                $baseQuery->where('is_pullbacked', 1);
-            } elseif ($leadType === 'normal') {
-                $baseQuery->where(function($q) {
-                    $q->whereNull('is_pullbacked')
-                      ->orWhere('is_pullbacked', 0);
-                });
-            }
-        }
-
-        // Add search functionality
-        if ($request->filled('search_key')) {
-            $searchKey = $request->search_key;
-            $baseQuery->where(function($q) use ($searchKey) {
-                $q->where('title', 'LIKE', "%{$searchKey}%")
-                  ->orWhere('phone', 'LIKE', "%{$searchKey}%")
-                  ->orWhere('email', 'LIKE', "%{$searchKey}%");
-            });
-        }
-
-        // Apply role-based filtering
-        if ($currentUser) {
-            if ($isSeniorManager || $isGeneralManager || RoleHelper::is_admin_or_super_admin()) {
-                if ($request->filled('telecaller_id')) {
-                    $baseQuery->where('telecaller_id', $request->telecaller_id);
-                }
-            } elseif (AuthHelper::isTeamLead() == 1) {
-                $teamId = $currentUser->team_id;
-                if ($teamId) {
-                    $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
-                    $teamMemberIds[] = AuthHelper::getCurrentUserId();  
-                    $baseQuery->whereIn('telecaller_id', $teamMemberIds);
-                } else {
-                    $baseQuery->where('telecaller_id', AuthHelper::getCurrentUserId());
-                }
-            } elseif (AuthHelper::isTelecaller()) {
-                $baseQuery->where('telecaller_id', AuthHelper::getCurrentUserId());
-            }
-        }
-
-        // Now find duplicates within the filtered results
-        // Get all filtered lead IDs first
-        $filteredLeadIds = $baseQuery->pluck('id')->toArray();
-        
-        if (empty($filteredLeadIds)) {
-            $filteredLeadIds = [0]; // Return no results
-        }
-
-        // Find code+phone combinations that appear more than once in filtered results
-        $duplicateGroups = Lead::select('code', 'phone')
-            ->whereIn('id', $filteredLeadIds)
-            ->groupBy('code', 'phone')
-            ->havingRaw('COUNT(*) > 1')
-            ->get();
-
-        // Get all lead IDs that match these duplicate combinations (within filtered results)
-        $duplicateLeadIds = [];
-        foreach ($duplicateGroups as $group) {
-            $leadIds = Lead::where('code', $group->code)
-                ->where('phone', $group->phone)
-                ->whereIn('id', $filteredLeadIds)
-                ->pluck('id')
-                ->toArray();
-            $duplicateLeadIds = array_merge($duplicateLeadIds, $leadIds);
-        }
-        
-        // If no duplicates found, return empty result
-        if (empty($duplicateLeadIds)) {
-            $duplicateLeadIds = [0]; // Return no results
-        }
-
-        // Build final query with duplicates only (include both converted and non-converted)
-        $query = Lead::select([
-            'id', 'title', 'code', 'phone', 'email', 'lead_status_id', 'lead_source_id', 
-            'course_id', 'telecaller_id', 'team_id', 'place', 'rating', 'interest_status', 
-            'followup_date', 'remarks', 'is_converted', 'created_at', 'updated_at',
-            'gender', 'age', 'whatsapp', 'whatsapp_code', 'qualification', 'country_id', 
-            'address', 'first_created_at'
-        ])
-        ->whereIn('id', $duplicateLeadIds)
-        ->with([
-            'leadStatus:id,title', 
-            'leadSource:id,title', 
-            'course:id,title', 
-            'telecaller:id,name', 
-            'studentDetails' => function($query) {
+    /**
+     * Eager loads used by duplicate leads listing.
+     */
+    private function duplicateLeadsEagerLoads(): array
+    {
+        return [
+            'leadStatus:id,title',
+            'leadSource:id,title',
+            'course:id,title',
+            'telecaller:id,name',
+            'studentDetails' => function ($query) {
                 $query->select([
                     'id', 'lead_id', 'status', 'course_id',
                     'sslc_certificate', 'plustwo_certificate', 'ug_certificate',
@@ -677,17 +582,136 @@ class LeadController extends Controller
                     'birth_certificate_verification_status', 'passport_photo_verification_status',
                     'adhar_front_verification_status', 'adhar_back_verification_status',
                     'signature_verification_status', 'other_document_verification_status',
-                    'reviewed_at'
+                    'reviewed_at',
                 ]);
             },
             'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
-            'plusTwoFollowUpQuestionnaire:id,lead_id,created_at'
-        ]);
+            'plusTwoFollowUpQuestionnaire:id,lead_id,created_at',
+        ];
+    }
 
-        // All filters are already applied in the base query above
-        // No need to apply them again here
+    /**
+     * Apply shared filters for duplicate lead detection and listing.
+     */
+    private function applyDuplicateLeadsFilters($query, Request $request, ?string $dataTablesSearchValue = null, bool $qualified = false): void
+    {
+        $column = fn (string $name) => $qualified ? "leads.{$name}" : $name;
 
-        return $query;
+        $query->where($column('is_converted'), 0)
+            ->whereNull($column('deleted_at'))
+            ->whereNotNull($column('code'))
+            ->whereNotNull($column('phone'));
+
+        $fromDate = $request->get('date_from');
+        $toDate = $request->get('date_to');
+
+        if ($fromDate && !$request->filled('search_key')) {
+            $query->whereDate($column('created_at'), '>=', $fromDate);
+        }
+        if ($toDate && !$request->filled('search_key')) {
+            $query->whereDate($column('created_at'), '<=', $toDate);
+        }
+
+        if ($request->filled('lead_status_id')) {
+            $query->where($column('lead_status_id'), $request->lead_status_id);
+        }
+
+        if ($request->filled('lead_source_id')) {
+            $query->where($column('lead_source_id'), $request->lead_source_id);
+        }
+
+        if ($request->filled('course_id')) {
+            $query->where($column('course_id'), $request->course_id);
+        }
+
+        if ($request->filled('telecaller_id')) {
+            $query->where($column('telecaller_id'), $request->telecaller_id);
+        }
+
+        if ($request->filled('rating')) {
+            $query->where($column('rating'), $request->rating);
+        }
+
+        $currentUser = AuthHelper::getCurrentUser();
+        $isAdminOrSuperAdmin = RoleHelper::is_admin_or_super_admin();
+        $isSeniorManager = $currentUser && RoleHelper::is_senior_manager();
+        $isGeneralManager = RoleHelper::is_general_manager();
+
+        if (($isAdminOrSuperAdmin || $isSeniorManager || $isGeneralManager) && $request->filled('lead_type')) {
+            $leadType = $request->lead_type;
+            if ($leadType === 'pullback') {
+                $query->withoutGlobalScope('exclude_pullbacked');
+                $query->where($column('is_pullbacked'), 1);
+            } elseif ($leadType === 'normal') {
+                $query->where(function ($q) use ($column) {
+                    $q->whereNull($column('is_pullbacked'))
+                        ->orWhere($column('is_pullbacked'), 0);
+                });
+            }
+        }
+
+        if ($request->filled('search_key')) {
+            $searchKey = $request->search_key;
+            $query->where(function ($q) use ($searchKey, $column) {
+                $q->where($column('title'), 'LIKE', "%{$searchKey}%")
+                    ->orWhere($column('phone'), 'LIKE', "%{$searchKey}%")
+                    ->orWhere($column('email'), 'LIKE', "%{$searchKey}%");
+            });
+        }
+
+        if ($dataTablesSearchValue !== null && $dataTablesSearchValue !== '') {
+            $query->where(function ($q) use ($dataTablesSearchValue, $column) {
+                $q->where($column('title'), 'LIKE', "%{$dataTablesSearchValue}%")
+                    ->orWhere($column('phone'), 'LIKE', "%{$dataTablesSearchValue}%")
+                    ->orWhere($column('email'), 'LIKE', "%{$dataTablesSearchValue}%");
+            });
+        }
+
+        if ($currentUser) {
+            if ($isSeniorManager || $isGeneralManager || $isAdminOrSuperAdmin) {
+                if ($request->filled('telecaller_id')) {
+                    $query->where($column('telecaller_id'), $request->telecaller_id);
+                }
+            } elseif (AuthHelper::isTeamLead() == 1) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+                    $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                    $query->whereIn($column('telecaller_id'), $teamMemberIds);
+                } else {
+                    $query->where($column('telecaller_id'), AuthHelper::getCurrentUserId());
+                }
+            } elseif (AuthHelper::isTelecaller()) {
+                $query->where($column('telecaller_id'), AuthHelper::getCurrentUserId());
+            }
+        }
+    }
+
+    /**
+     * Build the base query for duplicate leads (same code and phone).
+     */
+    private function buildDuplicateLeadsQuery(Request $request, ?string $dataTablesSearchValue = null)
+    {
+        $filteredQuery = Lead::query()
+            ->select('id', 'code', 'phone');
+        $this->applyDuplicateLeadsFilters($filteredQuery, $request, $dataTablesSearchValue, false);
+
+        $duplicatePairsQuery = DB::query()
+            ->fromSub($filteredQuery, 'filtered_leads')
+            ->select('code', 'phone')
+            ->groupBy('code', 'phone')
+            ->havingRaw('COUNT(*) > 1');
+
+        $query = Lead::query()
+            ->select($this->duplicateLeadsSelectColumns(true))
+            ->joinSub($duplicatePairsQuery, 'duplicate_pairs', function ($join) {
+                $join->on('leads.code', '=', 'duplicate_pairs.code')
+                    ->on('leads.phone', '=', 'duplicate_pairs.phone');
+            });
+
+        $this->applyDuplicateLeadsFilters($query, $request, $dataTablesSearchValue, true);
+
+        return $query->with($this->duplicateLeadsEagerLoads());
     }
 
     /**
@@ -1178,162 +1202,14 @@ class LeadController extends Controller
         try {
             set_time_limit(config('timeout.max_execution_time', 300));
 
-            // Build the query with all filters
-            $query = $this->buildDuplicateLeadsQuery($request);
-
-            // Get total count of duplicate leads using the same logic as buildDuplicateLeadsQuery
-            // Build base query with all filters (include both converted and non-converted)
-            $baseQuery = Lead::whereNotNull('code')
-                ->whereNotNull('phone');
-
-            // Apply date filters
-            $fromDate = $request->get('date_from');
-            $toDate = $request->get('date_to');
-            
-            if ($fromDate && !$request->filled('search')) {
-                $baseQuery->whereDate('created_at', '>=', $fromDate);
-            }
-            if ($toDate && !$request->filled('search')) {
-                $baseQuery->whereDate('created_at', '<=', $toDate);
+            $dataTablesSearch = null;
+            if ($request->filled('search') && is_array($request->search) && !empty($request->search['value'])) {
+                $dataTablesSearch = $request->search['value'];
             }
 
-            // Apply other filters
-            if ($request->filled('lead_status_id')) {
-                $baseQuery->where('lead_status_id', $request->lead_status_id);
-            }
-            if ($request->filled('lead_source_id')) {
-                $baseQuery->where('lead_source_id', $request->lead_source_id);
-            }
-            if ($request->filled('course_id')) {
-                $baseQuery->where('course_id', $request->course_id);
-            }
-            if ($request->filled('telecaller_id')) {
-                $baseQuery->where('telecaller_id', $request->telecaller_id);
-            }
-            if ($request->filled('rating')) {
-                $baseQuery->where('rating', $request->rating);
-            }
-
-            // Apply role-based filtering
-            $currentUser = AuthHelper::getCurrentUser();
-            if ($currentUser) {
-                $isSeniorManager = $currentUser && RoleHelper::is_senior_manager();
-                $isGeneralManager = RoleHelper::is_general_manager();
-                
-                if (!($isSeniorManager || $isGeneralManager || RoleHelper::is_admin_or_super_admin())) {
-                    if (AuthHelper::isTeamLead() == 1) {
-                        $teamId = $currentUser->team_id;
-                        if ($teamId) {
-                            $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
-                            $teamMemberIds[] = AuthHelper::getCurrentUserId();  
-                            $baseQuery->whereIn('telecaller_id', $teamMemberIds);
-                        } else {
-                            $baseQuery->where('telecaller_id', AuthHelper::getCurrentUserId());
-                        }
-                    } elseif (AuthHelper::isTelecaller()) {
-                        $baseQuery->where('telecaller_id', AuthHelper::getCurrentUserId());
-                    }
-                }
-            }
-
-            // Get filtered lead IDs
-            $filteredLeadIds = $baseQuery->pluck('id')->toArray();
-            
-            if (empty($filteredLeadIds)) {
-                $totalRecords = 0;
-            } else {
-                // Find duplicates within filtered results
-                $duplicateGroups = Lead::select('code', 'phone')
-                    ->whereIn('id', $filteredLeadIds)
-                    ->groupBy('code', 'phone')
-                    ->havingRaw('COUNT(*) > 1')
-                    ->get();
-                
-                $totalRecords = 0;
-                foreach ($duplicateGroups as $group) {
-                    $count = Lead::where('code', $group->code)
-                        ->where('phone', $group->phone)
-                        ->whereIn('id', $filteredLeadIds)
-                        ->count();
-                    $totalRecords += $count;
-                }
-            }
-
-            // Apply DataTables search (from DataTables search box)
-            if ($request->filled('search') && is_array($request->search) && isset($request->search['value']) && !empty($request->search['value'])) {
-                $searchValue = $request->search['value'];
-                $query->where(function($q) use ($searchValue) {
-                    $q->where('title', 'LIKE', "%{$searchValue}%")
-                      ->orWhere('phone', 'LIKE', "%{$searchValue}%")
-                      ->orWhere('email', 'LIKE', "%{$searchValue}%");
-                });
-                
-                // After search, re-check for duplicates to ensure we only show leads that are still duplicates
-                // Get the IDs that match the search
-                $searchedLeadIds = (clone $query)->pluck('id')->toArray();
-                
-                if (empty($searchedLeadIds)) {
-                    $searchedLeadIds = [0];
-                } else {
-                    // Find code+phone combinations that still appear more than once after search
-                    $duplicateGroupsAfterSearch = Lead::select('code', 'phone')
-                        ->whereIn('id', $searchedLeadIds)
-                        ->groupBy('code', 'phone')
-                        ->havingRaw('COUNT(*) > 1')
-                        ->get();
-                    
-                    // Get only the IDs that are still duplicates
-                    $stillDuplicateIds = [];
-                    foreach ($duplicateGroupsAfterSearch as $group) {
-                        $leadIds = Lead::where('code', $group->code)
-                            ->where('phone', $group->phone)
-                            ->whereIn('id', $searchedLeadIds)
-                            ->pluck('id')
-                            ->toArray();
-                        $stillDuplicateIds = array_merge($stillDuplicateIds, $leadIds);
-                    }
-                    
-                    if (empty($stillDuplicateIds)) {
-                        $searchedLeadIds = [0];
-                    } else {
-                        $searchedLeadIds = $stillDuplicateIds;
-                    }
-                }
-                
-                // Rebuild query with only still-duplicate IDs (include both converted and non-converted)
-                $query = Lead::select([
-                    'id', 'title', 'code', 'phone', 'email', 'lead_status_id', 'lead_source_id', 
-                    'course_id', 'telecaller_id', 'team_id', 'place', 'rating', 'interest_status', 
-                    'followup_date', 'remarks', 'is_converted', 'created_at', 'updated_at',
-                    'gender', 'age', 'whatsapp', 'whatsapp_code', 'qualification', 'country_id', 
-                    'address', 'first_created_at'
-                ])
-                ->whereIn('id', $searchedLeadIds)
-                ->with([
-                    'leadStatus:id,title', 
-                    'leadSource:id,title', 
-                    'course:id,title', 
-                    'telecaller:id,name', 
-                    'studentDetails' => function($query) {
-                        $query->select([
-                            'id', 'lead_id', 'status', 'course_id',
-                            'sslc_certificate', 'plustwo_certificate', 'ug_certificate',
-                            'birth_certificate', 'passport_photo', 'adhar_front', 'adhar_back',
-                            'signature', 'other_document',
-                            'sslc_verification_status', 'plustwo_verification_status', 'ug_verification_status',
-                            'birth_certificate_verification_status', 'passport_photo_verification_status',
-                            'adhar_front_verification_status', 'adhar_back_verification_status',
-                            'signature_verification_status', 'other_document_verification_status',
-                            'reviewed_at'
-                        ]);
-                    },
-                    'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
-                    'plusTwoFollowUpQuestionnaire:id,lead_id,created_at'
-                ]);
-            }
-
-            // Get filtered count
-            $filteredCount = $query->count();
+            $totalRecords = $this->buildDuplicateLeadsQuery($request)->distinct()->count('leads.id');
+            $query = $this->buildDuplicateLeadsQuery($request, $dataTablesSearch);
+            $filteredCount = (clone $query)->distinct()->count('leads.id');
 
             // Pre-calculate role checks (same as getLeadsData)
             $currentUser = AuthHelper::getCurrentUser();
@@ -1386,26 +1262,22 @@ class LeadController extends Controller
 
             // Apply sorting - group duplicates together by code and phone, then by created_at
             if ($request->filled('order') && is_array($request->order)) {
-                // First order by code and phone to group duplicates together
-                $query->orderBy('code', 'asc')
-                      ->orderBy('phone', 'asc');
-                
-                // Then apply user's sorting preference
+                $query->orderBy('leads.code', 'asc')
+                    ->orderBy('leads.phone', 'asc');
+
                 foreach ($request->order as $order) {
                     $columnIndex = intval($order['column']);
                     $dir = $order['dir'];
                     if (isset($columns[$columnIndex]) && $columns[$columnIndex] !== 'id') {
-                        $query->orderBy($columns[$columnIndex], $dir);
+                        $query->orderBy('leads.' . $columns[$columnIndex], $dir);
                     }
                 }
-                
-                // Finally order by created_at to show duplicates in chronological order
-                $query->orderBy('created_at', 'desc');
+
+                $query->orderBy('leads.created_at', 'desc');
             } else {
-                // Default: Group by code and phone, then by created_at
-                $query->orderBy('code', 'asc')
-                      ->orderBy('phone', 'asc')
-                      ->orderBy('created_at', 'desc');
+                $query->orderBy('leads.code', 'asc')
+                    ->orderBy('leads.phone', 'asc')
+                    ->orderBy('leads.created_at', 'desc');
             }
 
             // Apply pagination
