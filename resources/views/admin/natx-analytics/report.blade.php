@@ -33,7 +33,8 @@
             return '-';
         }
 
-        $entries = ($workStatusMap ?? collect())->get($userId . '|' . $reportDate);
+        $normalizedDate = \Carbon\Carbon::parse($reportDate)->format('Y-m-d');
+        $entries = ($workStatusMap ?? collect())->get($userId . '|' . $normalizedDate);
         if (!$entries) {
             return '-';
         }
@@ -156,13 +157,25 @@
                 <div class="ca-table-scroll">
                     <table class="table table-hover align-middle mb-0">
                         <thead>
+                            @php
+                                $callMetricColumns = 11;
+                            @endphp
+                            @if(!empty($showWorkStatus))
                             <tr>
+                                <th rowspan="2">#</th>
+                                <th rowspan="2">Date</th>
+                                <th rowspan="2">User</th>
+                                <th colspan="{{ $callMetricColumns }}" class="text-center border-start">Call Activity</th>
+                                <th colspan="3" class="text-center border-start">Work Status</th>
+                                <th rowspan="2" class="text-center no-print border-start"></th>
+                            </tr>
+                            @endif
+                            <tr>
+                                @if(empty($showWorkStatus))
                                 <th>#</th>
-                                @if(!empty($showWorkStatus))
-                                    <th>Date</th>
-                                @endif
                                 <th>User</th>
-                                <th class="text-center">Total</th>
+                                @endif
+                                <th class="text-center {{ !empty($showWorkStatus) ? 'border-start' : '' }}">Total</th>
                                 <th class="text-center">Connected <span class="text-muted fw-normal text-lowercase">(unique)</span></th>
                                 <th class="text-center">Attended</th>
                                 <th class="text-center">Incoming</th>
@@ -174,11 +187,13 @@
                                 <th class="text-center">Recording</th>
                                 <th class="text-center">Uploaded</th>
                                 @if(!empty($showWorkStatus))
-                                    <th class="text-center">Morning</th>
-                                    <th class="text-center">Afternoon</th>
-                                    <th class="text-center">Evening</th>
+                                    <th class="text-center border-start text-uppercase">Morning</th>
+                                    <th class="text-center text-uppercase">Afternoon</th>
+                                    <th class="text-center text-uppercase">Evening</th>
                                 @endif
+                                @if(empty($showWorkStatus))
                                 <th class="text-center no-print"></th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>

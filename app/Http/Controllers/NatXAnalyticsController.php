@@ -12,6 +12,8 @@ use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 
 class NatXAnalyticsController extends Controller
 {
@@ -220,6 +222,50 @@ class NatXAnalyticsController extends Controller
         ];
     }
 
+    private function getFilteredReportUserIds(array $filters): array
+    {
+        $query = User::query()->where('is_active', true);
+
+        if (!empty($filters['user_id'])) {
+            $query->where('id', $filters['user_id']);
+        }
+
+        if (!empty($filters['role_id'])) {
+            $query->where('role_id', $filters['role_id']);
+            if ((int) $filters['role_id'] === 3 && !empty($filters['team_id'])) {
+                $query->where('team_id', $filters['team_id']);
+            }
+        }
+
+        return $query->orderBy('name')->pluck('id')->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function getReportDatesInRange(array $filters): array
+    {
+        if (!$this->hasReportDateRange($filters)) {
+            return [];
+        }
+
+        $dates = [];
+        foreach (CarbonPeriod::create($filters['start_date'], $filters['end_date']) as $date) {
+            $dates[] = $date->format('Y-m-d');
+        }
+
+        return array_reverse($dates);
+    }
+
+    private function normalizeReportDate(mixed $reportDate): ?string
+    {
+        if ($reportDate === null || $reportDate === '') {
+            return null;
+        }
+
+        return Carbon::parse($reportDate)->format('Y-m-d');
+    }
+
     /**
      * @return array{rows: \Illuminate\Support\Collection, workStatusMap: \Illuminate\Support\Collection}
      */
@@ -249,10 +295,23 @@ class NatXAnalyticsController extends Controller
         );
 
         $rowMap = [];
+        $reportDates = $this->getReportDatesInRange($filters);
+        $userIds = $this->getFilteredReportUserIds($filters);
+
+        foreach ($reportDates as $reportDate) {
+            foreach ($userIds as $userId) {
+                $rowMap[$userId . '|' . $reportDate] = $this->emptyCallAggregateRow((int) $userId, $reportDate);
+            }
+        }
 
         foreach ($callRows as $row) {
-            $reportDate = $row->report_date ? (string) $row->report_date : null;
+            $reportDate = $this->normalizeReportDate($row->report_date);
+            if ($reportDate === null) {
+                continue;
+            }
+
             $key = $row->user_id . '|' . $reportDate;
+            $row->report_date = $reportDate;
             $rowMap[$key] = $row;
         }
 
@@ -265,9 +324,22 @@ class NatXAnalyticsController extends Controller
             }
         }
 
+        $userNames = User::whereIn('id', collect($rowMap)->pluck('user_id')->unique())
+            ->pluck('name', 'id');
+
         $rows = collect($rowMap)
             ->values()
-            ->sortByDesc(fn ($row) => ($row->report_date ?? '') . '|' . str_pad((string) ($row->total_calls ?? 0), 10, '0', STR_PAD_LEFT))
+            ->sort(function ($a, $b) use ($userNames) {
+                $dateCompare = strcmp($b->report_date ?? '', $a->report_date ?? '');
+                if ($dateCompare !== 0) {
+                    return $dateCompare;
+                }
+
+                return strcmp(
+                    (string) $userNames->get($a->user_id, ''),
+                    (string) $userNames->get($b->user_id, '')
+                );
+            })
             ->values();
 
         return [
