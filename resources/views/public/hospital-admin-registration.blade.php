@@ -545,7 +545,7 @@
                 <!-- Step 3: Document Uploads & Message -->
                 <div class="form-step" id="formStep3">
                     <h4 class="mb-4"><i class="fas fa-upload me-2"></i>Document Uploads</h4>
-                    <p class="text-muted mb-4">Please upload clear scans or photos of the required documents. Max file size: 2MB.</p>
+                    <p class="text-muted mb-4">Please upload clear scans or photos of the required documents. Max file size: 1MB.</p>
                     
                     <div class="row">
                         <div class="col-md-6">
@@ -554,7 +554,7 @@
                                 <div class="file-upload-area" onclick="document.getElementById('sslc_certificate').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                     <p class="mb-0">Click to upload or drag & drop</p>
-                                    <small class="text-muted">PDF, JPG, PNG (Max 2MB)</small>
+                                    <small class="text-muted">PDF, JPG, PNG (Max 1MB)</small>
                                 </div>
                                 <input type="file" id="sslc_certificate" name="sslc_certificate" accept=".pdf,.jpg,.jpeg,.png" required style="display: none;">
                                 <div class="file-preview" id="sslc_certificate_preview"></div>
@@ -566,7 +566,7 @@
                                 <div class="file-upload-area" onclick="document.getElementById('plustwo_certificate').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                     <p class="mb-0">Click to upload or drag & drop</p>
-                                    <small class="text-muted">PDF, JPG, PNG (Max 2MB) - Optional</small>
+                                    <small class="text-muted">PDF, JPG, PNG (Max 1MB) - Optional</small>
                                 </div>
                                 <input type="file" id="plustwo_certificate" name="plustwo_certificate" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
                                 <div class="file-preview" id="plustwo_certificate_preview"></div>
@@ -581,7 +581,7 @@
                                 <div class="file-upload-area" onclick="document.getElementById('passport_photo').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                     <p class="mb-0">Click to upload or drag & drop</p>
-                                    <small class="text-muted">JPG, PNG (Max 2MB)</small>
+                                    <small class="text-muted">JPG, PNG (Max 1MB)</small>
                                 </div>
                                 <input type="file" id="passport_photo" name="passport_photo" accept=".jpg,.jpeg,.png" required style="display: none;">
                                 <div class="file-preview" id="passport_photo_preview"></div>
@@ -593,7 +593,7 @@
                                 <div class="file-upload-area" onclick="document.getElementById('adhar_front').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                     <p class="mb-0">Click to upload or drag & drop</p>
-                                    <small class="text-muted">PDF, JPG, PNG (Max 2MB)</small>
+                                    <small class="text-muted">PDF, JPG, PNG (Max 1MB)</small>
                                 </div>
                                 <input type="file" id="adhar_front" name="adhar_front" accept=".pdf,.jpg,.jpeg,.png" required style="display: none;">
                                 <div class="file-preview" id="adhar_front_preview"></div>
@@ -608,7 +608,7 @@
                                 <div class="file-upload-area" onclick="document.getElementById('adhar_back').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                     <p class="mb-0">Click to upload or drag & drop</p>
-                                    <small class="text-muted">PDF, JPG, PNG (Max 2MB)</small>
+                                    <small class="text-muted">PDF, JPG, PNG (Max 1MB)</small>
                                 </div>
                                 <input type="file" id="adhar_back" name="adhar_back" accept=".pdf,.jpg,.jpeg,.png" required style="display: none;">
                                 <div class="file-preview" id="adhar_back_preview"></div>
@@ -620,7 +620,7 @@
                                 <div class="file-upload-area" onclick="document.getElementById('signature').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                     <p class="mb-0">Click to upload or drag & drop</p>
-                                    <small class="text-muted">JPG, PNG (Max 2MB)</small>
+                                    <small class="text-muted">JPG, PNG (Max 1MB)</small>
                                 </div>
                                 <input type="file" id="signature" name="signature" accept=".jpg,.jpeg,.png" required style="display: none;">
                                 <div class="file-preview" id="signature_preview"></div>
@@ -881,9 +881,9 @@
         function handleFileUpload(event, preview, inputId) {
             const file = event.target.files[0];
             if (file) {
-                // Validate file size (2MB)
-                if (file.size > 2 * 1024 * 1024) {
-                    showAlert('File size must be less than 2MB.', 'danger');
+                // Validate file size (1MB)
+                if (file.size > 1 * 1024 * 1024) {
+                    showAlert('File size must be less than 1MB.', 'danger');
                     return;
                 }
                 
@@ -948,29 +948,43 @@
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
-             .then(data => {
-                 if (data.success) {
-                     // Clear saved form data on successful submission
-                     clearSavedData();
-                     showAlert(data.message, 'success');
-                     
-                     // Redirect to success page after a short delay
-                     setTimeout(() => {
-                         if (data.redirect) {
-                             window.location.href = data.redirect;
-                         }
-                     }, 2000);
-                 } else {
-                     showAlert(data.message || 'An error occurred. Please try again.', 'danger');
-                 }
-             })
+            .then(async (response) => {
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (e) {}
+                if (!response.ok) {
+                    if (response.status === 422 && data && data.errors) {
+                        const messages = Object.values(data.errors).flat().join('<br>');
+                        showAlert(messages, 'danger');
+                    } else {
+                        showAlert((data && (data.message || data.error)) || 'An error occurred. Please try again.', 'danger');
+                    }
+                    throw new Error('Request failed');
+                }
+                return data;
+            })
+            .then(data => {
+                if (data.success) {
+                    clearSavedData();
+                    showAlert(data.message, 'success');
+
+                    setTimeout(() => {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        }
+                    }, 2000);
+                } else {
+                    showAlert(data.message || 'An error occurred. Please try again.', 'danger');
+                }
+            })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('An error occurred while submitting the form. Please try again.', 'danger');
             })
             .finally(() => {
                 submitBtn.innerHTML = originalText;
