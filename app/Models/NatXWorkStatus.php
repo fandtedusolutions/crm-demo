@@ -76,4 +76,16 @@ class NatXWorkStatus extends Model
             'updated_at_ms' => (int) $this->updated_at_ms,
         ];
     }
+
+    public function completionTimeDisplay(): string
+    {
+        if ($this->completed_at === null) {
+            return '-';
+        }
+
+        return $this->completed_at
+            ->copy()
+            ->timezone(config('app.timezone', 'Asia/Kolkata'))
+            ->format('h:i A');
+    }
 }

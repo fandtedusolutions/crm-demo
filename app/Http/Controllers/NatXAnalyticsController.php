@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\DateRangeHelper;
 use App\Helpers\PermissionHelper;
 use App\Models\NatXAppLog;
+use App\Models\NatXWorkStatus;
 use App\Models\User;
 use App\Models\UserRole;
 use App\Models\Team;
@@ -143,6 +144,146 @@ class NatXAnalyticsController extends Controller
         }
 
         return $query;
+    }
+
+    private function hasReportDateRange(array $filters): bool
+    {
+        return ($filters['date_range'] ?? '') !== DateRangeHelper::PRESET_ALL
+            && !empty($filters['start_date'])
+            && !empty($filters['end_date']);
+    }
+
+    private function applyWorkStatusFilters($query, array $filters)
+    {
+        if ($this->hasReportDateRange($filters)) {
+            $query->whereBetween('work_date', [$filters['start_date'], $filters['end_date']]);
+        }
+
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        if (!empty($filters['role_id'])) {
+            $query->whereHas('user', function ($q) use ($filters) {
+                $q->where('role_id', $filters['role_id']);
+                if ((int) $filters['role_id'] === 3 && !empty($filters['team_id'])) {
+                    $q->where('team_id', $filters['team_id']);
+                }
+            });
+        }
+
+        return $query;
+    }
+
+    private function callAggregateSelectColumns(): array
+    {
+        return [
+            DB::raw('COUNT(*) as total_calls'),
+            DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_calls"),
+            DB::raw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls"),
+            DB::raw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls"),
+            DB::raw('SUM(CASE WHEN ' . NatXAppLog::notPickedSqlCondition() . ' THEN 1 ELSE 0 END) as not_picked_calls'),
+            DB::raw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls"),
+            DB::raw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls"),
+            DB::raw('SUM(duration_seconds) as total_duration_seconds'),
+            DB::raw('SUM(CASE WHEN has_recording = 1 THEN 1 ELSE 0 END) as with_recording'),
+            DB::raw('SUM(CASE WHEN recording_uploaded = 1 THEN 1 ELSE 0 END) as recordings_uploaded'),
+        ];
+    }
+
+    private function mapCallAggregateRow($row): object
+    {
+        $row->attended_calls = NatXAppLog::attendedCallCount(
+            (int) $row->incoming_calls,
+            (int) $row->outgoing_calls
+        );
+
+        return $row;
+    }
+
+    private function emptyCallAggregateRow(int $userId, ?string $reportDate = null): object
+    {
+        return (object) [
+            'user_id' => $userId,
+            'report_date' => $reportDate,
+            'total_calls' => 0,
+            'connected_calls' => 0,
+            'incoming_calls' => 0,
+            'outgoing_calls' => 0,
+            'not_picked_calls' => 0,
+            'missed_calls' => 0,
+            'rejected_calls' => 0,
+            'total_duration_seconds' => 0,
+            'with_recording' => 0,
+            'recordings_uploaded' => 0,
+            'attended_calls' => 0,
+        ];
+    }
+
+    /**
+     * @return array{rows: \Illuminate\Support\Collection, workStatusMap: \Illuminate\Support\Collection}
+     */
+    private function buildUserDateReportRows($baseQuery, array $filters): array
+    {
+        $callRows = (clone $baseQuery)
+            ->select(array_merge(
+                ['user_id', DB::raw('DATE(started_at) as report_date')],
+                $this->callAggregateSelectColumns()
+            ))
+            ->groupBy('user_id', DB::raw('DATE(started_at)'))
+            ->orderByDesc('report_date')
+            ->orderByDesc('total_calls')
+            ->get()
+            ->map(fn ($row) => $this->mapCallAggregateRow($row));
+
+        $workStatusQuery = NatXWorkStatus::query()->with('user');
+        $this->applyWorkStatusFilters($workStatusQuery, $filters);
+
+        $workStatusEntries = $workStatusQuery
+            ->orderByDesc('work_date')
+            ->orderByRaw("FIELD(slot, 'morning', 'afternoon', 'evening')")
+            ->get();
+
+        $workStatusMap = $workStatusEntries->groupBy(
+            fn (NatXWorkStatus $entry) => $entry->user_id . '|' . $entry->work_date->format('Y-m-d')
+        );
+
+        $rowMap = [];
+
+        foreach ($callRows as $row) {
+            $reportDate = $row->report_date ? (string) $row->report_date : null;
+            $key = $row->user_id . '|' . $reportDate;
+            $rowMap[$key] = $row;
+        }
+
+        foreach ($workStatusEntries as $entry) {
+            $reportDate = $entry->work_date->format('Y-m-d');
+            $key = $entry->user_id . '|' . $reportDate;
+
+            if (!isset($rowMap[$key])) {
+                $rowMap[$key] = $this->emptyCallAggregateRow((int) $entry->user_id, $reportDate);
+            }
+        }
+
+        $rows = collect($rowMap)
+            ->values()
+            ->sortByDesc(fn ($row) => ($row->report_date ?? '') . '|' . str_pad((string) ($row->total_calls ?? 0), 10, '0', STR_PAD_LEFT))
+            ->values();
+
+        return [
+            'rows' => $rows,
+            'workStatusMap' => $workStatusMap,
+        ];
+    }
+
+    private function buildUserOnlyReportRows($baseQuery): \Illuminate\Support\Collection
+    {
+        return (clone $baseQuery)
+            ->select(array_merge(['user_id'], $this->callAggregateSelectColumns()))
+            ->groupBy('user_id')
+            ->orderByDesc('total_calls')
+            ->get()
+            ->map(fn ($row) => $this->mapCallAggregateRow($row));
     }
 
     private function getMetricLabel(?string $metric): string
@@ -331,31 +472,16 @@ class NatXAnalyticsController extends Controller
         $query = NatXAppLog::query();
         $this->applyFilters($query, $summaryFilters);
 
-        $rows = (clone $query)
-            ->select([
-                'user_id',
-                DB::raw('COUNT(*) as total_calls'),
-                DB::raw("COUNT(DISTINCT REGEXP_REPLACE(phone_number, '[^0-9]', '')) as connected_calls"),
-                DB::raw("SUM(CASE WHEN call_type = 'incoming' THEN 1 ELSE 0 END) as incoming_calls"),
-                DB::raw("SUM(CASE WHEN call_type = 'outgoing' THEN 1 ELSE 0 END) as outgoing_calls"),
-                DB::raw('SUM(CASE WHEN ' . NatXAppLog::notPickedSqlCondition() . ' THEN 1 ELSE 0 END) as not_picked_calls'),
-                DB::raw("SUM(CASE WHEN call_type = 'missed' THEN 1 ELSE 0 END) as missed_calls"),
-                DB::raw("SUM(CASE WHEN call_type = 'rejected' THEN 1 ELSE 0 END) as rejected_calls"),
-                DB::raw('SUM(duration_seconds) as total_duration_seconds'),
-                DB::raw('SUM(CASE WHEN has_recording = 1 THEN 1 ELSE 0 END) as with_recording'),
-                DB::raw('SUM(CASE WHEN recording_uploaded = 1 THEN 1 ELSE 0 END) as recordings_uploaded'),
-            ])
-            ->groupBy('user_id')
-            ->orderByDesc('total_calls')
-            ->get()
-            ->map(function ($row) {
-                $row->attended_calls = NatXAppLog::attendedCallCount(
-                    (int) $row->incoming_calls,
-                    (int) $row->outgoing_calls
-                );
+        $showWorkStatus = $this->hasReportDateRange($filters);
+        $workStatusMap = collect();
 
-                return $row;
-            });
+        if ($showWorkStatus) {
+            $reportData = $this->buildUserDateReportRows($query, $summaryFilters);
+            $rows = $reportData['rows'];
+            $workStatusMap = $reportData['workStatusMap'];
+        } else {
+            $rows = $this->buildUserOnlyReportRows($query);
+        }
 
         $userMap = User::whereIn('id', $rows->pluck('user_id'))
             ->get(['id', 'name', 'email', 'phone'])
@@ -394,7 +520,9 @@ class NatXAnalyticsController extends Controller
             'queryParams',
             'roles',
             'users',
-            'teams'
+            'teams',
+            'showWorkStatus',
+            'workStatusMap'
         ));
     }
 

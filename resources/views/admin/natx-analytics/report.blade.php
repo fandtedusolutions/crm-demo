@@ -27,6 +27,23 @@
 
     $isActiveMetric = fn (string $metric, ?int $userId = null) => ($filters['metric'] ?? null) === $metric
         && (string) ($filters['user_id'] ?? '') === (string) ($userId ?? $filters['user_id'] ?? '');
+
+    $workStatusTime = function (int $userId, ?string $reportDate, string $slot) use ($workStatusMap) {
+        if (empty($reportDate)) {
+            return '-';
+        }
+
+        $entries = ($workStatusMap ?? collect())->get($userId . '|' . $reportDate);
+        if (!$entries) {
+            return '-';
+        }
+
+        $entry = $entries->firstWhere('slot', $slot);
+
+        return $entry ? $entry->completionTimeDisplay() : '-';
+    };
+
+    $summaryColumnCount = 14 + (!empty($showWorkStatus) ? 4 : 0);
 @endphp
 
 <div class="page-header">
@@ -126,7 +143,7 @@
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <h5 class="mb-0">User-wise Summary</h5>
-                    <span class="badge bg-light text-dark border">{{ $rows->count() }} {{ $rows->count() === 1 ? 'user' : 'users' }}</span>
+                    <span class="badge bg-light text-dark border">{{ $rows->count() }} {{ $rows->count() === 1 ? 'row' : 'rows' }}</span>
                     <span class="badge bg-light-primary border border-primary ca-period-badge">
                         {{ DateRangeHelper::displayPeriod($filters) }}
                     </span>
@@ -141,6 +158,9 @@
                         <thead>
                             <tr>
                                 <th>#</th>
+                                @if(!empty($showWorkStatus))
+                                    <th>Date</th>
+                                @endif
                                 <th>User</th>
                                 <th class="text-center">Total</th>
                                 <th class="text-center">Connected <span class="text-muted fw-normal text-lowercase">(unique)</span></th>
@@ -153,14 +173,25 @@
                                 <th class="text-center">Talk Time</th>
                                 <th class="text-center">Recording</th>
                                 <th class="text-center">Uploaded</th>
+                                @if(!empty($showWorkStatus))
+                                    <th class="text-center">Morning</th>
+                                    <th class="text-center">Afternoon</th>
+                                    <th class="text-center">Evening</th>
+                                @endif
                                 <th class="text-center no-print"></th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($rows as $index => $row)
-                                @php $user = $userMap->get($row->user_id); @endphp
+                                @php
+                                    $user = $userMap->get($row->user_id);
+                                    $reportDate = $row->report_date ?? null;
+                                @endphp
                                 <tr>
                                     <td class="text-muted">{{ $index + 1 }}</td>
+                                    @if(!empty($showWorkStatus))
+                                        <td class="text-nowrap fw-medium">{{ $reportDate ? \App\Helpers\DateRangeHelper::formatDisplay($reportDate) : '-' }}</td>
+                                    @endif
                                     <td>
                                         <a href="{{ $userReportUrl($row->user_id) }}" class="ca-telecaller-link">
                                             <div class="ca-telecaller-cell">
@@ -201,6 +232,34 @@
                                     <td class="text-center fw-medium">{{ \App\Models\NatXAppLog::formatDuration((int) $row->total_duration_seconds) }}</td>
                                     <td class="text-center">{{ number_format($row->with_recording) }}</td>
                                     <td class="text-center">{{ number_format($row->recordings_uploaded) }}</td>
+                                    @if(!empty($showWorkStatus))
+                                        @php
+                                            $morningTime = $workStatusTime((int) $row->user_id, $reportDate, 'morning');
+                                            $afternoonTime = $workStatusTime((int) $row->user_id, $reportDate, 'afternoon');
+                                            $eveningTime = $workStatusTime((int) $row->user_id, $reportDate, 'evening');
+                                        @endphp
+                                        <td class="text-center">
+                                            @if($morningTime !== '-')
+                                                <span class="text-success fw-medium">{{ $morningTime }}</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">
+                                            @if($afternoonTime !== '-')
+                                                <span class="text-success fw-medium">{{ $afternoonTime }}</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">
+                                            @if($eveningTime !== '-')
+                                                <span class="text-success fw-medium">{{ $eveningTime }}</span>
+                                            @else
+                                                <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                    @endif
                                     <td class="text-center no-print">
                                         <a href="{{ $userReportUrl($row->user_id) }}" class="btn btn-outline-primary btn-sm ca-btn-icon" title="View all calls">
                                             <i class="ti ti-list"></i>
@@ -209,7 +268,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="14">
+                                    <td colspan="{{ $summaryColumnCount }}">
                                         <div class="ca-empty-state">
                                             <i class="ti ti-chart-bar"></i>
                                             <p>No report data found.</p>
@@ -221,7 +280,7 @@
                         @if($rows->isNotEmpty())
                         <tfoot>
                             <tr>
-                                <td colspan="2"><strong>Grand Total</strong></td>
+                                <td colspan="{{ !empty($showWorkStatus) ? 3 : 2 }}"><strong>Grand Total</strong></td>
                                 <td class="text-center"><a href="{{ $reportMetricUrl('total') }}" class="report-metric-link {{ $isActiveMetric('total') ? 'is-active' : '' }}">{{ number_format($grandTotals['total_calls']) }}</a></td>
                                 <td class="text-center"><a href="{{ $reportMetricUrl('connected') }}" class="report-metric-link {{ $isActiveMetric('connected') ? 'is-active' : '' }}">{{ number_format($grandTotals['connected_calls']) }}</a></td>
                                 <td class="text-center"><a href="{{ $reportMetricUrl('attended') }}" class="report-metric-link {{ $isActiveMetric('attended') ? 'is-active' : '' }}">{{ number_format($grandTotals['attended_calls']) }}</a></td>
@@ -233,6 +292,9 @@
                                 <td class="text-center">{{ \App\Models\NatXAppLog::formatDuration($grandTotals['total_duration_seconds']) }}</td>
                                 <td class="text-center">{{ number_format($grandTotals['with_recording']) }}</td>
                                 <td class="text-center">{{ number_format($grandTotals['recordings_uploaded']) }}</td>
+                                @if(!empty($showWorkStatus))
+                                    <td colspan="3"></td>
+                                @endif
                                 <td class="no-print"></td>
                             </tr>
                         </tfoot>
