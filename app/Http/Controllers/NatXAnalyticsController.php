@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
 
 class NatXAnalyticsController extends Controller
 {
@@ -203,60 +202,6 @@ class NatXAnalyticsController extends Controller
         return $row;
     }
 
-    private function emptyCallAggregateRow(int $userId, ?string $reportDate = null): object
-    {
-        return (object) [
-            'user_id' => $userId,
-            'report_date' => $reportDate,
-            'total_calls' => 0,
-            'connected_calls' => 0,
-            'incoming_calls' => 0,
-            'outgoing_calls' => 0,
-            'not_picked_calls' => 0,
-            'missed_calls' => 0,
-            'rejected_calls' => 0,
-            'total_duration_seconds' => 0,
-            'with_recording' => 0,
-            'recordings_uploaded' => 0,
-            'attended_calls' => 0,
-        ];
-    }
-
-    private function getFilteredReportUserIds(array $filters): array
-    {
-        $query = User::query()->where('is_active', true);
-
-        if (!empty($filters['user_id'])) {
-            $query->where('id', $filters['user_id']);
-        }
-
-        if (!empty($filters['role_id'])) {
-            $query->where('role_id', $filters['role_id']);
-            if ((int) $filters['role_id'] === 3 && !empty($filters['team_id'])) {
-                $query->where('team_id', $filters['team_id']);
-            }
-        }
-
-        return $query->orderBy('name')->pluck('id')->all();
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    private function getReportDatesInRange(array $filters): array
-    {
-        if (!$this->hasReportDateRange($filters)) {
-            return [];
-        }
-
-        $dates = [];
-        foreach (CarbonPeriod::create($filters['start_date'], $filters['end_date']) as $date) {
-            $dates[] = $date->format('Y-m-d');
-        }
-
-        return array_reverse($dates);
-    }
-
     private function normalizeReportDate(mixed $reportDate): ?string
     {
         if ($reportDate === null || $reportDate === '') {
@@ -271,7 +216,7 @@ class NatXAnalyticsController extends Controller
      */
     private function buildUserDateReportRows($baseQuery, array $filters): array
     {
-        $callRows = (clone $baseQuery)
+        $rows = (clone $baseQuery)
             ->select(array_merge(
                 ['user_id', DB::raw('DATE(started_at) as report_date')],
                 $this->callAggregateSelectColumns()
@@ -280,12 +225,22 @@ class NatXAnalyticsController extends Controller
             ->orderByDesc('report_date')
             ->orderByDesc('total_calls')
             ->get()
-            ->map(fn ($row) => $this->mapCallAggregateRow($row));
+            ->map(function ($row) {
+                $row = $this->mapCallAggregateRow($row);
+                $row->report_date = $this->normalizeReportDate($row->report_date);
 
-        $workStatusQuery = NatXWorkStatus::query()->with('user');
+                return $row;
+            })
+            ->filter(fn ($row) => $row->report_date !== null);
+
+        $workStatusQuery = NatXWorkStatus::query();
         $this->applyWorkStatusFilters($workStatusQuery, $filters);
 
+        $callUserIds = $rows->pluck('user_id')->unique()->values();
+
         $workStatusEntries = $workStatusQuery
+            ->when($callUserIds->isNotEmpty(), fn ($query) => $query->whereIn('user_id', $callUserIds))
+            ->when($callUserIds->isEmpty(), fn ($query) => $query->whereRaw('1 = 0'))
             ->orderByDesc('work_date')
             ->orderByRaw("FIELD(slot, 'morning', 'afternoon', 'evening')")
             ->get();
@@ -294,41 +249,10 @@ class NatXAnalyticsController extends Controller
             fn (NatXWorkStatus $entry) => $entry->user_id . '|' . $entry->work_date->format('Y-m-d')
         );
 
-        $rowMap = [];
-        $reportDates = $this->getReportDatesInRange($filters);
-        $userIds = $this->getFilteredReportUserIds($filters);
-
-        foreach ($reportDates as $reportDate) {
-            foreach ($userIds as $userId) {
-                $rowMap[$userId . '|' . $reportDate] = $this->emptyCallAggregateRow((int) $userId, $reportDate);
-            }
-        }
-
-        foreach ($callRows as $row) {
-            $reportDate = $this->normalizeReportDate($row->report_date);
-            if ($reportDate === null) {
-                continue;
-            }
-
-            $key = $row->user_id . '|' . $reportDate;
-            $row->report_date = $reportDate;
-            $rowMap[$key] = $row;
-        }
-
-        foreach ($workStatusEntries as $entry) {
-            $reportDate = $entry->work_date->format('Y-m-d');
-            $key = $entry->user_id . '|' . $reportDate;
-
-            if (!isset($rowMap[$key])) {
-                $rowMap[$key] = $this->emptyCallAggregateRow((int) $entry->user_id, $reportDate);
-            }
-        }
-
-        $userNames = User::whereIn('id', collect($rowMap)->pluck('user_id')->unique())
+        $userNames = User::whereIn('id', $callUserIds)
             ->pluck('name', 'id');
 
-        $rows = collect($rowMap)
-            ->values()
+        $rows = $rows
             ->sort(function ($a, $b) use ($userNames) {
                 $dateCompare = strcmp($b->report_date ?? '', $a->report_date ?? '');
                 if ($dateCompare !== 0) {
