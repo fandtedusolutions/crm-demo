@@ -482,6 +482,13 @@ $(document).ready(function() {
             '</div>';
     }
 
+    function formatClassTimeLabel(timeStr) {
+        if (!timeStr) return '';
+        var d = new Date('2000-01-01 ' + timeStr);
+        if (isNaN(d.getTime())) return timeStr;
+        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+
     function loadInlineClassTimes(courseId, programmeType, $select, currentId) {
         if (!courseId) {
             $select.html('<option value="">No course selected</option>');
@@ -494,7 +501,8 @@ $(document).ready(function() {
                 if (list && list.length) {
                     list.forEach(function (t) {
                         var selected = String(currentId) === String(t.id) ? 'selected' : '';
-                        options += '<option value="' + t.id + '" ' + selected + '>' + t.from_time + ' - ' + t.to_time + '</option>';
+                        var label = formatClassTimeLabel(t.from_time) + ' - ' + formatClassTimeLabel(t.to_time);
+                        options += '<option value="' + t.id + '" ' + selected + '>' + label + '</option>';
                     });
                 }
                 $select.html(options).focus();
