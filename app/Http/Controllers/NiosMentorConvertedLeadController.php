@@ -30,6 +30,7 @@ class NiosMentorConvertedLeadController extends Controller
             'studentDetails',
             'mentorDetails',
             'subject',
+            'subjectAreas',
             'flag',
             'batch',
             'admissionBatch'

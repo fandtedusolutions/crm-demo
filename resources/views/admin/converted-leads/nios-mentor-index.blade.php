@@ -197,6 +197,7 @@
                                     <th>Parent Phone</th>
                                     @endif
                                     <th>Subject</th>
+                                    <th>Subject Area</th>
                                     <th>Batch</th>
                                     <th>Admission Batch</th>
                                     <th>Technology Side</th>
@@ -318,6 +319,7 @@
                                             @endif
                                         </div>
                                     </td>
+                                    @include('admin.converted-leads.partials.inline-subject-area-cell', ['convertedLead' => $convertedLead])
                                     <td>{{ $convertedLead->batch ? $convertedLead->batch->title : 'N/A' }}</td>
                                     <td>{{ $convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : 'N/A' }}</td>
                                     <td>
@@ -832,6 +834,10 @@
                                             <span class="fw-medium">{{ $convertedLead->mentorDetails?->subject?->title ?? $convertedLead->subject?->title ?? 'N/A' }}</span>
                                         </div>
                                         <div class="col-6">
+                                            <small class="text-muted d-block">Subject Area</small>
+                                            <span class="fw-medium">@include('admin.converted-leads.partials.subject-area-display', ['convertedLead' => $convertedLead])</span>
+                                        </div>
+                                        <div class="col-6">
                                             <small class="text-muted d-block">Batch</small>
                                             <span class="fw-medium">{{ $convertedLead->batch ? $convertedLead->batch->title : 'N/A' }}</span>
                                         </div>
@@ -970,6 +976,10 @@
             e.stopPropagation();
 
             const container = $(this).closest('.inline-edit');
+            if (container.hasClass('converted-lead-subject-area-field')) {
+                return;
+            }
+
             const field = container.data('field');
             const id = container.data('id');
             const currentValue = container.data('current') !== undefined ? String(container.data('current')).trim() : container.find('.display-value').text().trim();
@@ -1009,6 +1019,10 @@
             e.stopPropagation();
 
             const container = $(this).closest('.inline-edit');
+            if (container.hasClass('converted-lead-subject-area-field')) {
+                return;
+            }
+
             const field = container.data('field');
             const id = container.data('id');
             const value = container.find('input, select, textarea').val();
@@ -1265,5 +1279,6 @@
         }
     });
 </script>
+@include('admin.converted-leads.partials.converted-lead-subject-area-scripts')
 @include('admin.converted-leads.partials.mentor-flag-inline-scripts')
 @endpush

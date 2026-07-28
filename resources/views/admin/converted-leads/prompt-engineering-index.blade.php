@@ -214,14 +214,28 @@
                                         </div>
                                     </td>
                                     <td>
-                                        @if($leadDetailPromptEngineering && $leadDetailPromptEngineering->classTime)
-                                            @php
-                                                $fromTime = \Carbon\Carbon::parse($leadDetailPromptEngineering->classTime->from_time)->format('h:i A');
-                                                $toTime = \Carbon\Carbon::parse($leadDetailPromptEngineering->classTime->to_time)->format('h:i A');
-                                            @endphp
-                                            {{ $fromTime }} - {{ $toTime }}
+                                        @if(($course && $course->needs_time) && (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant()))
+                                        <div class="inline-edit"
+                                             data-field="class_time_id"
+                                             data-id="{{ $convertedLead->id }}"
+                                             data-course-id="{{ $convertedLead->course_id }}"
+                                             data-programme-type="{{ $leadDetailPromptEngineering?->programme_type ?? 'online' }}"
+                                             data-current-id="{{ $leadDetailPromptEngineering?->class_time_id }}">
+                                            <span class="display-value">
+                                                @if($leadDetailPromptEngineering && $leadDetailPromptEngineering->classTime)
+                                                    {{ \Carbon\Carbon::parse($leadDetailPromptEngineering->classTime->from_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($leadDetailPromptEngineering->classTime->to_time)->format('h:i A') }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </span>
+                                            <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit"><i class="ti ti-edit"></i></button>
+                                        </div>
                                         @else
-                                            -
+                                            @if($leadDetailPromptEngineering && $leadDetailPromptEngineering->classTime)
+                                                {{ \Carbon\Carbon::parse($leadDetailPromptEngineering->classTime->from_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($leadDetailPromptEngineering->classTime->to_time)->format('h:i A') }}
+                                            @else
+                                                -
+                                            @endif
                                         @endif
                                     </td>
                                     <td>
@@ -455,6 +469,41 @@ $(document).ready(function() {
             '</div>';
     }
 
+    function createInlineClassTimeSelect() {
+        return '' +
+            '<div class="edit-form">' +
+                '<select class="form-select form-select-sm">' +
+                    '<option value="">Loading...</option>' +
+                '</select>' +
+                '<div class="btn-group mt-1">' +
+                    '<button type="button" class="btn btn-success btn-sm save-edit">Save</button>' +
+                    '<button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>' +
+                '</div>' +
+            '</div>';
+    }
+
+    function loadInlineClassTimes(courseId, programmeType, $select, currentId) {
+        if (!courseId) {
+            $select.html('<option value="">No course selected</option>');
+            return;
+        }
+        var classType = programmeType || 'online';
+        $.get('/api/class-times/by-course/' + courseId + '?class_type=' + encodeURIComponent(classType))
+            .done(function (list) {
+                var options = '<option value="">Select Class Time</option>';
+                if (list && list.length) {
+                    list.forEach(function (t) {
+                        var selected = String(currentId) === String(t.id) ? 'selected' : '';
+                        options += '<option value="' + t.id + '" ' + selected + '>' + t.from_time + ' - ' + t.to_time + '</option>';
+                    });
+                }
+                $select.html(options).focus();
+            })
+            .fail(function () {
+                $select.html('<option value="">Error loading class times</option>');
+            });
+    }
+
     function loadInlineBatches(courseId, $select, currentId) {
         if (!courseId) {
             $select.html('<option value="">No course selected</option>');
@@ -524,6 +573,8 @@ $(document).ready(function() {
             editForm = createInlineBatchSelect();
         } else if (field === 'admission_batch_id') {
             editForm = createInlineAdmissionBatchSelect();
+        } else if (field === 'class_time_id') {
+            editForm = createInlineClassTimeSelect();
         } else if (inlineDateFields.indexOf(field) !== -1) {
             editForm = createInlineDateField(currentValue);
         } else {
@@ -541,6 +592,10 @@ $(document).ready(function() {
             var batchId = container.data('batch-id');
             var selectAb = container.find('select');
             loadInlineAdmissionBatches(batchId, selectAb, currentId);
+        } else if (field === 'class_time_id') {
+            var courseIdCt = container.data('course-id') || 34;
+            var programmeType = container.data('programme-type') || 'online';
+            loadInlineClassTimes(courseIdCt, programmeType, container.find('select'), currentId);
         } else {
             container.find('input, select').first().focus();
         }
@@ -572,7 +627,7 @@ $(document).ready(function() {
                     var displayValue = response.value || 'N/A';
                     container.find('.display-value').text(displayValue);
                     container.data('current', (inlineDateFields.indexOf(field) !== -1) ? value : displayValue);
-                    if (field === 'batch_id' || field === 'admission_batch_id') {
+                    if (field === 'batch_id' || field === 'admission_batch_id' || field === 'class_time_id') {
                         container.data('current-id', value || '');
                     }
                     if (typeof toast_success === 'function') toast_success(response.message);

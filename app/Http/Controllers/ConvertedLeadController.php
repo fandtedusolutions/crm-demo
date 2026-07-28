@@ -4294,10 +4294,17 @@ class ConvertedLeadController extends Controller
         $mentorDetailFields = ['all_online_result_publication_date', 'online_result_publication_date', 'certificate_publication_date', 'certificate_distribution_mode', 'courier_tracking_number', 'call_time'];
         
         if (in_array($field, $leadDetailFields)) {
-            // Update in LeadDetail
-            $leadDetail = $convertedLead->leadDetail;
+            // Update in LeadDetail (prefer row matching converted lead course)
+            $leadDetail = null;
+            if ($convertedLead->course_id) {
+                $leadDetail = \App\Models\LeadDetail::where('lead_id', $convertedLead->lead_id)
+                    ->where('course_id', $convertedLead->course_id)
+                    ->first();
+            }
             if (!$leadDetail) {
-                // Create lead detail if it doesn't exist
+                $leadDetail = $convertedLead->leadDetail;
+            }
+            if (!$leadDetail) {
                 $leadDetail = \App\Models\LeadDetail::create([
                     'lead_id' => $convertedLead->lead_id,
                     'course_id' => $convertedLead->course_id,
