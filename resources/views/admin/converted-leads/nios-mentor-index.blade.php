@@ -26,6 +26,25 @@
         display: inline-block;
     }
 
+    .table td .converted-lead-subject-area-field {
+        white-space: normal !important;
+    }
+
+    .table td .converted-lead-subject-area-field .display-value {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        max-width: none !important;
+        display: inline !important;
+    }
+
+    .table td:has(.converted-lead-subject-area-field) {
+        white-space: normal !important;
+        vertical-align: top;
+        min-width: 12rem;
+        max-width: 22rem;
+    }
+
     .cancelled-row>td {
         background-color: #fff1f0 !important;
     }

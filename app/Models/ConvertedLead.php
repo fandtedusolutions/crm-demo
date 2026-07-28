@@ -131,7 +131,9 @@ class ConvertedLead extends Model
     public function subjectAreas()
     {
         return $this->belongsToMany(SubjectArea::class, 'converted_lead_subject_area')
-            ->withTimestamps();
+            ->withTimestamps()
+            ->withTrashed()
+            ->orderBy('subject_areas.title');
     }
 
     public function flag()

@@ -8,9 +8,25 @@ use Illuminate\Http\Request;
 
 class SubjectAreaController extends Controller
 {
-    public function listActive()
+    public function listActive(Request $request)
     {
-        $subjectAreas = SubjectArea::active()->orderBy('title')->get(['id', 'title']);
+        $includeIds = collect(explode(',', (string) $request->query('include_ids', '')))
+            ->map(fn ($id) => (int) trim($id))
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        $subjectAreas = SubjectArea::query()
+            ->when($includeIds !== [], function ($query) use ($includeIds) {
+                $query->withTrashed()->where(function ($q) use ($includeIds) {
+                    $q->where('is_active', true)->orWhereIn('id', $includeIds);
+                });
+            }, function ($query) {
+                $query->where('is_active', true);
+            })
+            ->orderBy('title')
+            ->get(['id', 'title']);
 
         return response()->json($subjectAreas);
     }

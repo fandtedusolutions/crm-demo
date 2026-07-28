@@ -9,6 +9,24 @@
     .converted-lead-subject-area-field .select2-container {
         width: 100% !important;
     }
+
+    .converted-lead-subject-area-field.inline-edit {
+        white-space: normal;
+        max-width: 420px;
+    }
+
+    .converted-lead-subject-area-field .display-value {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        max-width: none !important;
+        vertical-align: top;
+    }
+
+    .converted-lead-subject-area-field .converted-lead-subject-areas-display {
+        white-space: normal;
+        line-height: 1.4;
+    }
 </style>
 @endpush
 @push('scripts')
@@ -52,7 +70,7 @@
     }
 
     function loadSubjectAreasIntoSelect($select, currentIds, $parent) {
-        $.get('/api/subject-areas').done(function(subjectAreas) {
+        $.get('/api/subject-areas', { include_ids: currentIds.join(',') }).done(function(subjectAreas) {
             let options = '';
             const selectedSet = new Set(currentIds.map(String));
             subjectAreas.forEach(function(area) {
