@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Models\ConvertedStudentMentorDetail;
+
 class PromptEngineeringMentorTrackColumns
 {
     /**
