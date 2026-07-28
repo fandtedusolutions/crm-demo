@@ -5894,10 +5894,10 @@ class LeadController extends Controller
             } elseif ($field === 'second_language') {
                 if ($value) {
                     $value = strtolower($value);
-                    if (!in_array($value, ['malayalam', 'hindi', 'arabic'])) {
+                    if (!in_array($value, ['malayalam', 'hindi', 'arabic', 'tamil'])) {
                         return response()->json([
                             'success' => false,
-                            'message' => 'Invalid language value. Must be Malayalam, Hindi or Arabic.'
+                            'message' => 'Invalid language value. Must be Malayalam, Hindi, Arabic, or Tamil.'
                         ], 400);
                     }
                 } else {

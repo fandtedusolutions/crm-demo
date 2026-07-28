@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ConvertedLead;
+use App\Models\ConvertedStudentDetail;
 use App\Models\ConvertedStudentMentorDetail;
 use App\Models\LeadDetail;
 use App\Models\Batch;
@@ -123,7 +124,10 @@ class PromptEngineeringMentorController extends Controller
         $country_codes = \App\Helpers\CountriesHelper::get_country_code();
         $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
 
+        $activeMentorRoute = 'admin.prompt-engineering-mentor-converted-leads.index';
+
         return view('admin.converted-leads.prompt-engineering-mentor-index', compact(
+            'activeMentorRoute',
             'convertedLeads',
             'batches',
             'course',
@@ -168,6 +172,8 @@ class PromptEngineeringMentorController extends Controller
 
             $convertedLeadFields = ['register_number', 'name', 'phone', 'email', 'batch_id', 'admission_batch_id', 'dob'];
             $leadDetailFields = ['class_time_id', 'medium_of_study', 'previous_qualification', 'technology_performance_category', 'whatsapp_number', 'whatsapp_code'];
+            $studentDetailFields = \App\Support\PromptEngineeringMentorTrackColumns::studentDetailFields();
+            $mentorDetailFields = \App\Support\PromptEngineeringMentorTrackColumns::mentorDetailFields();
 
             if (in_array($field, $convertedLeadFields)) {
                 if ($field === 'phone') {
@@ -190,18 +196,33 @@ class PromptEngineeringMentorController extends Controller
                 $leadDetail->$field = $value;
                 $leadDetail->save();
                 $responseValue = $this->formatResponseValue($field, $value, $convertedLead);
-            } else {
+            } elseif (in_array($field, $studentDetailFields)) {
+                $studentDetails = $convertedLead->studentDetails;
+                if (!$studentDetails) {
+                    $studentDetails = new ConvertedStudentDetail();
+                    $studentDetails->converted_lead_id = $convertedLead->id;
+                }
+                $studentDetails->$field = $value ?: null;
+                $studentDetails->save();
+                $responseValue = $value;
+                if ($field === 'class_ending_date') {
+                    $responseValue = $value ? \Carbon\Carbon::parse($value)->format('d-m-Y') : '-';
+                }
+            } elseif (in_array($field, $mentorDetailFields)) {
                 $mentorDetails = $convertedLead->mentorDetails;
                 if (!$mentorDetails) {
                     $mentorDetails = new ConvertedStudentMentorDetail();
                     $mentorDetails->converted_student_id = $id;
                 }
-                $mentorDetails->$field = $value;
+                if (\App\Support\PromptEngineeringMentorTrackColumns::isDailyTrackField($field)) {
+                    \App\Support\PromptEngineeringMentorTrackColumns::setDailyTrackValue($mentorDetails, $field, $value);
+                } else {
+                    $mentorDetails->$field = $value;
+                }
                 $mentorDetails->save();
                 $responseValue = $value;
-                if (in_array($field, $this->dateFieldsForDisplay())) {
-                    $responseValue = $value ? \Carbon\Carbon::parse($value)->format('d-m-Y') : $value;
-                }
+            } else {
+                return response()->json(['success' => false, 'error' => 'Invalid field.'], 422);
             }
 
             return response()->json([
@@ -220,43 +241,7 @@ class PromptEngineeringMentorController extends Controller
 
     private function getValidationRules($field)
     {
-        $feeOptions = 'Paid,Pending,Partially Paid,Overdue,On Hold,Cancelled';
-        $rules = [
-            'app' => 'nullable|in:Provided app,OTP Problem,Task Completed,Not Respond',
-            'first_term_fee_status' => 'nullable|in:' . $feeOptions,
-            'second_term_fee_status' => 'nullable|in:' . $feeOptions,
-            'third_term_fee_status' => 'nullable|in:' . $feeOptions,
-            'total_class_days' => 'nullable|integer|min:0',
-            'first_term_number_of_days' => 'nullable|integer|min:0',
-            'second_term_number_of_days' => 'nullable|integer|min:0',
-            'third_term_number_of_days' => 'nullable|integer|min:0',
-            'first_term_start_date' => 'nullable|date',
-            'first_term_task_1_date' => 'nullable|date',
-            'first_term_task_2_date' => 'nullable|date',
-            'first_term_completion_date' => 'nullable|date',
-            'second_term_start_date' => 'nullable|date',
-            'second_term_task_1_date' => 'nullable|date',
-            'second_term_task_2_date' => 'nullable|date',
-            'second_term_completion_date' => 'nullable|date',
-            'third_term_start_date' => 'nullable|date',
-            'third_term_project_1_date' => 'nullable|date',
-            'third_term_project_2_date' => 'nullable|date',
-            'third_term_project_3_date' => 'nullable|date',
-            'third_term_completion_date' => 'nullable|date',
-            'certificate_issued_date' => 'nullable|date',
-            'dob' => 'nullable|date|before_or_equal:today',
-        ];
-        return $rules[$field] ?? null;
-    }
-
-    private function dateFieldsForDisplay()
-    {
-        return [
-            'first_term_start_date', 'first_term_task_1_date', 'first_term_task_2_date', 'first_term_completion_date',
-            'second_term_start_date', 'second_term_task_1_date', 'second_term_task_2_date', 'second_term_completion_date',
-            'third_term_start_date', 'third_term_project_1_date', 'third_term_project_2_date', 'third_term_project_3_date', 'third_term_completion_date',
-            'certificate_issued_date', 'dob',
-        ];
+        return \App\Support\PromptEngineeringMentorTrackColumns::validationRuleFor($field);
     }
 
     private function formatResponseValue($field, $value, ConvertedLead $convertedLead)

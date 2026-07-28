@@ -84,7 +84,7 @@
 
   function getSelectOptions(container, field) {
     if (field === "second_language") {
-      return { "": "Select Language", malayalam: "Malayalam", hindi: "Hindi" };
+      return { "": "Select Language", malayalam: "Malayalam", hindi: "Hindi", arabic: "Arabic", tamil: "Tamil" };
     }
 
     var raw = container.attr("data-options-json");

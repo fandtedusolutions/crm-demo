@@ -2869,7 +2869,7 @@
                             } else if (fieldName === 'course_type') {
                                 optionsAttr = `data-options='{"UG":"UG","PG":"PG"}'`;
                             } else if (fieldName === 'second_language') {
-                                optionsAttr = `data-options='{"malayalam":"Malayalam","hindi":"Hindi","arabic":"Arabic"}'`;
+                                optionsAttr = `data-options='{"malayalam":"Malayalam","hindi":"Hindi","arabic":"Arabic","tamil":"Tamil"}'`;
                             }
                             editButton = `<button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="${fieldName}" data-lead-detail-id="${leadDetailIdValue}" data-field-type="select" ${optionsAttr} title="Edit"><i class="ti ti-edit"></i></button>`;
                             if (infoValue.dataset) {

@@ -43,6 +43,15 @@ class ConvertedStudentDetail extends Model
         // E-School and Eduthanzeel specific fields
         'continuing_studies',
         'reason',
+        'call_status',
+        'class_information',
+        'orientation_class_status',
+        'class_starting_date',
+        'class_ending_date',
+        'whatsapp_group_status',
+        'class_time',
+        'class_status',
+        'complete_cancel_date',
     ];
 
     protected $casts = [
@@ -53,6 +62,9 @@ class ConvertedStudentDetail extends Model
         'certificate_received_date' => 'date',
         'certificate_issued_date' => 'date',
         'screening' => 'date',
+        'class_starting_date' => 'date',
+        'class_ending_date' => 'date',
+        'complete_cancel_date' => 'date',
         // Board of Open Schooling and Skill Education specific fields
         'st' => 'integer',
         'phy' => 'integer',

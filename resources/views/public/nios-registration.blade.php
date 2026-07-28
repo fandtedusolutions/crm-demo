@@ -519,6 +519,7 @@
                                     <option value="malayalam">Malayalam</option>
                                     <option value="hindi">Hindi</option>
                                     <option value="arabic">Arabic</option>
+                                    <option value="tamil">Tamil</option>
                                 </select>
                             </div>
                         </div>

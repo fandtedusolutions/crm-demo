@@ -534,12 +534,11 @@
                             </div>
                         </div>
                     </div>
-                            <div class="form-group">
-                                <label class="form-label">Pin Code <span class="required">*</span></label>
-                                <input type="text" class="form-control" name="pin_code" pattern="[0-9]{6}" maxlength="6" inputmode="numeric" required>
-                                <small class="form-text text-muted">Enter 6-digit pin code</small>
-                            </div>
-                            
+                    <div class="form-group">
+                        <label class="form-label">Pin Code <span class="required">*</span></label>
+                        <input type="text" class="form-control" name="pin_code" pattern="[0-9]{6}" maxlength="6" inputmode="numeric" required>
+                        <small class="form-text text-muted">Enter 6-digit pin code</small>
+                    </div>    
                 </div>
                 
                 <!-- Step 3: Document Uploads & Message -->

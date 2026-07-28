@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ConvertedLead;
+use App\Models\ConvertedStudentDetail;
 use App\Models\ConvertedStudentMentorDetail;
 use App\Models\LeadDetail;
 use App\Models\Batch;
@@ -175,6 +176,7 @@ class PromptEngineeringFacultyController extends Controller
 
             $convertedLeadFields = ['register_number', 'name', 'phone', 'email', 'batch_id', 'admission_batch_id', 'dob'];
             $leadDetailFields = ['class_time_id', 'medium_of_study', 'previous_qualification', 'technology_performance_category', 'whatsapp_number', 'whatsapp_code'];
+            $studentDetailFields = ['class_ending_date', 'orientation_class_status'];
 
             if (in_array($field, $convertedLeadFields)) {
                 if ($field === 'phone') {
@@ -197,6 +199,18 @@ class PromptEngineeringFacultyController extends Controller
                 $leadDetail->$field = $value;
                 $leadDetail->save();
                 $responseValue = $this->formatResponseValue($field, $value, $convertedLead);
+            } elseif (in_array($field, $studentDetailFields)) {
+                $studentDetails = $convertedLead->studentDetails;
+                if (!$studentDetails) {
+                    $studentDetails = new ConvertedStudentDetail();
+                    $studentDetails->converted_lead_id = $convertedLead->id;
+                }
+                $studentDetails->$field = $value ?: null;
+                $studentDetails->save();
+                $responseValue = $value;
+                if ($field === 'class_ending_date') {
+                    $responseValue = $value ? \Carbon\Carbon::parse($value)->format('d-m-Y') : ($value === '' ? '-' : $value);
+                }
             } else {
                 $mentorDetails = $convertedLead->mentorDetails;
                 if (!$mentorDetails) {
@@ -234,6 +248,18 @@ class PromptEngineeringFacultyController extends Controller
             'second_term_fee_status' => 'nullable|in:' . $feeOptions,
             'third_term_fee_status' => 'nullable|in:' . $feeOptions,
             'total_class_days' => 'nullable|integer|min:0',
+            'pe_attendance_days_1_10' => 'nullable|integer|min:1|max:10',
+            'pe_practical_work_1_5' => 'nullable|integer|min:1|max:5',
+            'pe_attendance_days_11_20' => 'nullable|integer|min:11|max:20',
+            'pe_attendance_days_21_30' => 'nullable|integer|min:21|max:30',
+            'pe_practical_work_11_15' => 'nullable|integer|min:11|max:15',
+            'pe_first_periodical_test' => 'nullable|string|max:255',
+            'pe_second_periodical_test' => 'nullable|string|max:255',
+            'pe_final_examination' => 'nullable|string|max:255',
+            'pe_course_status' => 'nullable|string|max:255',
+            'pe_student_feedback' => 'nullable|string|max:2000',
+            'orientation_class_status' => 'nullable|in:Participated,Did not participated',
+            'class_ending_date' => 'nullable|date',
             'first_term_number_of_days' => 'nullable|integer|min:0',
             'second_term_number_of_days' => 'nullable|integer|min:0',
             'third_term_number_of_days' => 'nullable|integer|min:0',
@@ -263,6 +289,7 @@ class PromptEngineeringFacultyController extends Controller
             'second_term_start_date', 'second_term_task_1_date', 'second_term_task_2_date', 'second_term_completion_date',
             'third_term_start_date', 'third_term_project_1_date', 'third_term_project_2_date', 'third_term_project_3_date', 'third_term_completion_date',
             'certificate_issued_date', 'dob',
+            'class_ending_date',
         ];
     }
 

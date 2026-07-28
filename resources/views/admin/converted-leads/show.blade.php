@@ -484,7 +484,7 @@
                                 'label' => 'Second Language',
                                 'field' => 'second_language',
                                 'type' => 'select',
-                                'options' => ['' => 'Select Language', 'malayalam' => 'Malayalam', 'hindi' => 'Hindi'],
+                                'options' => ['' => 'Select Language', 'malayalam' => 'Malayalam', 'hindi' => 'Hindi', 'arabic' => 'Arabic', 'tamil' => 'Tamil'],
                                 'displayValue' => $leadDetail?->second_language
                                     ? ucfirst($leadDetail->second_language)
                                     : 'N/A',
