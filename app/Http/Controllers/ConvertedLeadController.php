@@ -2373,6 +2373,32 @@ class ConvertedLeadController extends Controller
         return $this->programmeCourseConvertedLeadsIndex(15, 'graphic-designing-index', 'graphicDesigningConvertedLeadsTable');
     }
 
+    /**
+     * Certificate Course in Medical Coding converted leads (course_id = 3)
+     */
+    public function medicalCodingIndex(Request $request)
+    {
+        return $this->programmeCourseConvertedLeadsIndex(3, 'flutter-index', 'medicalCodingConvertedLeadsTable', [
+            'pageCourseName' => 'Certificate Course in Medical Coding',
+            'pageCourseId' => 3,
+            'pageRouteName' => 'admin.medical-coding-converted-leads.index',
+            'exportPage' => 'medical-coding',
+        ]);
+    }
+
+    /**
+     * Diploma in Hospital Administration converted leads (course_id = 4)
+     */
+    public function hospitalAdministrationIndex(Request $request)
+    {
+        return $this->programmeCourseConvertedLeadsIndex(4, 'flutter-index', 'hospitalAdministrationConvertedLeadsTable', [
+            'pageCourseName' => 'Diploma in Hospital Administration',
+            'pageCourseId' => 4,
+            'pageRouteName' => 'admin.hospital-administration-converted-leads.index',
+            'exportPage' => 'hospital-administration',
+        ]);
+    }
+
     public function aiIntegratedVideoEditingIndex(Request $request)
     {
         return $this->programmeCourseConvertedLeadsIndex(30, 'ai-integrated-video-editing-index', 'aiIntegratedVideoEditingConvertedLeadsTable');
@@ -2413,6 +2439,7 @@ class ConvertedLeadController extends Controller
             'pageCourseName' => 'RPA',
             'pageCourseId' => 27,
             'pageRouteName' => 'admin.rpa-converted-leads.index',
+            'exportPage' => 'rpa',
         ]);
     }
 

@@ -159,8 +159,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.faculty-bosse-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5>Board of Open Schooling and Skill Education Converted Faculty List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'faculty-bosse'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->

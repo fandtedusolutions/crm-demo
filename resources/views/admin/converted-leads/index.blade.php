@@ -225,9 +225,7 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Converted Leads List</h5>
-                <a href="{{ route('admin.converted-leads.export', request()->all()) }}" class="btn btn-success">
-                    <i class="ti ti-download"></i> Export to Excel
-                </a>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'converted-leads'])
             </div>
             <div class="card-body">
                 <!-- Table View -->

@@ -239,8 +239,9 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
 <div class="row">
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.ai-integrated-video-editing-faculty-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5>AI-Integrated Video Editing Faculty List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'faculty-ai-integrated-video-editing'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->

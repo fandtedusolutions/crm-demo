@@ -34,6 +34,12 @@
                     <a href="{{ route('admin.hotel-management-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.hotel-management-converted-leads.index') }}">
                         <i class="ti ti-building"></i> Hotel Management Converted Leads
                     </a>
+                    <a href="{{ route('admin.medical-coding-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.medical-coding-converted-leads.index') }}">
+                        <i class="ti ti-stethoscope"></i> Certificate Course in Medical Coding Converted Leads
+                    </a>
+                    <a href="{{ route('admin.hospital-administration-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.hospital-administration-converted-leads.index') }}">
+                        <i class="ti ti-building-hospital"></i> Diploma in Hospital Administration Converted Leads
+                    </a>
                     <a href="{{ route('admin.gmvss-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.gmvss-converted-leads.index') }}">
                         <i class="ti ti-certificate"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Leads
                     </a>

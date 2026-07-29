@@ -13,25 +13,30 @@ class AdditionalMentorCourseController extends Controller
 {
     public function medicalCodingIndex(Request $request)
     {
-        return $this->renderMentorList($request, 3, 'Certificate Course in Medical Coding', 'admin.medical-coding-mentor-converted-leads.index');
+        return $this->renderMentorList($request, 3, 'Certificate Course in Medical Coding', 'admin.medical-coding-mentor-converted-leads.index', 'mentor-medical-coding');
+    }
+
+    public function hospitalAdministrationIndex(Request $request)
+    {
+        return $this->renderMentorList($request, 4, 'Diploma in Hospital Administration', 'admin.hospital-administration-mentor-converted-leads.index', 'mentor-hospital-administration');
     }
 
     public function pythonIndex(Request $request)
     {
-        return $this->renderMentorList($request, 10, 'Python', 'admin.python-mentor-converted-leads.index');
+        return $this->renderMentorList($request, 10, 'Python', 'admin.python-mentor-converted-leads.index', 'mentor-python');
     }
 
     public function flutterIndex(Request $request)
     {
-        return $this->renderMentorList($request, 21, 'Flutter', 'admin.flutter-mentor-converted-leads.index');
+        return $this->renderMentorList($request, 21, 'Flutter', 'admin.flutter-mentor-converted-leads.index', 'mentor-flutter');
     }
 
     public function rpaIndex(Request $request)
     {
-        return $this->renderMentorList($request, 27, 'RPA', 'admin.rpa-mentor-converted-leads.index');
+        return $this->renderMentorList($request, 27, 'RPA', 'admin.rpa-mentor-converted-leads.index', 'mentor-rpa');
     }
 
-    private function renderMentorList(Request $request, int $courseId, string $courseTitle, string $routeName)
+    private function renderMentorList(Request $request, int $courseId, string $courseTitle, string $routeName, string $exportPage)
     {
         if (!RoleHelper::is_admin_or_super_admin()
             && !RoleHelper::is_admission_counsellor()
@@ -128,6 +133,7 @@ class AdditionalMentorCourseController extends Controller
             'batches',
             'flags',
             'activeMentorRoute',
+            'exportPage',
         ));
     }
 }

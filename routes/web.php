@@ -907,6 +907,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'index'])->name('converted-leads.index');
         Route::get('/converted-leads/data', [App\Http\Controllers\ConvertedLeadController::class, 'getConvertedLeadsData'])->name('converted-leads.data');
         Route::get('/converted-leads/export', [App\Http\Controllers\ConvertedLeadController::class, 'export'])->name('converted-leads.export');
+        Route::get('/converted-leads/universal-export', [App\Http\Controllers\ConvertedLeadsExportController::class, 'export'])->name('converted-leads.universal-export');
         Route::get('/converted-leads/view/{id}', [App\Http\Controllers\ConvertedLeadController::class, 'show'])->name('converted-leads.show');
         Route::get('/converted-leads/{id}/id-card-pdf', [App\Http\Controllers\ConvertedLeadController::class, 'generateIdCardPdf'])->name('converted-leads.id-card-pdf');
         Route::get('/converted-leads/{id}/details-pdf', [App\Http\Controllers\ConvertedLeadController::class, 'generateDetailsPdf'])->name('converted-leads.details-pdf');
@@ -954,6 +955,10 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // Hotel Management Converted Leads Routes
         Route::get('/hotel-management-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'hotelManagementIndex'])->name('hotel-management-converted-leads.index');
         Route::get('/hotel-management-converted-leads/data', [App\Http\Controllers\ConvertedLeadController::class, 'getHotelManagementConvertedLeadsData'])->name('hotel-management-converted-leads.data');
+
+        // Certificate Course in Medical Coding / Diploma in Hospital Administration Converted Leads
+        Route::get('/medical-coding-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'medicalCodingIndex'])->name('medical-coding-converted-leads.index');
+        Route::get('/hospital-administration-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'hospitalAdministrationIndex'])->name('hospital-administration-converted-leads.index');
 
         // Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Leads Routes
         Route::get('/gmvss-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'gmvssIndex'])->name('gmvss-converted-leads.index');
@@ -1057,7 +1062,10 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/prompt-engineering-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\PromptEngineeringMentorController::class, 'updateMentorDetails'])->name('prompt-engineering-mentor-converted-leads.update-mentor-details');
 
         // Additional Mentor Converted Leads Routes
-        Route::get('/medical-coding-mentor-converted-leads', [App\Http\Controllers\AdditionalMentorCourseController::class, 'medicalCodingIndex'])->name('medical-coding-mentor-converted-leads.index');
+        Route::get('/medical-coding-mentor-converted-leads', [App\Http\Controllers\MedicalCodingMentorController::class, 'index'])->name('medical-coding-mentor-converted-leads.index');
+        Route::post('/medical-coding-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\MedicalCodingMentorController::class, 'updateMentorDetails'])->name('medical-coding-mentor-converted-leads.update-mentor-details');
+        Route::get('/hospital-administration-mentor-converted-leads', [App\Http\Controllers\HospitalAdministrationMentorController::class, 'index'])->name('hospital-administration-mentor-converted-leads.index');
+        Route::post('/hospital-administration-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\HospitalAdministrationMentorController::class, 'updateMentorDetails'])->name('hospital-administration-mentor-converted-leads.update-mentor-details');
         Route::get('/python-mentor-converted-leads', [App\Http\Controllers\AdditionalMentorCourseController::class, 'pythonIndex'])->name('python-mentor-converted-leads.index');
         Route::get('/flutter-mentor-converted-leads', [App\Http\Controllers\AdditionalMentorCourseController::class, 'flutterIndex'])->name('flutter-mentor-converted-leads.index');
         Route::get('/rpa-mentor-converted-leads', [App\Http\Controllers\AdditionalMentorCourseController::class, 'rpaIndex'])->name('rpa-mentor-converted-leads.index');
@@ -1121,7 +1129,10 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/gmvss-faculty-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'gmvssFacultyIndex'])->name('gmvss-faculty-converted-leads.index');
 
         // Additional Faculty Converted Leads Routes
-        Route::get('/medical-coding-faculty-converted-leads', [App\Http\Controllers\AdditionalFacultyCourseController::class, 'medicalCodingIndex'])->name('medical-coding-faculty-converted-leads.index');
+        Route::get('/medical-coding-faculty-converted-leads', [App\Http\Controllers\MedicalCodingFacultyController::class, 'index'])->name('medical-coding-faculty-converted-leads.index');
+        Route::post('/medical-coding-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\MedicalCodingFacultyController::class, 'updateMentorDetails'])->name('medical-coding-faculty-converted-leads.update-mentor-details');
+        Route::get('/hospital-administration-faculty-converted-leads', [App\Http\Controllers\HospitalAdministrationFacultyController::class, 'index'])->name('hospital-administration-faculty-converted-leads.index');
+        Route::post('/hospital-administration-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\HospitalAdministrationFacultyController::class, 'updateMentorDetails'])->name('hospital-administration-faculty-converted-leads.update-mentor-details');
         Route::get('/python-faculty-converted-leads', [App\Http\Controllers\AdditionalFacultyCourseController::class, 'pythonIndex'])->name('python-faculty-converted-leads.index');
         Route::get('/flutter-faculty-converted-leads', [App\Http\Controllers\AdditionalFacultyCourseController::class, 'flutterIndex'])->name('flutter-faculty-converted-leads.index');
         Route::get('/rpa-faculty-converted-leads', [App\Http\Controllers\AdditionalFacultyCourseController::class, 'rpaIndex'])->name('rpa-faculty-converted-leads.index');
@@ -1158,6 +1169,12 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // Hotel Management Support Converted Leads Routes
         Route::get('/support-hotel-management-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'hotelManagementIndex'])->name('support-hotel-management-converted-leads.index');
         Route::post('/support-hotel-management-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-hotel-management-converted-leads.update-support-details');
+
+        // Certificate Course in Medical Coding / Diploma in Hospital Administration Support
+        Route::get('/support-medical-coding-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'medicalCodingIndex'])->name('support-medical-coding-converted-leads.index');
+        Route::post('/support-medical-coding-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-medical-coding-converted-leads.update-support-details');
+        Route::get('/support-hospital-administration-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'hospitalAdministrationIndex'])->name('support-hospital-administration-converted-leads.index');
+        Route::post('/support-hospital-administration-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-hospital-administration-converted-leads.update-support-details');
 
         // Grameen Mukt Vidhyalayi Shiksha Sansthan Support Converted Leads Routes
         Route::get('/support-gmvss-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'gmvssIndex'])->name('support-gmvss-converted-leads.index');

@@ -135,8 +135,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.mentor-edumaster-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5>EduMaster Mentor Converted List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-edumaster'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->

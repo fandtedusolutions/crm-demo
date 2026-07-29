@@ -190,8 +190,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5>AI Integrated Digital Marketing Converted Leads</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'digital-marketing'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->

@@ -114,10 +114,11 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <!-- Desktop Header -->
                 <div class="d-none d-md-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Converted Students</h5>
+                    @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'post-sales'])
                     <div class="d-flex gap-2">
                         @if(isset($canAssignPostSales) && $canAssignPostSales)
                         <button type="button" class="btn btn-primary btn-sm" onclick="show_large_modal('{{ route('admin.post-sales.converted-leads.bulk-assign') }}', 'Bulk Assign to Post-Sales')">

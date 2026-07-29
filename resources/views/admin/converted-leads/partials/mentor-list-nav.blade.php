@@ -70,6 +70,9 @@
                     <a href="{{ route('admin.medical-coding-mentor-converted-leads.index') }}" class="{{ $mentorNavBtn('admin.medical-coding-mentor-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> Certificate Course in Medical Coding Mentor List
                     </a>
+                    <a href="{{ route('admin.hospital-administration-mentor-converted-leads.index') }}" class="{{ $mentorNavBtn('admin.hospital-administration-mentor-converted-leads.index') }}">
+                        <i class="ti ti-user-star"></i> Diploma in Hospital Administration Mentor List
+                    </a>
                     <a href="{{ route('admin.python-mentor-converted-leads.index') }}" class="{{ $mentorNavBtn('admin.python-mentor-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> Python Mentor List
                     </a>

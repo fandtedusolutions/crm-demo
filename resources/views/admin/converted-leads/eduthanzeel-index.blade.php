@@ -1,4 +1,4 @@
-﻿@extends('layouts.mantis')
+@extends('layouts.mantis')
 
 @section('title', 'Eduthanzeel Converted Leads')
 
@@ -154,8 +154,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5>Eduthanzeel Converted Leads</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'eduthanzeel'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->
@@ -746,7 +747,7 @@
         // Initialize dependent dropdowns on load
         loadAdmissionBatchesByBatch($('#batch_id').val(), $('#admission_batch_id').data('selected'));
 
-        // On batch change â†’ reload admission batches
+        // On batch change → reload admission batches
         $('#batch_id').on('change', function() {
             const bid = $(this).val();
             loadAdmissionBatchesByBatch(bid, '');

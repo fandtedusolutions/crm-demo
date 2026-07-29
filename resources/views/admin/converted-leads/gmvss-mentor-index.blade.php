@@ -147,8 +147,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.converted-leads.inline-update', ['id' => '__ID__']) }}">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Grameen Mukt Vidhyalayi Shiksha Sansthan Mentor List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-gmvss'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->

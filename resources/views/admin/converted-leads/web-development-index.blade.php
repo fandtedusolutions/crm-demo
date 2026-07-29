@@ -186,8 +186,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Web Development & Designing Converted Leads List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'web-development'])
             </div>
             <div class="card-body">
                 <p class="d-lg-none text-muted small mb-2">Tip: scroll sideways to see all columns.</p>

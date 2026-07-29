@@ -149,8 +149,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.mentor-ugpg-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5>UG/PG Mentor Converted List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-ugpg'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->

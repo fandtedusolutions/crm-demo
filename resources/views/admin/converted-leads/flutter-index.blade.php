@@ -4,6 +4,7 @@
     $pageCourseName = $pageCourseName ?? 'Flutter';
     $pageCourseId = $pageCourseId ?? 21;
     $pageRouteName = $pageRouteName ?? 'admin.flutter-converted-leads.index';
+    $exportPage = $exportPage ?? 'flutter';
 @endphp
 
 @section('title', $pageCourseName . ' Converted Leads')
@@ -197,8 +198,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5>{{ $pageCourseName }} Converted Leads</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => $exportPage])
             </div>
             <div class="card-body">
                 <p class="d-lg-none text-muted small mb-2">Tip: scroll sideways to see all columns.</p>

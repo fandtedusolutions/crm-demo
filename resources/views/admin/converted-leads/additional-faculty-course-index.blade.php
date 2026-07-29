@@ -62,8 +62,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.converted-leads.inline-update', ['id' => '__ID__']) }}">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">{{ $courseTitle }} Faculty List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => $exportPage ?? 'faculty-additional'])
             </div>
             <div class="card-body">
                 <div class="table-responsive">

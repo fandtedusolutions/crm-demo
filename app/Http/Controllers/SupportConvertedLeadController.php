@@ -1026,6 +1026,32 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
+     * Certificate Course in Medical Coding support list (course_id = 3)
+     */
+    public function medicalCodingIndex(Request $request)
+    {
+        return $this->getCourseSupportIndex(
+            $request,
+            3,
+            'Certificate Course in Medical Coding Converted Support List',
+            'admin.converted-leads.support-medical-coding-index'
+        );
+    }
+
+    /**
+     * Diploma in Hospital Administration support list (course_id = 4)
+     */
+    public function hospitalAdministrationIndex(Request $request)
+    {
+        return $this->getCourseSupportIndex(
+            $request,
+            4,
+            'Diploma in Hospital Administration Converted Support List',
+            'admin.converted-leads.support-hospital-administration-index'
+        );
+    }
+
+    /**
      * Display a listing of Grameen Mukt Vidhyalayi Shiksha Sansthan converted leads for support
      */
     public function gmvssIndex(Request $request)
@@ -1149,7 +1175,14 @@ class SupportConvertedLeadController extends Controller
     /**
      * Get course support index
      */
-    private function getCourseSupportIndex(Request $request, $courseId, $pageTitle, $viewName)
+    private function getCourseSupportIndex(
+        Request $request,
+        $courseId,
+        $pageTitle,
+        $viewName,
+        ?string $indexRoute = null,
+        ?string $exportPage = null
+    )
     {
         $query = ConvertedLead::with([
             'lead',
@@ -1251,12 +1284,14 @@ class SupportConvertedLeadController extends Controller
         $supportFlags = SupportFlagFieldSupport::forFilterSelect();
 
         return view($viewName, compact(
-            'convertedLeads', 
-            'batches', 
-            'subjects', 
+            'convertedLeads',
+            'batches',
+            'subjects',
             'country_codes',
             'pageTitle',
-            'supportFlags'
+            'supportFlags',
+            'indexRoute',
+            'exportPage'
         ));
     }
 

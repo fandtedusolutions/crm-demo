@@ -183,6 +183,7 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">National Institute of Open Schooling Converted Leads List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'nios'])
                 @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
                 <div class="batch-actions-toolbar" style="display: none;">
                     <span class="me-2 text-muted selected-count">0 selected</span>

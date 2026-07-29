@@ -148,8 +148,9 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
 <div class="row">
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.prompt-engineering-mentor-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Prompt Engineering Converted Mentor List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-prompt-engineering'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->

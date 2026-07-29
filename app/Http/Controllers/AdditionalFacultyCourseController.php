@@ -13,25 +13,30 @@ class AdditionalFacultyCourseController extends Controller
 {
     public function medicalCodingIndex(Request $request)
     {
-        return $this->renderFacultyList($request, 3, 'Certificate Course in Medical Coding', 'admin.medical-coding-faculty-converted-leads.index');
+        return $this->renderFacultyList($request, 3, 'Certificate Course in Medical Coding', 'admin.medical-coding-faculty-converted-leads.index', 'faculty-medical-coding');
+    }
+
+    public function hospitalAdministrationIndex(Request $request)
+    {
+        return $this->renderFacultyList($request, 4, 'Diploma in Hospital Administration', 'admin.hospital-administration-faculty-converted-leads.index', 'faculty-hospital-administration');
     }
 
     public function pythonIndex(Request $request)
     {
-        return $this->renderFacultyList($request, 10, 'Python', 'admin.python-faculty-converted-leads.index');
+        return $this->renderFacultyList($request, 10, 'Python', 'admin.python-faculty-converted-leads.index', 'faculty-python');
     }
 
     public function flutterIndex(Request $request)
     {
-        return $this->renderFacultyList($request, 21, 'Flutter', 'admin.flutter-faculty-converted-leads.index');
+        return $this->renderFacultyList($request, 21, 'Flutter', 'admin.flutter-faculty-converted-leads.index', 'faculty-flutter');
     }
 
     public function rpaIndex(Request $request)
     {
-        return $this->renderFacultyList($request, 27, 'RPA', 'admin.rpa-faculty-converted-leads.index');
+        return $this->renderFacultyList($request, 27, 'RPA', 'admin.rpa-faculty-converted-leads.index', 'faculty-rpa');
     }
 
-    private function renderFacultyList(Request $request, int $courseId, string $courseTitle, string $routeName)
+    private function renderFacultyList(Request $request, int $courseId, string $courseTitle, string $routeName, string $exportPage)
     {
         if (!RoleHelper::is_admin_or_super_admin()
             && !RoleHelper::is_admission_counsellor()
@@ -129,6 +134,7 @@ class AdditionalFacultyCourseController extends Controller
             'batches',
             'flags',
             'activeFacultyRoute',
+            'exportPage',
         ));
     }
 }

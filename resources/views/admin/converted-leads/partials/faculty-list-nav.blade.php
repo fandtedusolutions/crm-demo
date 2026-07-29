@@ -66,6 +66,9 @@
                     <a href="{{ route('admin.medical-coding-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.medical-coding-faculty-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> Certificate Course in Medical Coding Faculty List
                     </a>
+                    <a href="{{ route('admin.hospital-administration-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.hospital-administration-faculty-converted-leads.index') }}">
+                        <i class="ti ti-user-star"></i> Diploma in Hospital Administration Faculty List
+                    </a>
                     <a href="{{ route('admin.python-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.python-faculty-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> Python Faculty List
                     </a>

@@ -1,4 +1,4 @@
-﻿@extends('layouts.mantis')
+@extends('layouts.mantis')
 
 @section('title', 'Robo Vibe - Course Support List')
 
@@ -141,8 +141,9 @@
 <div class="row">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Robo Vibe - Course Support List</h5>
+                @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'support-robo-vibe'])
             </div>
             <div class="card-body">
                 @php
