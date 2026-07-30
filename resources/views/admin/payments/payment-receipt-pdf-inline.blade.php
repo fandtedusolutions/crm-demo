@@ -121,6 +121,8 @@
                             Type: Batch Postponed - {{ $payment->invoice->batch->title ?? 'N/A' }} ({{ $payment->invoice->batch->course->title ?? 'N/A' }})
                         @elseif($payment->invoice->invoice_type === 'fine')
                             Type: Fine - {{ $payment->invoice->service_name ?? 'N/A' }}
+                        @elseif($payment->invoice->invoice_type === 'supply')
+                            Type: Supply
                         @else
                             Type: N/A
                         @endif

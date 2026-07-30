@@ -259,7 +259,8 @@ class LeadController extends Controller
                 ]);
             },
             'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
-            'plusTwoFollowUpQuestionnaire:id,lead_id,created_at'
+            'plusTwoFollowUpQuestionnaire:id,lead_id,created_at',
+            'latestReasonActivity',
         ]);
 
         // Apply filters - optimized date range query
@@ -421,13 +422,7 @@ class LeadController extends Controller
             },
             'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
             'plusTwoFollowUpQuestionnaire:id,lead_id,created_at',
-            'leadActivities' => function ($query) {
-                $query->select('id', 'lead_id', 'reason', 'created_at', 'activity_type')
-                    ->whereNotNull('reason')
-                    ->where('reason', '!=', '')
-                    ->orderBy('created_at', 'desc')
-                    ->limit(1);
-            },
+            'latestReasonActivity',
         ]);
 
         if ($request->filled('search_key')) {
@@ -589,6 +584,7 @@ class LeadController extends Controller
             },
             'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
             'plusTwoFollowUpQuestionnaire:id,lead_id,created_at',
+            'latestReasonActivity',
         ];
     }
 
@@ -948,7 +944,7 @@ class LeadController extends Controller
                     'telecaller' => $leadTelecallerName,
                     'place' => $leadPlace ?: '-',
                     'followup_date' => $lead->followup_date ? $lead->followup_date->format('M d, Y') : '-',
-                    'last_reason' => '-',
+                    'last_reason' => $this->renderLastReason($lead),
                     'remarks' => $leadRemarks ?: '-',
                     'marketing_remarks' => $leadMarketingRemarks ?: '-',
                     'date' => $lead->created_at->format('M d, Y'),
@@ -1376,7 +1372,7 @@ class LeadController extends Controller
                     'telecaller' => $leadTelecallerName,
                     'place' => $leadPlace ?: '-',
                     'followup_date' => $lead->followup_date ? $lead->followup_date->format('M d, Y') : '-',
-                    'last_reason' => '-',
+                    'last_reason' => $this->renderLastReason($lead),
                     'remarks' => $leadRemarks ?: '-',
                     'marketing_remarks' => $leadMarketingRemarks ?: '-',
                     'date' => $lead->created_at->format('M d, Y'),
@@ -1695,19 +1691,39 @@ class LeadController extends Controller
     }
 
     /**
-     * Render last reason column HTML from the most recent activity.
+     * Render last reason column HTML from the most recent activity with a reason.
      */
     private function renderLastReason($lead): string
     {
-        $activity = $lead->leadActivities->first();
-        if (!$activity || empty($activity->reason)) {
+        $activity = $lead->relationLoaded('latestReasonActivity')
+            ? $lead->latestReasonActivity
+            : ($lead->relationLoaded('leadActivities')
+                ? $lead->leadActivities->first(fn ($item) => filled($item->reason))
+                : null);
+
+        if (! $activity && ! $lead->relationLoaded('latestReasonActivity') && ! $lead->relationLoaded('leadActivities')) {
+            $activity = $lead->latestReasonActivity()->first();
+        }
+
+        if (! $activity || ! filled($activity->reason)) {
             return '-';
         }
 
-        $reason = $this->cleanUtf8($activity->reason);
-        $truncated = Str::limit($reason, 20);
+        $reason = trim((string) $activity->reason);
+        if ($reason === '') {
+            return '-';
+        }
 
-        return '<span class="badge bg-info" title="' . e($reason) . '">' . e($truncated) . '</span>';
+        // Keep unicode intact; only strip control characters that break HTML/JSON.
+        $reason = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $reason) ?? $reason;
+        if (! mb_check_encoding($reason, 'UTF-8')) {
+            $reason = mb_convert_encoding($reason, 'UTF-8', 'UTF-8');
+        }
+
+        $truncated = Str::limit($reason, 40);
+
+        return '<span class="badge bg-info text-wrap text-start" style="max-width: 220px; white-space: normal;" title="'
+            . e($reason) . '">' . e($truncated) . '</span>';
     }
 
     /**
@@ -1990,12 +2006,7 @@ class LeadController extends Controller
                 ]);
             },
             'studentDetails.sslcCertificates:id,lead_detail_id,verification_status',
-            'leadActivities' => function($query) {
-                $query->select('id', 'lead_id', 'reason', 'created_at', 'activity_type')
-                      ->whereNotNull('reason')
-                      ->where('reason', '!=', '')
-                      ->orderBy('created_at', 'desc');
-            }
+            'latestReasonActivity',
         ])
         ->whereHas('studentDetails') // Only leads that have submitted registration forms
         ->notConverted()

@@ -28,6 +28,7 @@
                                         <option value="e-service" {{ old('invoice_type') == 'e-service' ? 'selected' : '' }}>E-Service</option>
                                         <option value="batch_change" {{ old('invoice_type') == 'batch_change' ? 'selected' : '' }}>Batch Change</option>
                                         <option value="fine" {{ old('invoice_type') == 'fine' ? 'selected' : '' }}>Fine</option>
+                                        <option value="supply" {{ old('invoice_type') == 'supply' ? 'selected' : '' }}>Supply</option>
                                     </select>
                                     @error('invoice_type')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -101,6 +102,19 @@
                                            value="{{ old('fine_amount') }}" disabled>
                                     <div class="form-text">This value will be copied to Total Amount.</div>
                                     @error('fine_amount')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="col-md-6" id="supply_amount_field" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="supply_amount" class="form-label">Supply Amount <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control @error('supply_amount') is-invalid @enderror"
+                                           name="supply_amount" id="supply_amount" step="0.01" min="0"
+                                           value="{{ old('supply_amount') }}" disabled>
+                                    <div class="form-text">This value will be copied to Total Amount.</div>
+                                    @error('supply_amount')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -189,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalAmountInput = document.getElementById('total_amount');
     const serviceAmountInput = document.getElementById('service_amount');
     const fineAmountInput = document.getElementById('fine_amount');
+    const supplyAmountInput = document.getElementById('supply_amount');
     const form = document.getElementById('invoiceCreateForm');
     let submitting = false;
 
@@ -374,6 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('service_amount_field').style.display = 'none';
         document.getElementById('fine_type_field').style.display = 'none';
         document.getElementById('fine_amount_field').style.display = 'none';
+        document.getElementById('supply_amount_field').style.display = 'none';
 
         setFieldEnabled(courseSelect, false);
         setFieldEnabled(courseBatchSelect, false);
@@ -382,6 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setFieldEnabled(document.getElementById('service_amount'), false);
         setFieldEnabled(document.getElementById('fine_type'), false);
         setFieldEnabled(document.getElementById('fine_amount'), false);
+        setFieldEnabled(document.getElementById('supply_amount'), false);
 
         ['fee_pg_amount', 'fee_ug_amount', 'fee_plustwo_amount', 'fee_sslc_amount', 'custom_total_amount'].forEach(function(id) {
             setFieldEnabled(document.getElementById(id), false);
@@ -428,6 +445,12 @@ document.addEventListener('DOMContentLoaded', function() {
             setFieldEnabled(document.getElementById('fine_type'), true, 'fine_type');
             setFieldEnabled(document.getElementById('fine_amount'), true, 'fine_amount');
             totalAmountInput.value = fineAmountInput.value || '';
+            totalAmountInput.readOnly = true;
+            validateTotalAmount();
+        } else if (invoiceType === 'supply') {
+            document.getElementById('supply_amount_field').style.display = 'block';
+            setFieldEnabled(document.getElementById('supply_amount'), true, 'supply_amount');
+            totalAmountInput.value = supplyAmountInput.value || '';
             totalAmountInput.readOnly = true;
             validateTotalAmount();
         } else {
@@ -763,6 +786,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     fineAmountInput.addEventListener('input', function() {
         if (invoiceTypeSelect.value === 'fine') {
+            totalAmountInput.value = this.value;
+            validateTotalAmount();
+        }
+    });
+
+    supplyAmountInput.addEventListener('input', function() {
+        if (invoiceTypeSelect.value === 'supply') {
             totalAmountInput.value = this.value;
             validateTotalAmount();
         }

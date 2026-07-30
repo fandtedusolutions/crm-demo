@@ -171,6 +171,8 @@
                         {{ $payment->invoice->service_name ?? 'N/A' }}
                     @elseif($payment->invoice && $payment->invoice->invoice_type === 'fine')
                         {{ $payment->invoice->service_name ?? 'N/A' }} (Fine)
+                    @elseif($payment->invoice && $payment->invoice->invoice_type === 'supply')
+                        Supply
                     @else
                         N/A
                     @endif

@@ -196,6 +196,8 @@
                                                 @elseif($payment->invoice && $payment->invoice->invoice_type === 'fine')
                                                     <div>{{ $payment->invoice->service_name ?? 'N/A' }}</div>
                                                     <small class="text-muted">Fine</small>
+                                                @elseif($payment->invoice && $payment->invoice->invoice_type === 'supply')
+                                                    <div>Supply</div>
                                                 @else
                                                     <span class="text-muted">N/A</span>
                                                 @endif
@@ -338,6 +340,8 @@
                                                 @elseif($payment->invoice && $payment->invoice->invoice_type === 'fine')
                                                     <div>{{ $payment->invoice->service_name ?? 'N/A' }}</div>
                                                     <small class="text-muted">Fine</small>
+                                                @elseif($payment->invoice && $payment->invoice->invoice_type === 'supply')
+                                                    <div>Supply</div>
                                                 @else
                                                     <span class="text-muted">N/A</span>
                                                 @endif
@@ -471,6 +475,8 @@
                                                 @elseif($payment->invoice && $payment->invoice->invoice_type === 'fine')
                                                     <div>{{ $payment->invoice->service_name ?? 'N/A' }}</div>
                                                     <small class="text-muted">Fine</small>
+                                                @elseif($payment->invoice && $payment->invoice->invoice_type === 'supply')
+                                                    <div>Supply</div>
                                                 @else
                                                     <span class="text-muted">N/A</span>
                                                 @endif

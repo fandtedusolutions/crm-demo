@@ -785,6 +785,7 @@
             const locationSelect = document.getElementById('location');
             const classTimeSelect = document.getElementById('class_time_id');
             const courseId = {{ isset($course) && $course ? $course->id : 'null' }};
+            const courseNeedsTime = {{ isset($course) && $course && $course->needs_time ? 'true' : 'false' }};
 
             if (programmeTypeSelect) {
                 programmeTypeSelect.addEventListener('change', function() {
@@ -801,7 +802,8 @@
                         }
                     }
 
-                    if (classTimeSelect && courseId) {
+                    // Class time for online and offline, only when course needs_time is checked
+                    if (courseNeedsTime && classTimeSelect && courseId) {
                         fetchClassTimes(courseId, programmeType);
                     }
                 });
@@ -821,12 +823,14 @@
                 return;
             }
 
+            // Show for both online and offline when course needs_time checkbox is enabled
+            classTimeGroup.style.display = 'block';
+            classTimeSelect.setAttribute('required', 'required');
+
             fetch(`/api/class-times/by-course/${courseId}?class_type=${classType}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data && data.length > 0) {
-                        classTimeGroup.style.display = 'block';
-                        classTimeSelect.setAttribute('required', 'required');
                         data.forEach(classTime => {
                             const option = document.createElement('option');
                             option.value = classTime.id;
@@ -835,15 +839,10 @@
                             option.textContent = `${fromTime} - ${toTime}`;
                             classTimeSelect.appendChild(option);
                         });
-                    } else {
-                        classTimeGroup.style.display = 'none';
-                        classTimeSelect.removeAttribute('required');
                     }
                 })
                 .catch(error => {
                     console.error('Error fetching class times:', error);
-                    classTimeGroup.style.display = 'none';
-                    classTimeSelect.removeAttribute('required');
                 });
         }
 

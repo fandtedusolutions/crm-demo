@@ -246,6 +246,10 @@
                                             Payment for Batch Change - {{ $payment->invoice->batch->title ?? 'N/A' }} ({{ $payment->invoice->batch->course->title ?? 'N/A' }})
                                         @elseif($payment->invoice->invoice_type === 'batch_postpond')
                                             Payment for Batch Postponed - {{ $payment->invoice->batch->title ?? 'N/A' }} ({{ $payment->invoice->batch->course->title ?? 'N/A' }})
+                                        @elseif($payment->invoice->invoice_type === 'fine')
+                                            Payment for Fine - {{ $payment->invoice->service_name ?? 'N/A' }}
+                                        @elseif($payment->invoice->invoice_type === 'supply')
+                                            Payment for Supply
                                         @else
                                             Payment
                                         @endif

@@ -185,6 +185,18 @@ class Lead extends Model
         return $this->hasOne(LeadActivity::class, 'lead_id')->latestOfMany('created_at');
     }
 
+    /**
+     * Most recent activity that has a non-empty reason (for Last Reason column).
+     */
+    public function latestReasonActivity()
+    {
+        return $this->hasOne(LeadActivity::class, 'lead_id')
+            ->ofMany(['created_at' => 'max', 'id' => 'max'], function ($query) {
+                $query->whereNotNull('reason')
+                    ->where('reason', '!=', '');
+            });
+    }
+
     public function studentDetails()
     {
         return $this->hasOne(LeadDetail::class, 'lead_id');

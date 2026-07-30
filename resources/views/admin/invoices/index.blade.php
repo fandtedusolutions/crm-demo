@@ -133,6 +133,8 @@
                                             <span class="badge bg-warning text-dark">Batch Postponed</span>
                                         @elseif($invoice->invoice_type == 'fine')
                                             <span class="badge bg-danger">Fine</span>
+                                        @elseif($invoice->invoice_type == 'supply')
+                                            <span class="badge bg-secondary">Supply</span>
                                         @endif
                                     </td>
                                     <td>
@@ -157,6 +159,8 @@
                                             {{ $invoice->batch->title ?? 'N/A' }} ({{ $invoice->batch->course->title ?? 'N/A' }})
                                         @elseif($invoice->invoice_type == 'fine')
                                             {{ $invoice->service_name ?? 'N/A' }}
+                                        @elseif($invoice->invoice_type == 'supply')
+                                            Supply
                                         @endif
                                     </td>
                                     <td>₹{{ number_format(round($invoice->total_amount)) }}</td>

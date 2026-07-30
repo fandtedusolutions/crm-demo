@@ -133,6 +133,8 @@ class InvoiceController extends Controller
         } elseif ($request->invoice_type === 'fine' && $request->filled('fine_amount')) {
             // Keep total amount in sync with the fine amount
             $request->merge(['total_amount' => $request->fine_amount]);
+        } elseif ($request->invoice_type === 'supply' && $request->filled('supply_amount')) {
+            $request->merge(['total_amount' => $request->supply_amount]);
         } elseif ($request->invoice_type === 'course') {
             $student = ConvertedLead::with(['leadDetail', 'lead'])->findOrFail($studentId);
             $computed = $this->computeCourseInvoiceTotals(
@@ -153,7 +155,7 @@ class InvoiceController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'invoice_type' => 'required|in:course,e-service,batch_change,fine',
+            'invoice_type' => 'required|in:course,e-service,batch_change,fine,supply',
             'course_id' => 'nullable|required_if:invoice_type,course|exists:courses,id',
             'batch_id' => [
                 'nullable',
@@ -196,6 +198,7 @@ class InvoiceController extends Controller
             'service_amount' => 'nullable|required_if:invoice_type,e-service|numeric|min:0',
             'fine_type' => 'nullable|required_if:invoice_type,fine|string|max:255',
             'fine_amount' => 'nullable|required_if:invoice_type,fine|numeric|min:0',
+            'supply_amount' => 'nullable|required_if:invoice_type,supply|numeric|min:0',
             'total_amount' => 'required|numeric|gt:0',
             'invoice_date' => 'required|date',
         ], [
@@ -263,6 +266,10 @@ class InvoiceController extends Controller
                 $invoiceData['service_name'] = $request->fine_type;
                 $invoiceData['service_amount'] = $request->fine_amount;
                 $invoiceData['total_amount'] = $request->fine_amount;
+            } elseif ($request->invoice_type === 'supply') {
+                $invoiceData['service_name'] = 'Supply';
+                $invoiceData['service_amount'] = $request->supply_amount;
+                $invoiceData['total_amount'] = $request->supply_amount;
             }
             
             $invoice = $this->createInvoiceWithUniqueNumber($invoiceData);

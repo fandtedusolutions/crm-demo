@@ -192,6 +192,10 @@
                                                             <span class="badge bg-danger fs-6 px-3 py-2">
                                                                 <i class="fas fa-exclamation-circle me-1"></i>Fine
                                                             </span>
+                                                        @elseif($invoice->invoice_type == 'supply')
+                                                            <span class="badge bg-secondary fs-6 px-3 py-2">
+                                                                <i class="fas fa-box me-1"></i>Supply
+                                                            </span>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -230,6 +234,8 @@
                                                             <i class="fas fa-calendar-alt text-warning me-1"></i>{{ $invoice->batch->title ?? 'N/A' }} ({{ $invoice->batch->course->title ?? 'N/A' }})
                                                         @elseif($invoice->invoice_type == 'fine')
                                                             <i class="fas fa-exclamation-circle text-danger me-1"></i>{{ $invoice->service_name ?? 'N/A' }}
+                                                        @elseif($invoice->invoice_type == 'supply')
+                                                            <i class="fas fa-box text-secondary me-1"></i>Supply
                                                         @endif
                                                     </div>
                                                 </div>

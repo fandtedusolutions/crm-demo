@@ -69,8 +69,12 @@ class LeadHospitalAdminRegistrationController extends Controller
             'whatsapp_number' => 'required|string|max:20',
             'whatsapp_code' => 'required|string|max:10',
             'batch_id' => 'required|exists:batches,id',
-            'programme_type' => 'required|in:online,offline',
-            'class_time_id' => 'nullable|exists:class_times,id',
+            'programme_type' => ($course && ($course->is_online || $course->is_offline))
+                ? 'required|in:online,offline'
+                : 'nullable|in:online,offline',
+            'class_time_id' => ($course && $course->needs_time)
+                ? 'required|exists:class_times,id'
+                : 'nullable|exists:class_times,id',
             'street' => 'required|string',
             'locality' => 'required|string|max:255',
             'post_office' => 'required|string|max:255',
@@ -102,6 +106,7 @@ class LeadHospitalAdminRegistrationController extends Controller
             'whatsapp_code.required' => 'WhatsApp country code is required.',
             'programme_type.required' => 'Course type is required.',
             'location.required_if' => 'Location is required for offline courses.',
+            'class_time_id.required' => 'Class time is required.',
             'class_time_id.exists' => 'Please select a valid class time.',
             'street.required' => 'Street address is required.',
             'locality.required' => 'Locality is required.',
