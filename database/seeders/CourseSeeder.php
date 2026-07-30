@@ -54,9 +54,9 @@ class CourseSeeder extends Seeder
                 'amount' => 20000,
                 'hod_number' => null,
                 'is_active' => 1,
-                'needs_time' => 0,
-                'is_online' => 0,
-                'is_offline' => 0,
+                'needs_time' => 1,
+                'is_online' => 1,
+                'is_offline' => 1,
             ],
             [
                 'id' => 5,

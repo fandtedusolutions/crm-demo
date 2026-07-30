@@ -8,6 +8,9 @@ use App\Models\Lead;
 use App\Models\LeadDetail;
 use App\Models\Subject;
 use App\Models\Batch;
+use App\Models\ClassTime;
+use App\Models\Course;
+use App\Support\CourseOfflinePlaceSupport;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Services\MailService;
@@ -32,16 +35,27 @@ class LeadHospitalAdminRegistrationController extends Controller
         
         // Get Diploma in Hospital Administration course batches (course_id = 4)
         $batches = Batch::where('course_id', 4)->where('is_active', true)->get();
+
+        $course = Course::find(4);
+
+        $classTimes = collect();
+        if ($course && $course->needs_time) {
+            $classTimes = ClassTime::where('course_id', 4)->where('is_active', true)->get();
+        }
+
+        $offlinePlaces = CourseOfflinePlaceSupport::placesFor($course);
         
         // Get country codes
         $countryCodes = \App\Helpers\CountriesHelper::get_country_code();
         
-        return view('public.hospital-admin-registration', compact('subjects', 'batches', 'lead', 'countryCodes'));
+        return view('public.hospital-admin-registration', compact('subjects', 'batches', 'lead', 'countryCodes', 'course', 'classTimes', 'offlinePlaces'));
     }
     
     public function store(Request $request)
     {
-        $request->validate([
+        $course = Course::find(4);
+
+        $request->validate(array_merge([
             'lead_id' => 'required|exists:leads,id',
             'student_name' => 'required|string|max:255',
             'father_name' => 'required|string|max:255',
@@ -55,6 +69,8 @@ class LeadHospitalAdminRegistrationController extends Controller
             'whatsapp_number' => 'required|string|max:20',
             'whatsapp_code' => 'required|string|max:10',
             'batch_id' => 'required|exists:batches,id',
+            'programme_type' => 'required|in:online,offline',
+            'class_time_id' => 'nullable|exists:class_times,id',
             'street' => 'required|string',
             'locality' => 'required|string|max:255',
             'post_office' => 'required|string|max:255',
@@ -68,7 +84,7 @@ class LeadHospitalAdminRegistrationController extends Controller
             'signature' => 'required|file|mimes:jpg,jpeg,png|max:1024',
             'plustwo_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:1024',
             'message' => 'nullable|string',
-        ], [
+        ], CourseOfflinePlaceSupport::locationValidationRules($course)), [
             'lead_id.required' => 'Lead ID is required.',
             'lead_id.exists' => 'Invalid lead.',
             'student_name.required' => 'Student name is required.',
@@ -84,6 +100,9 @@ class LeadHospitalAdminRegistrationController extends Controller
             'parents_code.required' => 'Parents country code is required.',
             'whatsapp_number.required' => 'WhatsApp number is required.',
             'whatsapp_code.required' => 'WhatsApp country code is required.',
+            'programme_type.required' => 'Course type is required.',
+            'location.required_if' => 'Location is required for offline courses.',
+            'class_time_id.exists' => 'Please select a valid class time.',
             'street.required' => 'Street address is required.',
             'locality.required' => 'Locality is required.',
             'post_office.required' => 'Post office is required.',
@@ -161,6 +180,9 @@ class LeadHospitalAdminRegistrationController extends Controller
                 'whatsapp_number' => $request->whatsapp_number,
                 'whatsapp_code' => $request->whatsapp_code,
                 'batch_id' => $request->batch_id,
+                'programme_type' => $request->programme_type,
+                'location' => $request->location,
+                'class_time_id' => $request->class_time_id,
                 'street' => $request->street,
                 'locality' => $request->locality,
                 'post_office' => $request->post_office,

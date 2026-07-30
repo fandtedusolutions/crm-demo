@@ -9,6 +9,7 @@ use App\Models\LeadDetail;
 use App\Models\Subject;
 use App\Models\Batch;
 use App\Models\ClassTime;
+use App\Models\Course;
 use App\Support\CourseOfflinePlaceSupport;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -36,7 +37,7 @@ class LeadMedicalCodingRegistrationController extends Controller
         $batches = Batch::where('course_id', 3)->where('is_active', true)->get();
         
         // Get course data
-        $course = \App\Models\Course::find(3);
+        $course = Course::find(3);
         
         // Get class times for course_id = 3 (Certificate Course in Medical Coding) if course needs_time
         $classTimes = collect();
@@ -55,7 +56,9 @@ class LeadMedicalCodingRegistrationController extends Controller
     
     public function store(Request $request)
     {
-        $request->validate([
+        $course = Course::find(3);
+
+        $request->validate(array_merge([
             'lead_id' => 'required|exists:leads,id',
             'student_name' => 'required|string|max:255',
             'father_name' => 'required|string|max:255',
@@ -69,6 +72,8 @@ class LeadMedicalCodingRegistrationController extends Controller
             'whatsapp_number' => 'required|string|max:20',
             'whatsapp_code' => 'required|string|max:10',
             'batch_id' => 'required|exists:batches,id',
+            'programme_type' => 'required|in:online,offline',
+            'class_time_id' => 'nullable|exists:class_times,id',
             'street' => 'required|string',
             'locality' => 'required|string|max:255',
             'post_office' => 'required|string|max:255',
@@ -82,7 +87,7 @@ class LeadMedicalCodingRegistrationController extends Controller
             'signature' => 'required|file|mimes:jpg,jpeg,png|max:1024',
             'plustwo_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:1024',
             'message' => 'nullable|string',
-        ], [
+        ], CourseOfflinePlaceSupport::locationValidationRules($course)), [
             'lead_id.required' => 'Lead ID is required.',
             'lead_id.exists' => 'Invalid lead.',
             'student_name.required' => 'Student name is required.',
@@ -98,6 +103,9 @@ class LeadMedicalCodingRegistrationController extends Controller
             'parents_code.required' => 'Parents country code is required.',
             'whatsapp_number.required' => 'WhatsApp number is required.',
             'whatsapp_code.required' => 'WhatsApp country code is required.',
+            'programme_type.required' => 'Course type is required.',
+            'location.required_if' => 'Location is required for offline courses.',
+            'class_time_id.exists' => 'Please select a valid class time.',
             'street.required' => 'Street address is required.',
             'locality.required' => 'Locality is required.',
             'post_office.required' => 'Post office is required.',
@@ -171,6 +179,9 @@ class LeadMedicalCodingRegistrationController extends Controller
                 'whatsapp_number' => $request->whatsapp_number,
                 'whatsapp_code' => $request->whatsapp_code,
                 'batch_id' => $request->batch_id,
+                'programme_type' => $request->programme_type,
+                'location' => $request->location,
+                'class_time_id' => $request->class_time_id,
                 'street' => $request->street,
                 'locality' => $request->locality,
                 'post_office' => $request->post_office,

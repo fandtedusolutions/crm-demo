@@ -495,6 +495,48 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            @if(isset($course) && ($course->is_online || $course->is_offline))
+                            <div class="form-group">
+                                <label class="form-label">Course Type <span class="required">*</span></label>
+                                <select class="form-control" name="programme_type" id="programme_type" required>
+                                    <option value="">Select Course Type</option>
+                                    @if($course->is_online)
+                                        <option value="online">Online</option>
+                                    @endif
+                                    @if($course->is_offline)
+                                        <option value="offline">Offline</option>
+                                    @endif
+                                </select>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            @if(isset($course) && $course->is_offline && isset($offlinePlaces) && $offlinePlaces->count() > 0)
+                            <div class="form-group" id="location_group" style="display: none;">
+                                <label class="form-label">Location <span class="required">*</span></label>
+                                <select class="form-control" name="location" id="location">
+                                    <option value="">Select Location</option>
+                                    @foreach($offlinePlaces as $place)
+                                        <option value="{{ $place->name }}">{{ $place->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
+                        </div>
+                        <div class="col-md-6">
+                            @if(isset($course) && $course->needs_time)
+                            <div class="form-group" id="class_time_group" style="display: none;">
+                                <label class="form-label">Class Time <span class="required">*</span></label>
+                                <select class="form-control" name="class_time_id" id="class_time_id">
+                                    <option value="">Select Class Time</option>
+                                </select>
+                            </div>
+                            @endif
+                        </div>
                     </div>
                     
                 </div>
@@ -678,6 +720,11 @@
                              element.value = data[key];
                          }
                      });
+
+                     const programmeTypeSelect = document.getElementById('programme_type');
+                     if (programmeTypeSelect && programmeTypeSelect.value) {
+                         programmeTypeSelect.dispatchEvent(new Event('change'));
+                     }
                  } catch (e) {
                      console.error('Error loading saved data:', e);
                  }
@@ -718,6 +765,7 @@
 
         // Load saved data when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            setupProgrammeTypeHandler();
             loadSavedData();
             setupAutoSave();
             updateStepDisplay(); // Initialize step display and buttons
@@ -731,6 +779,74 @@
                 });
             }
         });
+
+        function setupProgrammeTypeHandler() {
+            const programmeTypeSelect = document.getElementById('programme_type');
+            const locationGroup = document.getElementById('location_group');
+            const locationSelect = document.getElementById('location');
+            const classTimeSelect = document.getElementById('class_time_id');
+            const courseId = {{ isset($course) && $course ? $course->id : 'null' }};
+
+            if (programmeTypeSelect) {
+                programmeTypeSelect.addEventListener('change', function() {
+                    const programmeType = this.value;
+
+                    if (locationGroup && locationSelect) {
+                        if (programmeType === 'offline') {
+                            locationGroup.style.display = 'block';
+                            locationSelect.setAttribute('required', 'required');
+                        } else {
+                            locationGroup.style.display = 'none';
+                            locationSelect.removeAttribute('required');
+                            locationSelect.value = '';
+                        }
+                    }
+
+                    if (classTimeSelect && courseId) {
+                        fetchClassTimes(courseId, programmeType);
+                    }
+                });
+            }
+        }
+
+        function fetchClassTimes(courseId, classType) {
+            const classTimeSelect = document.getElementById('class_time_id');
+            const classTimeGroup = document.getElementById('class_time_group');
+            if (!classTimeSelect || !classTimeGroup) return;
+
+            classTimeSelect.innerHTML = '<option value="">Select Class Time</option>';
+
+            if (!classType) {
+                classTimeGroup.style.display = 'none';
+                classTimeSelect.removeAttribute('required');
+                return;
+            }
+
+            fetch(`/api/class-times/by-course/${courseId}?class_type=${classType}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        classTimeGroup.style.display = 'block';
+                        classTimeSelect.setAttribute('required', 'required');
+                        data.forEach(classTime => {
+                            const option = document.createElement('option');
+                            option.value = classTime.id;
+                            const fromTime = new Date('2000-01-01 ' + classTime.from_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                            const toTime = new Date('2000-01-01 ' + classTime.to_time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                            option.textContent = `${fromTime} - ${toTime}`;
+                            classTimeSelect.appendChild(option);
+                        });
+                    } else {
+                        classTimeGroup.style.display = 'none';
+                        classTimeSelect.removeAttribute('required');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching class times:', error);
+                    classTimeGroup.style.display = 'none';
+                    classTimeSelect.removeAttribute('required');
+                });
+        }
 
         // Step navigation - using onclick handlers instead of addEventListener to avoid conflicts
 
