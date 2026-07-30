@@ -1,6 +1,6 @@
 @php
-    $haTrackColumns = \App\Support\HospitalAdministrationMentorTrackColumns::trackColumns();
-    $tableColspan = 16 + count($haTrackColumns) + 1;
+    $mcTrackColumns = \App\Support\MedicalCodingMentorTrackColumns::trackColumns();
+    $tableColspan = 13 + count($mcTrackColumns) + 1;
 @endphp
 <thead>
     <tr>
@@ -10,17 +10,14 @@
         <th>Registration Number</th>
         <th>Full Name</th>
         <th>Age</th>
-        <th>Mobile Number</th>
+        <th>Primary Mobile Number</th>
         <th>WhatsApp Number</th>
-        <th>Medium of Study</th>
-        <th>Previous Qualification</th>
-        <th>Technology Proficiency</th>
         <th>Batch</th>
         <th>Academic Batch</th>
         <th>Location</th>
         <th>Class Timing</th>
         <th>Mentor Flag</th>
-        @foreach($haTrackColumns as $col)
+        @foreach($mcTrackColumns as $col)
         <th>{{ $col['label'] }}</th>
         @endforeach
         <th>Actions</th>
@@ -59,18 +56,15 @@
                 -
             @endif
         </td>
-        <td>{{ $ld && $ld->medium_of_study ? ucfirst(str_replace('_', ' ', $ld->medium_of_study)) : '-' }}</td>
-        <td>{{ $ld && $ld->previous_qualification ? ucfirst(str_replace('_', ' ', $ld->previous_qualification)) : '-' }}</td>
-        <td>{{ $ld && $ld->technology_performance_category ? ucfirst(str_replace('_', ' ', $ld->technology_performance_category)) : '-' }}</td>
         <td>{{ $lead->batch?->title ?: '-' }}</td>
         <td>{{ $lead->admissionBatch?->title ?: '-' }}</td>
         <td>{{ $ld && $ld->location ? $ld->location : '-' }}</td>
         <td>{{ $classTimeLabel }}</td>
         @include('admin.converted-leads.partials.inline-mentor-flag-cell', ['convertedLead' => $lead])
-        @foreach($haTrackColumns as $col)
+        @foreach($mcTrackColumns as $col)
         @php
             $fieldKey = $col['field'];
-            $rawValue = \App\Support\HospitalAdministrationMentorTrackColumns::trackValue($md, $fieldKey);
+            $rawValue = \App\Support\MedicalCodingMentorTrackColumns::trackValue($md, $fieldKey);
             if (($col['type'] ?? '') === 'date') {
                 $displayValue = $rawValue ? $fmt($rawValue) : '-';
                 $currentValue = $rawValue ? $fmtYmd($rawValue) : '';
