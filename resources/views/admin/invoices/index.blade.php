@@ -119,9 +119,14 @@
                             </thead>
                             <tbody>
                                 @forelse($invoices as $index => $invoice)
-                                <tr>
+                                <tr class="{{ $invoice->is_transfered ? 'table-secondary' : '' }}">
                                     <td>{{ $index + 1 }}</td>
-                                    <td>{{ $invoice->invoice_number }}</td>
+                                    <td>
+                                        {{ $invoice->invoice_number }}
+                                        @if($invoice->is_transfered)
+                                            <span class="badge bg-dark ms-1">Transferred</span>
+                                        @endif
+                                    </td>
                                     <td>
                                         @if($invoice->invoice_type == 'course')
                                             <span class="badge bg-primary">Course</span>
@@ -162,14 +167,30 @@
                                         @elseif($invoice->invoice_type == 'supply')
                                             Supply
                                         @endif
+                                        @if($invoice->is_transfered && $invoice->transferedToInvoice)
+                                            <div class="small text-muted mt-1">
+                                                Payments moved to
+                                                <a href="{{ route('admin.invoices.show', $invoice->transfered_to_invoice_id) }}">
+                                                    {{ $invoice->transferedToInvoice->invoice_number }}
+                                                </a>
+                                            </div>
+                                        @endif
                                     </td>
                                     <td>₹{{ number_format(round($invoice->total_amount)) }}</td>
                                     <td>@if((float) ($invoice->discount_amount ?? 0) > 0) ₹{{ number_format(round($invoice->discount_amount)) }} @else — @endif</td>
                                     <td>₹{{ number_format(round($invoice->net_amount)) }}</td>
                                     <td>₹{{ number_format(round($invoice->paid_amount)) }}</td>
-                                    <td>₹{{ number_format(round($invoice->pending_amount)) }}</td>
                                     <td>
-                                        @if($invoice->status == 'Not Paid')
+                                        @if($invoice->is_transfered)
+                                            —
+                                        @else
+                                            ₹{{ number_format(round($invoice->pending_amount)) }}
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($invoice->is_transfered)
+                                            <span class="badge bg-dark">Transferred</span>
+                                        @elseif($invoice->status == 'Not Paid')
                                             <span class="badge bg-danger">Not Paid</span>
                                         @elseif($invoice->status == 'Partially Paid')
                                             <span class="badge bg-warning">Partially Paid</span>
@@ -182,6 +203,7 @@
                                         <a href="{{ route('admin.invoices.show', $invoice->id) }}" class="btn btn-sm btn-info" title="View Invoice">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        @if(! $invoice->is_transfered)
                                         @php
                                             $canEditInvoice = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_finance();
                                             $hasApprovedPayments = $invoice->payments->where('status', 'Approved')->count() > 0;
@@ -226,6 +248,7 @@
                                                     <i class="fas fa-file-pdf"></i>
                                                 </a>
                                             @endif
+                                        @endif
                                         @endif
                                     </td>
                                 </tr>

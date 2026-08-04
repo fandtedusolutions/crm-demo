@@ -11,19 +11,21 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Invoice Details - {{ $invoice->invoice_number }}</h4>
                         <div>
-                            @php $canFinanceInvoice = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_finance(); @endphp
+                            @php $canFinanceInvoice = ! $invoice->is_transfered && (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_finance()); @endphp
                             @if($canFinanceInvoice)
                             <button type="button" class="btn btn-outline-success" title="Discount"
                                 onclick="show_small_modal('{{ route('admin.invoices.edit-discount', $invoice->id) }}', 'Invoice discount')">
                                 <i class="fas fa-percent"></i> Discount
                             </button>
                             @endif
+                            @if(! $invoice->is_transfered)
                             <a href="{{ route('admin.payments.create', $invoice->id) }}" class="btn btn-success">
                                 <i class="fas fa-plus"></i> Add Payment
                             </a>
                             <a href="{{ route('admin.payments.index', $invoice->id) }}" class="btn btn-primary">
                                 <i class="fas fa-credit-card"></i> View Payments
-                            </a> 
+                            </a>
+                            @endif
                             <a href="{{ route('admin.invoices.index', $invoice->student_id) }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back to Invoices
                             </a>
@@ -56,8 +58,30 @@
                                         @elseif($invoice->invoice_type == 'supply')
                                             <span class="badge bg-secondary">Supply</span>
                                         @endif
+                                        @if($invoice->is_transfered)
+                                            <span class="badge bg-dark ms-1">Transferred</span>
+                                        @endif
                                     </td>
                                 </tr>
+                                @if($invoice->is_transfered)
+                                <tr>
+                                    <td><strong>Transfer Status:</strong></td>
+                                    <td>
+                                        <span class="badge bg-dark">Transferred</span>
+                                        @if($invoice->transferedToInvoice)
+                                            — payments moved to
+                                            <a href="{{ route('admin.invoices.show', $invoice->transfered_to_invoice_id) }}">
+                                                {{ $invoice->transferedToInvoice->invoice_number }}
+                                            </a>
+                                        @endif
+                                        @if($invoice->transfered_at)
+                                            <div class="small text-muted mt-1">
+                                                Transferred on {{ $invoice->transfered_at->format('d-m-Y h:i A') }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endif
                                 <tr>
                                     <td><strong>Invoice Date:</strong></td>
                                     <td>{{ $invoice->invoice_date->format('M d, Y') }}</td>
@@ -65,7 +89,9 @@
                                 <tr>
                                     <td><strong>Status:</strong></td>
                                     <td>
-                                        @if($invoice->status == 'Not Paid')
+                                        @if($invoice->is_transfered)
+                                            <span class="badge bg-dark">Transferred</span>
+                                        @elseif($invoice->status == 'Not Paid')
                                             <span class="badge bg-danger">Not Paid</span>
                                         @elseif($invoice->status == 'Partially Paid')
                                             <span class="badge bg-warning">Partially Paid</span>

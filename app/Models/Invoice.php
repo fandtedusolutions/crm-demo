@@ -31,6 +31,9 @@ class Invoice extends Model
         'fee_sslc_amount',
         'paid_amount',
         'status',
+        'is_transfered',
+        'transfered_to_invoice_id',
+        'transfered_at',
         'invoice_date',
         'previous_balance',
         'service_name',
@@ -50,7 +53,9 @@ class Invoice extends Model
         'paid_amount' => 'decimal:2',
         'previous_balance' => 'decimal:2',
         'service_amount' => 'decimal:2',
+        'is_transfered' => 'boolean',
         'invoice_date' => 'date',
+        'transfered_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -80,6 +85,16 @@ class Invoice extends Model
     public function paymentLinks()
     {
         return $this->hasMany(PaymentLink::class);
+    }
+
+    public function transferedToInvoice()
+    {
+        return $this->belongsTo(self::class, 'transfered_to_invoice_id');
+    }
+
+    public function transferedFromInvoices()
+    {
+        return $this->hasMany(self::class, 'transfered_to_invoice_id');
     }
 
     public function createdBy()

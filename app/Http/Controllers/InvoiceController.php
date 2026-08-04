@@ -26,17 +26,19 @@ class InvoiceController extends Controller
         // Check permissions
         $this->checkStudentAccess($student);
         
-        $invoices = Invoice::with(['course', 'batch', 'payments'])
+        $invoices = Invoice::with(['course', 'batch', 'payments', 'transferedToInvoice'])
             ->where('student_id', $studentId)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Calculate summary (amounts after discount / net payable)
+        $activeInvoices = $invoices->where('is_transfered', false);
+
+        // Calculate summary from active (non-transferred) invoices only
         $summary = [
             'total_invoices' => $invoices->count(),
-            'total_amount' => $invoices->sum(fn ($inv) => $inv->net_amount),
-            'total_paid' => $invoices->sum('paid_amount'),
-            'total_pending' => $invoices->sum(fn ($inv) => $inv->pending_amount),
+            'total_amount' => $activeInvoices->sum(fn ($inv) => $inv->net_amount),
+            'total_paid' => $activeInvoices->sum('paid_amount'),
+            'total_pending' => $activeInvoices->sum(fn ($inv) => $inv->pending_amount),
         ];
 
         return view('admin.invoices.index', compact('student', 'invoices', 'summary'));
@@ -47,10 +49,15 @@ class InvoiceController extends Controller
      */
     public function show($id)
     {
-        $invoice = Invoice::with(['course', 'batch', 'student.lead', 'payments' => function($query) {
-            $query->with('createdBy')->orderBy('created_at', 'desc');
-        }])
-            ->findOrFail($id);
+        $invoice = Invoice::with([
+            'course',
+            'batch',
+            'student.lead',
+            'transferedToInvoice',
+            'payments' => function ($query) {
+                $query->with('createdBy')->orderBy('created_at', 'desc');
+            },
+        ])->findOrFail($id);
         
         // Check permissions
         $this->checkStudentAccess($invoice->student);
@@ -410,9 +417,13 @@ class InvoiceController extends Controller
             $student->loadMissing('lead');
             $isB2bForFees = (int) (optional($student->lead)->is_b2b ?? $student->is_b2b ?? 0) === 1;
 
-            // Check if invoice already exists for this student and course
+            // Check if an active (non-transferred) invoice already exists for this student and course
             $existingInvoice = Invoice::where('student_id', $studentId)
                 ->where('course_id', $courseId)
+                ->where('invoice_type', 'course')
+                ->where(function ($query) {
+                    $query->where('is_transfered', false)->orWhereNull('is_transfered');
+                })
                 ->first();
                 
             if ($existingInvoice) {
@@ -947,7 +958,10 @@ class InvoiceController extends Controller
         $query = Invoice::with(['course:id,title', 'batch:id,title'])
             ->where('student_id', $studentId)
             ->where('invoice_type', 'course')
-            ->where('course_id', $courseId);
+            ->where('course_id', $courseId)
+            ->where(function ($q) {
+                $q->where('is_transfered', false)->orWhereNull('is_transfered');
+            });
 
         if ($batchId) {
             $query->where('batch_id', $batchId);
