@@ -26,6 +26,7 @@ use App\Models\Batch;
 use Illuminate\Support\Facades\DB;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\PaymentProof;
 use App\Models\LeadDetail;
 use App\Models\ConvertedStudentActivity;
 use App\Models\LeadActivity;
@@ -3814,12 +3815,24 @@ class ConvertedLeadController extends Controller
         try {
             DB::beginTransaction();
 
+            $oldCourseId = (int) $convertedLead->course_id;
+
             $oldInvoice = Invoice::with('payments')
                 ->where('student_id', $convertedLead->id)
                 ->where('invoice_type', 'course')
-                ->where('course_id', $convertedLead->course_id)
+                ->where('course_id', $oldCourseId)
                 ->latest('created_at')
                 ->first();
+
+            // Fallback for older course invoices missing course_id
+            if (! $oldInvoice) {
+                $oldInvoice = Invoice::with('payments')
+                    ->where('student_id', $convertedLead->id)
+                    ->where('invoice_type', 'course')
+                    ->whereNull('course_id')
+                    ->latest('created_at')
+                    ->first();
+            }
 
             // Update converted lead
             $convertedLead->update([
@@ -3878,7 +3891,7 @@ class ConvertedLeadController extends Controller
             ]);
 
             $transferSummary = null;
-            if ($oldInvoice) {
+            if ($oldInvoice && (int) $oldInvoice->id !== (int) $newInvoice->id) {
                 $transferSummary = $this->transferInvoicePayments($oldInvoice, $newInvoice, $pricing['total_amount']);
             }
 
@@ -3901,7 +3914,7 @@ class ConvertedLeadController extends Controller
             );
             if ($transferSummary && $transferSummary['transferred_amount'] > 0) {
                 $descriptionParts[] = sprintf(
-                    'Transferred payments: %s across %d transaction(s).',
+                    'Copied payment links to new invoice: %s across %d payment(s).',
                     $this->formatCurrency($transferSummary['transferred_amount']),
                     $transferSummary['transferred_count']
                 );
@@ -4841,53 +4854,86 @@ class ConvertedLeadController extends Controller
 
     private function transferInvoicePayments(Invoice $oldInvoice, Invoice $newInvoice, ?float $targetTotalAmount = null): array
     {
-        $totalTransferred = 0.0;
+        if ((int) $oldInvoice->id === (int) $newInvoice->id) {
+            return [
+                'transferred_amount' => 0.0,
+                'transferred_count' => 0,
+                'removed_invoice_id' => null,
+            ];
+        }
+
+        $totalCopied = 0.0;
         $count = 0;
-        $currentBalance = $targetTotalAmount !== null
+        $runningBalance = $targetTotalAmount !== null
             ? (float) $targetTotalAmount
             : (float) $newInvoice->total_amount;
 
-        $oldPayments = $oldInvoice->payments()->orderBy('created_at')->get();
+        $oldPayments = $oldInvoice->payments()
+            ->with('proofs')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
 
         foreach ($oldPayments as $oldPayment) {
-            $previousBalance = $currentBalance;
-            $currentBalance = max(0, $currentBalance - (float) $oldPayment->amount_paid);
+            $previousBalance = $runningBalance;
+            $runningBalance = max(0, $runningBalance - (float) $oldPayment->amount_paid);
 
-            $newInvoice->payments()->create([
+            // New payment row under the new invoice only (old payment stays on old invoice).
+            $newPayment = Payment::create([
+                'invoice_id' => $newInvoice->id,
                 'amount_paid' => $oldPayment->amount_paid,
+                'fee_head' => $oldPayment->fee_head,
                 'previous_balance' => $previousBalance,
                 'payment_type' => $oldPayment->payment_type,
                 'transaction_id' => $oldPayment->transaction_id,
+                'payment_date' => $oldPayment->payment_date,
                 'file_upload' => $oldPayment->file_upload,
                 'status' => $oldPayment->status,
                 'approved_date' => $oldPayment->approved_date,
                 'approved_by' => $oldPayment->approved_by,
                 'rejected_date' => $oldPayment->rejected_date,
                 'rejected_by' => $oldPayment->rejected_by,
+                'rejection_remarks' => $oldPayment->rejection_remarks,
                 'created_by' => $oldPayment->created_by ?? AuthHelper::getCurrentUserId(),
                 'updated_by' => AuthHelper::getCurrentUserId(),
+                'collected_by' => $oldPayment->collected_by,
             ]);
 
-            $totalTransferred += (float) $oldPayment->amount_paid;
-            $count++;
+            // Copy payment links/proofs as NEW rows for this new payment.
+            $proofRows = $oldPayment->proofs;
+            if ($proofRows->isNotEmpty()) {
+                foreach ($proofRows as $index => $proof) {
+                    PaymentProof::create([
+                        'payment_id' => $newPayment->id,
+                        'transaction_id' => $proof->transaction_id,
+                        'file_upload' => $proof->file_upload,
+                        'sort_order' => $proof->sort_order ?? $index,
+                    ]);
+                }
+            } elseif ($oldPayment->transaction_id || $oldPayment->file_upload) {
+                PaymentProof::create([
+                    'payment_id' => $newPayment->id,
+                    'transaction_id' => $oldPayment->transaction_id,
+                    'file_upload' => $oldPayment->file_upload,
+                    'sort_order' => 0,
+                ]);
+            }
 
-            $oldPayment->delete();
+            $totalCopied += (float) $oldPayment->amount_paid;
+            $count++;
         }
 
-        $oldInvoiceId = $oldInvoice->id;
-        $oldInvoice->delete();
-
-        Log::info('Transferred invoice payments during course change', [
-            'old_invoice_id' => $oldInvoiceId,
+        Log::info('Copied payment links to new invoice during course change', [
+            'old_invoice_id' => $oldInvoice->id,
             'new_invoice_id' => $newInvoice->id,
-            'transferred_amount' => $totalTransferred,
-            'transferred_count' => $count,
+            'copied_amount' => $totalCopied,
+            'copied_count' => $count,
         ]);
 
         return [
-            'transferred_amount' => $totalTransferred,
+            'transferred_amount' => $totalCopied,
             'transferred_count' => $count,
-            'removed_invoice_id' => $oldInvoiceId,
+            'removed_invoice_id' => null,
         ];
     }
 
