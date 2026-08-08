@@ -4,8 +4,10 @@ namespace App\Http\Controllers\API\Webhook;
 
 use App\Helpers\PhoneNumberHelper;
 use App\Http\Controllers\Controller;
+use App\Models\Country;
 use App\Models\Lead;
 use App\Models\LeadActivity;
+use App\Models\LeadStatus;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -44,7 +46,7 @@ class MetaWhatsAppLeadWebhookController extends Controller
                 'event' => 'required|string|in:contact.created,contact.updated',
                 'data' => 'required|array',
                 'data.id' => 'required',
-                'data.name' => 'required|string|max:255',
+                'data.name' => 'nullable|string|max:255',
                 'data.phone' => 'required|string|max:30',
                 'data.created_at' => 'nullable|string|max:100',
                 'data.remark' => 'nullable|string',
@@ -100,9 +102,14 @@ class MetaWhatsAppLeadWebhookController extends Controller
                 ], 422);
             }
 
+            $title = trim((string) ($contact['name'] ?? ''));
+            if ($title === '') {
+                $title = $code.$phone;
+            }
+
             $remark = $this->resolveRemark($request, $contact, $event, $sentAt);
 
-            $lead = DB::transaction(function () use ($event, $contact, $code, $phone, $remark, $isMetaWhatsapp, $log) {
+            $lead = DB::transaction(function () use ($event, $contact, $title, $code, $phone, $remark, $isMetaWhatsapp, $log) {
                 $existing = $this->findExistingMetaWhatsappLead($code, $phone, $contact['id'] ?? null);
 
                 if ($existing) {
@@ -112,7 +119,7 @@ class MetaWhatsAppLeadWebhookController extends Controller
                     ]);
 
                     $existing->update([
-                        'title' => $contact['name'],
+                        'title' => $title,
                         'code' => $code,
                         'phone' => $phone,
                         'whatsapp_code' => $code,
@@ -125,7 +132,7 @@ class MetaWhatsAppLeadWebhookController extends Controller
 
                     LeadActivity::create([
                         'lead_id' => $existing->id,
-                        'lead_status_id' => $existing->lead_status_id,
+                        'lead_status_id' => $existing->lead_status_id ?: 1,
                         'activity_type' => 'webhook_updated',
                         'description' => 'Lead updated via Meta WhatsApp webhook ('.$event.')',
                         'remarks' => $remark,
@@ -136,32 +143,20 @@ class MetaWhatsAppLeadWebhookController extends Controller
                     return $existing->fresh();
                 }
 
-                $telecallerId = $this->assignTelecallerRoundRobin();
+                $leadData = $this->buildLeadAttributes($title, $code, $phone, $remark, $isMetaWhatsapp);
 
                 $log->info('Creating new Meta WhatsApp lead', [
                     'event' => $event,
                     'contact_id' => $contact['id'] ?? null,
-                    'telecaller_id' => $telecallerId,
+                    'telecaller_id' => $leadData['telecaller_id'] ?? null,
+                    'team_id' => $leadData['team_id'] ?? null,
                 ]);
 
-                $lead = Lead::create([
-                    'title' => $contact['name'],
-                    'code' => $code,
-                    'phone' => $phone,
-                    'whatsapp_code' => $code,
-                    'whatsapp' => $phone,
-                    'telecaller_id' => $telecallerId,
-                    'lead_status_id' => 1,
-                    'lead_source_id' => 7,
-                    'is_meta_whatsapp' => $isMetaWhatsapp,
-                    'remarks' => $remark,
-                    'created_by' => 1,
-                    'updated_by' => 1,
-                ]);
+                $lead = Lead::create($leadData);
 
                 LeadActivity::create([
                     'lead_id' => $lead->id,
-                    'lead_status_id' => 1,
+                    'lead_status_id' => $leadData['lead_status_id'],
                     'activity_type' => 'webhook_created',
                     'description' => 'Lead created via Meta WhatsApp webhook ('.$event.')',
                     'remarks' => $remark,
@@ -205,6 +200,41 @@ class MetaWhatsAppLeadWebhookController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function buildLeadAttributes(string $title, string $code, string $phone, string $remark, int $isMetaWhatsapp): array
+    {
+        $telecallerId = $this->assignTelecallerRoundRobin();
+        $telecaller = $telecallerId ? User::find($telecallerId) : null;
+        $leadStatus = LeadStatus::find(1);
+        $countryId = Country::query()
+            ->where('phone_code', $code)
+            ->value('id');
+
+        return [
+            'title' => $title,
+            'code' => $code,
+            'phone' => $phone,
+            'whatsapp_code' => $code,
+            'whatsapp' => $phone,
+            'telecaller_id' => $telecallerId,
+            'team_id' => $telecaller?->team_id,
+            'lead_status_id' => 1,
+            'lead_source_id' => 7,
+            'interest_status' => $leadStatus?->interest_status,
+            'country_id' => $countryId,
+            'is_meta_whatsapp' => $isMetaWhatsapp,
+            'is_converted' => false,
+            'is_b2b' => $telecaller && $telecaller->is_b2b ? 1 : 0,
+            'is_pullbacked' => false,
+            'remarks' => $remark,
+            'first_created_at' => now(),
+            'created_by' => 1,
+            'updated_by' => 1,
+        ];
     }
 
     protected function resolveRemark(Request $request, array $contact, string $event, string $sentAt): string
