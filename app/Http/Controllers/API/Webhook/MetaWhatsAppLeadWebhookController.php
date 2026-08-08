@@ -213,8 +213,9 @@ class MetaWhatsAppLeadWebhookController extends Controller
      */
     protected function buildLeadAttributes(string $title, string $code, string $phone, string $remark, int $isMetaWhatsapp): array
     {
-        $telecallerId = $this->assignTelecallerRoundRobin();
-        $telecaller = $telecallerId ? User::find($telecallerId) : null;
+        $telecallerId = 183;
+        $teamId = 11;
+        $telecaller = User::find($telecallerId);
         $leadStatus = LeadStatus::find(1);
         $countryId = Country::query()
             ->where('phone_code', $code)
@@ -227,7 +228,7 @@ class MetaWhatsAppLeadWebhookController extends Controller
             'whatsapp_code' => $code,
             'whatsapp' => $phone,
             'telecaller_id' => $telecallerId,
-            'team_id' => $telecaller?->team_id,
+            'team_id' => $teamId,
             'lead_status_id' => 1,
             'lead_source_id' => 7,
             'interest_status' => $leadStatus?->interest_status,
@@ -296,28 +297,5 @@ class MetaWhatsAppLeadWebhookController extends Controller
             ->where('is_meta_whatsapp', 1)
             ->where('remarks', 'like', '%contact_id: '.$contactId.'%')
             ->first();
-    }
-
-    protected function assignTelecallerRoundRobin(): ?int
-    {
-        $telecallers = User::where('role_id', 3)->get(['id']);
-        if ($telecallers->isEmpty()) {
-            $this->webhookLog()->warning('No telecallers found for round-robin assignment');
-
-            return null;
-        }
-
-        $currentDate = now()->format('Y-m-d');
-        $telecallerLeadCounts = [];
-
-        foreach ($telecallers as $telecaller) {
-            $telecallerLeadCounts[$telecaller->id] = Lead::where('telecaller_id', $telecaller->id)
-                ->whereDate('created_at', $currentDate)
-                ->count();
-        }
-
-        asort($telecallerLeadCounts);
-
-        return array_key_first($telecallerLeadCounts);
     }
 }
