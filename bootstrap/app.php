@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'custom.auth' => \App\Http\Middleware\AuthMiddleware::class,
             'telecaller.tracking' => \App\Http\Middleware\TelecallerTrackingMiddleware::class,
             'super.admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'webhook.auth' => \App\Http\Middleware\VerifyWebhookApiCredentials::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

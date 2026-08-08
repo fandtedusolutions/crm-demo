@@ -24,6 +24,13 @@ use App\Http\Controllers\API\NatX_Api\NotificationController as NatXApiNotificat
 use App\Http\Controllers\API\NatX_Api\DeviceTokenController as NatXApiDeviceTokenController;
 use App\Http\Controllers\API\NatX_Api\WorkStatusController as NatXApiWorkStatusController;
 use App\Http\Controllers\API\AppVersionController as CrmAppVersionController;
+use App\Http\Controllers\API\Webhook\MetaWhatsAppLeadWebhookController;
+
+// Meta WhatsApp contact webhook (API key + secret)
+Route::prefix('v1/webhooks')->middleware('webhook.auth')->group(function () {
+    Route::post('meta-whatsapp', [MetaWhatsAppLeadWebhookController::class, 'store'])
+        ->name('api.webhooks.meta-whatsapp');
+});
 
 //Call App API Routes
 Route::prefix('v1/call')->group(function () {

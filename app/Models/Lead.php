@@ -39,6 +39,7 @@ class Lead extends Model
         'batch_id',
         'university_id',
         'by_meta',
+        'is_meta_whatsapp',
         'meta_lead_id',
         'marketing_leads_id',
         'marketing_remarks',
@@ -52,6 +53,7 @@ class Lead extends Model
 
     protected $casts = [
         'by_meta' => 'boolean',
+        'is_meta_whatsapp' => 'boolean',
         'is_converted' => 'boolean',
         'is_b2b' => 'boolean',
         'followup_date' => 'date',

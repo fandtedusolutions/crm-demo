@@ -43,6 +43,15 @@ return [
     ],
 
     /*
+    | Incoming Meta WhatsApp / Natdemy webhook credentials.
+    | Callers must send X-API-Key and X-API-Secret headers.
+    */
+    'natdemy_webhook' => [
+        'api_key' => env('NATDEMY_API_KEY'),
+        'api_secret' => env('NATDEMY_API_SECRET'),
+    ],
+
+    /*
     | NatX Firebase Cloud Messaging (HTTP v1).
     | google-services.json is for the mobile app only.
     | Server needs a Firebase service account JSON file.
