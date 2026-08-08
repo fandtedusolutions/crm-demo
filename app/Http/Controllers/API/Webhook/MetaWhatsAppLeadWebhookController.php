@@ -27,22 +27,28 @@ class MetaWhatsAppLeadWebhookController extends Controller
      * Receive Meta WhatsApp contact webhooks and create CRM leads.
      *
      * POST /api/v1/webhooks/meta-whatsapp
-     * Headers: X-API-Key, X-API-Secret
+     * Public endpoint — authenticates via Natdemy delivery only (no API key).
+     * Reads X-Webhook-Event header and/or body event + data payload.
      */
     public function store(Request $request): JsonResponse
     {
         $log = $this->webhookLog();
 
+        $eventFromHeader = (string) $request->header('X-Webhook-Event', '');
+        $eventFromBody = (string) $request->input('event', '');
+        $event = $eventFromHeader !== '' ? $eventFromHeader : $eventFromBody;
+
         $requestContext = [
             'ip' => $request->ip(),
             'content_type' => $request->header('Content-Type'),
+            'x_webhook_event' => $eventFromHeader !== '' ? $eventFromHeader : null,
             'payload' => $request->all(),
         ];
         $log->info('Webhook request received', $requestContext);
         Log::info('[meta-whatsapp-webhook] request received', $requestContext);
 
         try {
-            $validator = Validator::make($request->all(), [
+            $validator = Validator::make(array_merge($request->all(), ['event' => $event]), [
                 'event' => 'required|string|in:contact.created,contact.updated',
                 'data' => 'required|array',
                 'data.id' => 'required',
@@ -61,6 +67,7 @@ class MetaWhatsAppLeadWebhookController extends Controller
                 $context = [
                     'errors' => $validator->errors()->toArray(),
                     'payload' => $request->all(),
+                    'event' => $event,
                 ];
                 $log->warning('Webhook validation failed', $context);
                 Log::warning('[meta-whatsapp-webhook] validation failed', $context);
@@ -72,7 +79,6 @@ class MetaWhatsAppLeadWebhookController extends Controller
                 ], 422);
             }
 
-            $event = (string) $request->input('event');
             $contact = $request->input('data', []);
             $sentAt = (string) $request->input('sent_at', '');
             $isMetaWhatsapp = $request->has('is_meta_whatsapp')
@@ -181,7 +187,7 @@ class MetaWhatsAppLeadWebhookController extends Controller
                 'lead_id' => $lead->id,
                 'lead_source_id' => 7,
                 'is_meta_whatsapp' => (int) $lead->is_meta_whatsapp,
-            ], 201);
+            ], 200);
         } catch (\Throwable $e) {
             $errorContext = [
                 'error' => $e->getMessage(),

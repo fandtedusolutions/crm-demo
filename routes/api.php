@@ -26,11 +26,9 @@ use App\Http\Controllers\API\NatX_Api\WorkStatusController as NatXApiWorkStatusC
 use App\Http\Controllers\API\AppVersionController as CrmAppVersionController;
 use App\Http\Controllers\API\Webhook\MetaWhatsAppLeadWebhookController;
 
-// Meta WhatsApp contact webhook (API key + secret)
-Route::prefix('v1/webhooks')->middleware('webhook.auth')->group(function () {
-    Route::post('meta-whatsapp', [MetaWhatsAppLeadWebhookController::class, 'store'])
-        ->name('api.webhooks.meta-whatsapp');
-});
+// Meta WhatsApp contact webhook (public — no API key)
+Route::post('v1/webhooks/meta-whatsapp', [MetaWhatsAppLeadWebhookController::class, 'store'])
+    ->name('api.webhooks.meta-whatsapp');
 
 //Call App API Routes
 Route::prefix('v1/call')->group(function () {
