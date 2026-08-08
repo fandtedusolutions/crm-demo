@@ -40,6 +40,9 @@
                     <a href="{{ route('admin.hospital-administration-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.hospital-administration-converted-leads.index') }}">
                         <i class="ti ti-building-hospital"></i> Diploma in Hospital Administration Converted Leads
                     </a>
+                    <a href="{{ route('admin.ai-integrated-sales-marketing-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.ai-integrated-sales-marketing-converted-leads.index') }}">
+                        <i class="ti ti-chart-arrows"></i> AI-Integrated Sales & Marketing Converted Leads
+                    </a>
                     <a href="{{ route('admin.gmvss-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.gmvss-converted-leads.index') }}">
                         <i class="ti ti-certificate"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Leads
                     </a>

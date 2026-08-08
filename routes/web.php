@@ -959,6 +959,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // Certificate Course in Medical Coding / Diploma in Hospital Administration Converted Leads
         Route::get('/medical-coding-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'medicalCodingIndex'])->name('medical-coding-converted-leads.index');
         Route::get('/hospital-administration-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'hospitalAdministrationIndex'])->name('hospital-administration-converted-leads.index');
+        Route::get('/ai-integrated-sales-marketing-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'aiIntegratedSalesMarketingIndex'])->name('ai-integrated-sales-marketing-converted-leads.index');
 
         // Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Leads Routes
         Route::get('/gmvss-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'gmvssIndex'])->name('gmvss-converted-leads.index');

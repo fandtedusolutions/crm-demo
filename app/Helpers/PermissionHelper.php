@@ -235,6 +235,7 @@ class PermissionHelper
             'admin/hotel-management-converted-leads/index',
             'admin/medical-coding-converted-leads/index',
             'admin/hospital-administration-converted-leads/index',
+            'admin/ai-integrated-sales-marketing-converted-leads/index',
             'admin/gmvss-converted-leads/index',
             'admin/ai-python-converted-leads/index',
             'admin/digital-marketing-converted-leads/index',

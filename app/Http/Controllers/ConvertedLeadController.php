@@ -2399,6 +2399,19 @@ class ConvertedLeadController extends Controller
         ]);
     }
 
+    /**
+     * AI-Integrated Sales & Marketing converted leads (course_id = 29)
+     */
+    public function aiIntegratedSalesMarketingIndex(Request $request)
+    {
+        return $this->programmeCourseConvertedLeadsIndex(29, 'flutter-index', 'aiIntegratedSalesMarketingConvertedLeadsTable', [
+            'pageCourseName' => 'AI-Integrated Sales & Marketing',
+            'pageCourseId' => 29,
+            'pageRouteName' => 'admin.ai-integrated-sales-marketing-converted-leads.index',
+            'exportPage' => 'ai-integrated-sales-marketing',
+        ]);
+    }
+
     public function aiIntegratedVideoEditingIndex(Request $request)
     {
         return $this->programmeCourseConvertedLeadsIndex(30, 'ai-integrated-video-editing-index', 'aiIntegratedVideoEditingConvertedLeadsTable');
