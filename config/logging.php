@@ -127,6 +127,14 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'meta_whatsapp_webhook' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/meta-whatsapp-webhook.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

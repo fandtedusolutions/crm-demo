@@ -12,9 +12,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Psr\Log\LoggerInterface;
 
 class MetaWhatsAppLeadWebhookController extends Controller
 {
+    protected function webhookLog(): LoggerInterface
+    {
+        return Log::channel('meta_whatsapp_webhook');
+    }
+
     /**
      * Receive Meta WhatsApp contact webhooks and create CRM leads.
      *
@@ -23,54 +29,88 @@ class MetaWhatsAppLeadWebhookController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'event' => 'required|string|in:contact.created,contact.updated',
-            'data' => 'required|array',
-            'data.id' => 'required',
-            'data.name' => 'required|string|max:255',
-            'data.phone' => 'required|string|max:30',
-            'data.created_at' => 'nullable|string|max:100',
-            'data.remark' => 'nullable|string',
-            'data.remarks' => 'nullable|string',
-            'remark' => 'nullable|string',
-            'remarks' => 'nullable|string',
-            'is_meta_whatsapp' => 'nullable|boolean',
-            'sent_at' => 'nullable|string|max:100',
-        ]);
+        $log = $this->webhookLog();
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $event = (string) $request->input('event');
-        $contact = $request->input('data', []);
-        $sentAt = (string) $request->input('sent_at', '');
-        $isMetaWhatsapp = $request->has('is_meta_whatsapp')
-            ? (int) filter_var($request->input('is_meta_whatsapp'), FILTER_VALIDATE_BOOLEAN)
-            : 1;
-
-        $phoneData = PhoneNumberHelper::get_phone_code((string) ($contact['phone'] ?? ''));
-        $code = (string) ($phoneData['code'] ?? '');
-        $phone = (string) ($phoneData['phone'] ?? '');
-
-        if ($code === '' || $phone === '') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid phone number',
-            ], 422);
-        }
-
-        $remark = $this->resolveRemark($request, $contact, $event, $sentAt);
+        $requestContext = [
+            'ip' => $request->ip(),
+            'content_type' => $request->header('Content-Type'),
+            'payload' => $request->all(),
+        ];
+        $log->info('Webhook request received', $requestContext);
+        Log::info('[meta-whatsapp-webhook] request received', $requestContext);
 
         try {
-            $lead = DB::transaction(function () use ($event, $contact, $code, $phone, $remark, $isMetaWhatsapp) {
+            $validator = Validator::make($request->all(), [
+                'event' => 'required|string|in:contact.created,contact.updated',
+                'data' => 'required|array',
+                'data.id' => 'required',
+                'data.name' => 'required|string|max:255',
+                'data.phone' => 'required|string|max:30',
+                'data.created_at' => 'nullable|string|max:100',
+                'data.remark' => 'nullable|string',
+                'data.remarks' => 'nullable|string',
+                'remark' => 'nullable|string',
+                'remarks' => 'nullable|string',
+                'is_meta_whatsapp' => 'nullable|boolean',
+                'sent_at' => 'nullable|string|max:100',
+            ]);
+
+            if ($validator->fails()) {
+                $context = [
+                    'errors' => $validator->errors()->toArray(),
+                    'payload' => $request->all(),
+                ];
+                $log->warning('Webhook validation failed', $context);
+                Log::warning('[meta-whatsapp-webhook] validation failed', $context);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $event = (string) $request->input('event');
+            $contact = $request->input('data', []);
+            $sentAt = (string) $request->input('sent_at', '');
+            $isMetaWhatsapp = $request->has('is_meta_whatsapp')
+                ? (int) filter_var($request->input('is_meta_whatsapp'), FILTER_VALIDATE_BOOLEAN)
+                : 1;
+
+            $rawPhone = (string) ($contact['phone'] ?? '');
+            $phoneData = PhoneNumberHelper::get_phone_code($rawPhone);
+            $code = (string) ($phoneData['code'] ?? '');
+            $phone = (string) ($phoneData['phone'] ?? '');
+
+            $log->info('Parsed phone', [
+                'raw_phone' => $rawPhone,
+                'code' => $code,
+                'phone' => $phone,
+            ]);
+
+            if ($code === '' || $phone === '') {
+                $log->error('Invalid phone number after parse', [
+                    'raw_phone' => $rawPhone,
+                    'phone_data' => $phoneData,
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid phone number',
+                ], 422);
+            }
+
+            $remark = $this->resolveRemark($request, $contact, $event, $sentAt);
+
+            $lead = DB::transaction(function () use ($event, $contact, $code, $phone, $remark, $isMetaWhatsapp, $log) {
                 $existing = $this->findExistingMetaWhatsappLead($code, $phone, $contact['id'] ?? null);
 
                 if ($existing) {
+                    $log->info('Updating existing Meta WhatsApp lead', [
+                        'lead_id' => $existing->id,
+                        'event' => $event,
+                    ]);
+
                     $existing->update([
                         'title' => $contact['name'],
                         'code' => $code,
@@ -97,6 +137,12 @@ class MetaWhatsAppLeadWebhookController extends Controller
                 }
 
                 $telecallerId = $this->assignTelecallerRoundRobin();
+
+                $log->info('Creating new Meta WhatsApp lead', [
+                    'event' => $event,
+                    'contact_id' => $contact['id'] ?? null,
+                    'telecaller_id' => $telecallerId,
+                ]);
 
                 $lead = Lead::create([
                     'title' => $contact['name'],
@@ -126,6 +172,14 @@ class MetaWhatsAppLeadWebhookController extends Controller
                 return $lead;
             });
 
+            $successContext = [
+                'lead_id' => $lead->id,
+                'event' => $event,
+                'is_meta_whatsapp' => (int) $lead->is_meta_whatsapp,
+            ];
+            $log->info('Webhook processed successfully', $successContext);
+            Log::info('[meta-whatsapp-webhook] processed successfully', $successContext);
+
             return response()->json([
                 'success' => true,
                 'message' => $event === 'contact.updated' ? 'Lead updated' : 'Lead created',
@@ -134,15 +188,21 @@ class MetaWhatsAppLeadWebhookController extends Controller
                 'is_meta_whatsapp' => (int) $lead->is_meta_whatsapp,
             ], 201);
         } catch (\Throwable $e) {
-            Log::error('Meta WhatsApp webhook failed', [
+            $errorContext = [
                 'error' => $e->getMessage(),
-                'event' => $event,
-                'contact_id' => $contact['id'] ?? null,
-            ]);
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'payload' => $request->all(),
+            ];
+            $log->error('Meta WhatsApp webhook failed', $errorContext);
+            Log::error('[meta-whatsapp-webhook] failed: '.$e->getMessage(), $errorContext);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to process webhook',
+                'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
     }
@@ -206,6 +266,8 @@ class MetaWhatsAppLeadWebhookController extends Controller
     {
         $telecallers = User::where('role_id', 3)->get(['id']);
         if ($telecallers->isEmpty()) {
+            $this->webhookLog()->warning('No telecallers found for round-robin assignment');
+
             return null;
         }
 
