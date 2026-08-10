@@ -41,8 +41,9 @@ class ConvertedLeadsReportController extends Controller
 
         $convertedLeads = $this->buildQuery($fromDate, $toDate, $filters)
             ->orderByDesc('converted_leads.created_at')
-            ->paginate(50)
-            ->withQueryString();
+            ->get();
+
+        $totalConverted = $convertedLeads->count();
 
         $leadSources = LeadSource::where('is_active', true)->orderBy('title')->get(['id', 'title']);
         $courses = Course::where('is_active', true)->orderBy('title')->get(['id', 'title']);
@@ -50,6 +51,7 @@ class ConvertedLeadsReportController extends Controller
 
         return view('admin.reports.converted-leads-report', compact(
             'convertedLeads',
+            'totalConverted',
             'fromDate',
             'toDate',
             'filters',

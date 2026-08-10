@@ -150,7 +150,7 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="mb-1">Total Converted</h6>
-                    <h3 class="mb-0 text-success">{{ $convertedLeads->total() }}</h3>
+                    <h3 class="mb-0 text-success">{{ $totalConverted }}</h3>
                 </div>
                 <div class="text-muted">
                     {{ \Carbon\Carbon::parse($fromDate)->format('d M Y') }}
@@ -170,8 +170,8 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle">
-                        <thead class="table-light">
+                    <table id="convertedLeadsReportTable" class="table table-hover nowrap w-100">
+                        <thead>
                             <tr>
                                 <th>#</th>
                                 <th>Converted Date</th>
@@ -191,11 +191,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($convertedLeads as $index => $convertedLead)
+                            @foreach($convertedLeads as $index => $convertedLead)
                                 @php $lead = $convertedLead->lead; @endphp
                                 <tr>
-                                    <td>{{ $convertedLeads->firstItem() + $index }}</td>
-                                    <td>{{ optional($convertedLead->created_at)->format('d M Y H:i') }}</td>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td data-order="{{ optional($convertedLead->created_at)->timestamp }}">
+                                        {{ optional($convertedLead->created_at)->format('d M Y H:i') }}
+                                    </td>
                                     <td>{{ $convertedLead->name ?: optional($lead)->title ?: 'N/A' }}</td>
                                     <td>{{ optional(optional($lead)->telecaller)->name ?: 'N/A' }}</td>
                                     <td>{{ \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone) }}</td>
@@ -208,8 +210,12 @@
                                     </td>
                                     <td>{{ optional(optional($lead)->course)->title ?: optional($convertedLead->course)->title ?: 'N/A' }}</td>
                                     <td>{{ optional(optional($lead)->createdBy)->name ?: 'N/A' }}</td>
-                                    <td>{{ optional(optional($lead)->first_created_at)->format('d M Y H:i') ?: 'N/A' }}</td>
-                                    <td>{{ optional(optional($lead)->created_at)->format('d M Y H:i') ?: 'N/A' }}</td>
+                                    <td data-order="{{ optional(optional($lead)->first_created_at)->timestamp }}">
+                                        {{ optional(optional($lead)->first_created_at)->format('d M Y H:i') ?: 'N/A' }}
+                                    </td>
+                                    <td data-order="{{ optional(optional($lead)->created_at)->timestamp }}">
+                                        {{ optional(optional($lead)->created_at)->format('d M Y H:i') ?: 'N/A' }}
+                                    </td>
                                     <td>
                                         @if(optional($lead)->leadStatus)
                                             <span class="badge" style="background-color: {{ $lead->leadStatus->color ?? '#6c757d' }}">
@@ -232,24 +238,47 @@
                                         @endif
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="15" class="text-center py-5 text-muted">
-                                        No converted leads found for the selected filters.
-                                    </td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
-
-                @if($convertedLeads->hasPages())
-                    <div class="d-flex justify-content-end mt-3">
-                        {{ $convertedLeads->links() }}
-                    </div>
-                @endif
             </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    if ($.fn.DataTable.isDataTable('#convertedLeadsReportTable')) {
+        $('#convertedLeadsReportTable').DataTable().destroy();
+    }
+
+    $('#convertedLeadsReportTable').DataTable({
+        scrollX: true,
+        autoWidth: false,
+        pageLength: 25,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
+        order: [[1, 'desc']],
+        columnDefs: [
+            { orderable: false, targets: [0] }
+        ],
+        language: {
+            search: 'Search:',
+            lengthMenu: 'Show _MENU_ entries',
+            info: 'Showing _START_ to _END_ of _TOTAL_ entries',
+            infoEmpty: 'Showing 0 to 0 of 0 entries',
+            zeroRecords: 'No converted leads found for the selected filters',
+            emptyTable: 'No converted leads found for the selected filters',
+            paginate: {
+                first: 'First',
+                last: 'Last',
+                next: 'Next',
+                previous: 'Previous'
+            }
+        }
+    });
+});
+</script>
+@endpush
