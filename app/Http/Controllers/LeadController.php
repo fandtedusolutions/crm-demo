@@ -2441,6 +2441,9 @@ class LeadController extends Controller
                 $leadData['created_by'] = $currentUserId;
                 $leadData['updated_by'] = $currentUserId;
                 $leadData['first_created_at'] = now();
+                $leadData['first_lead_source_id'] = $leadData['lead_source_id'] ?? null;
+                $leadData['first_lead_course_id'] = $leadData['course_id'] ?? null;
+                $leadData['first_lead_status_id'] = $leadData['lead_status_id'] ?? null;
                 
                 // Handle is_b2b logic
                 if (RoleHelper::is_admin_or_super_admin() && $request->has('is_b2b')) {
@@ -2535,6 +2538,9 @@ class LeadController extends Controller
         $data['created_by'] = AuthHelper::getCurrentUserId();
         $data['updated_by'] = AuthHelper::getCurrentUserId();
         $data['first_created_at'] = now();
+        $data['first_lead_source_id'] = $request->lead_source_id;
+        $data['first_lead_course_id'] = $request->course_id;
+        $data['first_lead_status_id'] = $request->lead_status_id;
         
         // Handle is_b2b logic
         if (RoleHelper::is_admin_or_super_admin() && $request->has('is_b2b')) {
@@ -3527,6 +3533,9 @@ class LeadController extends Controller
                     'lead_status_id' => $request->lead_status_id,
                     'interest_status' => $interestStatus,
                     'course_id' => $request->course_id,
+                    'first_lead_source_id' => $request->lead_source_id,
+                    'first_lead_course_id' => $request->course_id,
+                    'first_lead_status_id' => $request->lead_status_id,
                     'telecaller_id' => $telecallerId,
                     'team_id' => $teamId,
                     'created_by' => AuthHelper::getCurrentUserId(),

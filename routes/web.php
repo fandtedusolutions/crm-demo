@@ -790,6 +790,8 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
 
         // Reports routes
         Route::get('/reports/leads', [App\Http\Controllers\LeadReportController::class, 'index'])->name('reports.leads');
+        Route::get('/reports/converted-leads-report', [App\Http\Controllers\ConvertedLeadsReportController::class, 'index'])->name('reports.converted-leads-report');
+        Route::get('/reports/converted-leads-report/export/excel', [App\Http\Controllers\ConvertedLeadsReportController::class, 'exportExcel'])->name('reports.converted-leads-report.excel');
         Route::get('/reports/lead-status', [App\Http\Controllers\LeadReportController::class, 'leadStatusReport'])->name('reports.lead-status');
         Route::get('/reports/lead-source', [App\Http\Controllers\LeadReportController::class, 'leadSourceReport'])->name('reports.lead-source');
         Route::get('/reports/team', [App\Http\Controllers\LeadReportController::class, 'teamReport'])->name('reports.team');

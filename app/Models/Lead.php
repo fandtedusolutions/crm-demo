@@ -27,7 +27,9 @@ class Lead extends Model
         'interest_status',
         'rating',
         'lead_status_id',
+        'first_lead_status_id',
         'lead_source_id',
+        'first_lead_source_id',
         'address',
         'telecaller_id',
         'team_id',
@@ -36,6 +38,7 @@ class Lead extends Model
         'updated_by',
         'deleted_by',
         'course_id',
+        'first_lead_course_id',
         'batch_id',
         'university_id',
         'by_meta',
@@ -77,6 +80,17 @@ class Lead extends Model
             if (empty($lead->first_created_at)) {
                 $lead->first_created_at = now();
             }
+
+            // Capture original source/course/status at creation; never overwrite later
+            if (empty($lead->first_lead_source_id) && ! empty($lead->lead_source_id)) {
+                $lead->first_lead_source_id = $lead->lead_source_id;
+            }
+            if (empty($lead->first_lead_course_id) && ! empty($lead->course_id)) {
+                $lead->first_lead_course_id = $lead->course_id;
+            }
+            if (empty($lead->first_lead_status_id) && ! empty($lead->lead_status_id)) {
+                $lead->first_lead_status_id = $lead->lead_status_id;
+            }
         });
     }
 
@@ -117,9 +131,19 @@ class Lead extends Model
         return $this->belongsTo(LeadStatus::class, 'lead_status_id');
     }
 
+    public function firstLeadStatus()
+    {
+        return $this->belongsTo(LeadStatus::class, 'first_lead_status_id');
+    }
+
     public function leadSource()
     {
         return $this->belongsTo(LeadSource::class, 'lead_source_id');
+    }
+
+    public function firstLeadSource()
+    {
+        return $this->belongsTo(LeadSource::class, 'first_lead_source_id');
     }
 
     public function country()
@@ -130,6 +154,11 @@ class Lead extends Model
     public function course()
     {
         return $this->belongsTo(Course::class, 'course_id');
+    }
+
+    public function firstLeadCourse()
+    {
+        return $this->belongsTo(Course::class, 'first_lead_course_id');
     }
 
     public function batch()

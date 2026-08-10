@@ -185,6 +185,17 @@
                 </li>
                 @endif
 
+                @if(has_permission('admin/reports/converted-leads-report'))
+                <li class="pc-item {{ request()->routeIs('admin.reports.converted-leads-report*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.reports.converted-leads-report') }}" class="pc-link">
+                        <span class="pc-micon">
+                            <i class="ti ti-report-analytics"></i>
+                        </span>
+                        <span class="pc-mtext">Converted Leads Report</span>
+                    </a>
+                </li>
+                @endif
+
                 {{-- User Management Section --}}
                 @if(has_permission('admin/telecallers/index') || has_permission('admin/marketing/index') || has_permission('admin/admins/index') || has_permission('admin/admission-counsellors/index') || has_permission('admin/academic-assistants/index') || has_permission('admin/teachers/index') || has_permission('admin/support-team/index') || has_permission('admin/mentor/index') || has_permission('admin/faculty/index') || has_permission('admin/finance/index') || has_permission('admin/hod/index') || has_permission('admin/placement-officers/index'))
                 <li class="pc-item pc-caption">

@@ -141,6 +141,10 @@ class PermissionHelper
             $permissions[] = 'admin/call-analytics/index';
         }
 
+        if (RoleHelper::is_team_lead() || RoleHelper::is_senior_manager()) {
+            $permissions[] = 'admin/reports/converted-leads-report';
+        }
+
         return in_array($permission, $permissions);
     }
 
@@ -326,6 +330,7 @@ class PermissionHelper
             'leads/pullbacked',
             'admin/converted-leads/index',
             'admin/reports/leads',
+            'admin/reports/converted-leads-report',
             'admin/marketing/index',
             // User Management (index pages; actions are guarded in controllers)
             'admin/telecallers/index',
@@ -404,6 +409,7 @@ class PermissionHelper
             'admin/converted-leads/index', // View only, no actions
             'leads/followup', // Followups leads
             'admin/reports/leads', // Lead reports
+            'admin/reports/converted-leads-report', // Converted Leads Report
             'admin/reports/lead-efficiency', // Advanced Reports - Source Efficiency
             'admin/reports/lead-stage-movement', // Advanced Reports - Stage Movement
             'admin/reports/lead-aging', // Advanced Reports - Lead Aging
