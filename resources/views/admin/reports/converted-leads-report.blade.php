@@ -26,7 +26,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <form method="GET" action="{{ route('admin.reports.converted-leads-report') }}" id="convertedLeadsReportFilter">
+                <form id="convertedLeadsReportFilter" onsubmit="return false;">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-2">
                             <label for="date_from" class="form-label">Converted From</label>
@@ -46,13 +46,13 @@
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex gap-2 flex-wrap">
-                                <button type="submit" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" id="applyConvertedLeadsFilters">
                                     <i class="ti ti-filter"></i> Filter
                                 </button>
-                                <a href="{{ route('admin.reports.converted-leads-report') }}" class="btn btn-outline-secondary">
+                                <button type="button" class="btn btn-outline-secondary" id="resetConvertedLeadsFilters">
                                     <i class="ti ti-refresh"></i> Reset
-                                </a>
-                                <a href="{{ route('admin.reports.converted-leads-report.excel', request()->query()) }}" class="btn btn-success">
+                                </button>
+                                <a href="{{ route('admin.reports.converted-leads-report.excel') }}" class="btn btn-success" id="exportConvertedLeadsExcel">
                                     <i class="ti ti-file-excel"></i> Excel
                                 </a>
                             </div>
@@ -150,9 +150,9 @@
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="mb-1">Total Converted</h6>
-                    <h3 class="mb-0 text-success">{{ $totalConverted }}</h3>
+                    <h3 class="mb-0 text-success" id="convertedLeadsTotalCount">0</h3>
                 </div>
-                <div class="text-muted">
+                <div class="text-muted" id="convertedLeadsDateRange">
                     {{ \Carbon\Carbon::parse($fromDate)->format('d M Y') }}
                     –
                     {{ \Carbon\Carbon::parse($toDate)->format('d M Y') }}
@@ -190,56 +190,7 @@
                                 <th>First Lead Status</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @foreach($convertedLeads as $index => $convertedLead)
-                                @php $lead = $convertedLead->lead; @endphp
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td data-order="{{ optional($convertedLead->created_at)->timestamp }}">
-                                        {{ optional($convertedLead->created_at)->format('d M Y H:i') }}
-                                    </td>
-                                    <td>{{ $convertedLead->name ?: optional($lead)->title ?: 'N/A' }}</td>
-                                    <td>{{ optional(optional($lead)->telecaller)->name ?: 'N/A' }}</td>
-                                    <td>{{ \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone) }}</td>
-                                    <td>
-                                        @if($lead && $lead->is_b2b)
-                                            <span class="badge bg-info">B2B</span>
-                                        @else
-                                            <span class="badge bg-secondary">In House</span>
-                                        @endif
-                                    </td>
-                                    <td>{{ optional(optional($lead)->course)->title ?: optional($convertedLead->course)->title ?: 'N/A' }}</td>
-                                    <td>{{ optional(optional($lead)->createdBy)->name ?: 'N/A' }}</td>
-                                    <td data-order="{{ optional(optional($lead)->first_created_at)->timestamp }}">
-                                        {{ optional(optional($lead)->first_created_at)->format('d M Y H:i') ?: 'N/A' }}
-                                    </td>
-                                    <td data-order="{{ optional(optional($lead)->created_at)->timestamp }}">
-                                        {{ optional(optional($lead)->created_at)->format('d M Y H:i') ?: 'N/A' }}
-                                    </td>
-                                    <td>
-                                        @if(optional($lead)->leadStatus)
-                                            <span class="badge" style="background-color: {{ $lead->leadStatus->color ?? '#6c757d' }}">
-                                                {{ $lead->leadStatus->title }}
-                                            </span>
-                                        @else
-                                            N/A
-                                        @endif
-                                    </td>
-                                    <td>{{ optional(optional($lead)->leadSource)->title ?: 'N/A' }}</td>
-                                    <td>{{ optional(optional($lead)->firstLeadSource)->title ?: 'N/A' }}</td>
-                                    <td>{{ optional(optional($lead)->firstLeadCourse)->title ?: 'N/A' }}</td>
-                                    <td>
-                                        @if(optional($lead)->firstLeadStatus)
-                                            <span class="badge" style="background-color: {{ $lead->firstLeadStatus->color ?? '#6c757d' }}">
-                                                {{ $lead->firstLeadStatus->title }}
-                                            </span>
-                                        @else
-                                            N/A
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -251,20 +202,116 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    const exportBaseUrl = @json(route('admin.reports.converted-leads-report.excel'));
+    const dataUrl = @json(route('admin.reports.converted-leads-report.data'));
+    const defaultFromDate = @json($fromDate);
+    const defaultToDate = @json($toDate);
+
+    $('#convertedLeadsReportTable').removeClass('data_table_basic datatable');
+
+    function getFilterParams() {
+        return {
+            date_from: $('#date_from').val() || '',
+            date_to: $('#date_to').val() || '',
+            is_b2b: $('#is_b2b').val() || '',
+            lead_source_id: $('#lead_source_id').val() || '',
+            course_id: $('#course_id').val() || '',
+            lead_status_id: $('#lead_status_id').val() || '',
+            first_lead_source_id: $('#first_lead_source_id').val() || '',
+            first_lead_course_id: $('#first_lead_course_id').val() || '',
+            first_lead_status_id: $('#first_lead_status_id').val() || ''
+        };
+    }
+
+    function buildQueryString(params) {
+        const searchParams = new URLSearchParams();
+        Object.keys(params).forEach(function(key) {
+            const value = params[key];
+            if (value !== undefined && value !== null && String(value).trim() !== '') {
+                searchParams.append(key, value);
+            }
+        });
+        return searchParams.toString();
+    }
+
+    function updateExportButton() {
+        const queryString = buildQueryString(getFilterParams());
+        $('#exportConvertedLeadsExcel').attr('href', queryString ? `${exportBaseUrl}?${queryString}` : exportBaseUrl);
+    }
+
+    function updateDateRangeLabel() {
+        const fromDate = $('#date_from').val() || defaultFromDate;
+        const toDate = $('#date_to').val() || defaultToDate;
+        $('#convertedLeadsDateRange').text(formatDisplayDate(fromDate) + ' – ' + formatDisplayDate(toDate));
+    }
+
+    function formatDisplayDate(dateStr) {
+        if (!dateStr) {
+            return '';
+        }
+        const date = new Date(dateStr + 'T00:00:00');
+        if (Number.isNaN(date.getTime())) {
+            return dateStr;
+        }
+        return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+
+    function updateUrlWithFilters() {
+        const queryString = buildQueryString(getFilterParams());
+        const newUrl = queryString
+            ? `${window.location.pathname}?${queryString}`
+            : window.location.pathname;
+        window.history.replaceState({}, '', newUrl);
+    }
+
     if ($.fn.DataTable.isDataTable('#convertedLeadsReportTable')) {
         $('#convertedLeadsReportTable').DataTable().destroy();
     }
 
-    $('#convertedLeadsReportTable').DataTable({
+    const reportTable = $('#convertedLeadsReportTable').DataTable({
+        processing: true,
+        serverSide: true,
+        searching: true,
         scrollX: true,
         autoWidth: false,
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']],
         order: [[1, 'desc']],
-        columnDefs: [
-            { orderable: false, targets: [0] }
+        ajax: {
+            url: dataUrl,
+            type: 'GET',
+            data: function(d) {
+                $.extend(d, getFilterParams());
+            },
+            error: function() {
+                if (typeof showToast === 'function') {
+                    showToast('Error loading converted leads report. Please try again.', 'error');
+                }
+            }
+        },
+        columns: [
+            { data: 0, orderable: false, searchable: false },
+            { data: 1 },
+            { data: 2 },
+            { data: 3, orderable: false },
+            { data: 4 },
+            { data: 5, orderable: false },
+            { data: 6 },
+            { data: 7, orderable: false },
+            { data: 8, orderable: false },
+            { data: 9, orderable: false },
+            { data: 10, orderable: false },
+            { data: 11, orderable: false },
+            { data: 12, orderable: false },
+            { data: 13, orderable: false },
+            { data: 14, orderable: false }
         ],
         language: {
+            processing: 'Loading...',
             search: 'Search:',
             lengthMenu: 'Show _MENU_ entries',
             info: 'Showing _START_ to _END_ of _TOTAL_ entries',
@@ -277,7 +324,40 @@ $(document).ready(function() {
                 next: 'Next',
                 previous: 'Previous'
             }
+        },
+        drawCallback: function(settings) {
+            const api = this.api();
+            const json = api.ajax.json();
+            if (json && typeof json.recordsFiltered !== 'undefined') {
+                $('#convertedLeadsTotalCount').text(json.recordsFiltered);
+            }
         }
+    });
+
+    updateExportButton();
+    updateDateRangeLabel();
+
+    $('#applyConvertedLeadsFilters').on('click', function() {
+        updateExportButton();
+        updateDateRangeLabel();
+        updateUrlWithFilters();
+        reportTable.ajax.reload();
+    });
+
+    $('#resetConvertedLeadsFilters').on('click', function() {
+        $('#date_from').val(defaultFromDate);
+        $('#date_to').val(defaultToDate);
+        $('#is_b2b').val('');
+        $('#lead_source_id').val('');
+        $('#course_id').val('');
+        $('#lead_status_id').val('');
+        $('#first_lead_source_id').val('');
+        $('#first_lead_course_id').val('');
+        $('#first_lead_status_id').val('');
+        updateExportButton();
+        updateDateRangeLabel();
+        updateUrlWithFilters();
+        reportTable.ajax.reload();
     });
 });
 </script>
