@@ -25,138 +25,161 @@
 <div class="row mb-3">
     <div class="col-12">
         <div class="card">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h5 class="mb-0">
+                        <i class="ti ti-filter me-1"></i>Report Filters
+                    </h5>
+                    <small class="text-muted">Set date range, then filter by current or first lead values</small>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-end">
+                        <div class="text-muted small">Total Converted</div>
+                        <div class="fw-bold text-success fs-4 lh-1" id="convertedLeadsTotalCount">0</div>
+                    </div>
+                    <div class="vr d-none d-sm-block"></div>
+                    <div class="text-muted small" id="convertedLeadsDateRange">
+                        {{ \Carbon\Carbon::parse($fromDate)->format('d M Y') }}
+                        –
+                        {{ \Carbon\Carbon::parse($toDate)->format('d M Y') }}
+                    </div>
+                </div>
+            </div>
             <div class="card-body">
                 <form id="convertedLeadsReportFilter" onsubmit="return false;">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-2">
-                            <label for="date_from" class="form-label">Converted From</label>
-                            <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $fromDate }}">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="avtar avtar-xs bg-light-primary">
+                                <i class="ti ti-calendar text-primary"></i>
+                            </span>
+                            <h6 class="mb-0">Conversion Period</h6>
                         </div>
-                        <div class="col-md-2">
-                            <label for="date_to" class="form-label">Converted To</label>
-                            <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $toDate }}">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="is_b2b" class="form-label">Type</label>
-                            <select class="form-select" id="is_b2b" name="is_b2b">
-                                <option value="">All Types</option>
-                                <option value="0" {{ (string) $filters['is_b2b'] === '0' ? 'selected' : '' }}>In House</option>
-                                <option value="1" {{ (string) $filters['is_b2b'] === '1' ? 'selected' : '' }}>B2B</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex gap-2 flex-wrap">
-                                <button type="button" class="btn btn-primary" id="applyConvertedLeadsFilters">
-                                    <i class="ti ti-filter"></i> Filter
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" id="resetConvertedLeadsFilters">
-                                    <i class="ti ti-refresh"></i> Reset
-                                </button>
-                                <a href="{{ route('admin.reports.converted-leads-report.excel') }}" class="btn btn-success" id="exportConvertedLeadsExcel">
-                                    <i class="ti ti-file-excel"></i> Excel
-                                </a>
+                        <div class="row g-3">
+                            <div class="col-md-4 col-lg-3">
+                                <label for="date_from" class="form-label">Converted From</label>
+                                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ $fromDate }}">
+                            </div>
+                            <div class="col-md-4 col-lg-3">
+                                <label for="date_to" class="form-label">Converted To</label>
+                                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ $toDate }}">
+                            </div>
+                            <div class="col-md-4 col-lg-3">
+                                <label for="is_b2b" class="form-label">Type</label>
+                                <select class="form-select" id="is_b2b" name="is_b2b">
+                                    <option value="">All Types</option>
+                                    <option value="0" {{ (string) $filters['is_b2b'] === '0' ? 'selected' : '' }}>In House</option>
+                                    <option value="1" {{ (string) $filters['is_b2b'] === '1' ? 'selected' : '' }}>B2B</option>
+                                </select>
                             </div>
                         </div>
                     </div>
 
-                    <hr class="my-3">
-
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <h6 class="mb-0 text-muted">Current Lead Filters</h6>
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="avtar avtar-xs bg-light-info">
+                                <i class="ti ti-user-check text-info"></i>
+                            </span>
+                            <div>
+                                <h6 class="mb-0">Current Lead Filters</h6>
+                                <small class="text-muted">Filter by the lead’s current source, course, and status</small>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="lead_source_id" class="form-label">Lead Source</label>
-                            <select class="form-select" id="lead_source_id" name="lead_source_id">
-                                <option value="">All Sources</option>
-                                @foreach($leadSources as $source)
-                                    <option value="{{ $source->id }}" {{ (string) $filters['lead_source_id'] === (string) $source->id ? 'selected' : '' }}>
-                                        {{ $source->title }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="course_id" class="form-label">Course</label>
-                            <select class="form-select" id="course_id" name="course_id">
-                                <option value="">All Courses</option>
-                                @foreach($courses as $course)
-                                    <option value="{{ $course->id }}" {{ (string) $filters['course_id'] === (string) $course->id ? 'selected' : '' }}>
-                                        {{ $course->title }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="lead_status_id" class="form-label">Lead Status</label>
-                            <select class="form-select" id="lead_status_id" name="lead_status_id">
-                                <option value="">All Statuses</option>
-                                @foreach($leadStatuses as $status)
-                                    <option value="{{ $status->id }}" {{ (string) $filters['lead_status_id'] === (string) $status->id ? 'selected' : '' }}>
-                                        {{ $status->title }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="lead_source_id" class="form-label">Lead Source</label>
+                                <select class="form-select" id="lead_source_id" name="lead_source_id">
+                                    <option value="">All Sources</option>
+                                    @foreach($leadSources as $source)
+                                        <option value="{{ $source->id }}" {{ (string) $filters['lead_source_id'] === (string) $source->id ? 'selected' : '' }}>
+                                            {{ $source->title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="course_id" class="form-label">Course</label>
+                                <select class="form-select" id="course_id" name="course_id">
+                                    <option value="">All Courses</option>
+                                    @foreach($courses as $course)
+                                        <option value="{{ $course->id }}" {{ (string) $filters['course_id'] === (string) $course->id ? 'selected' : '' }}>
+                                            {{ $course->title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="lead_status_id" class="form-label">Lead Status</label>
+                                <select class="form-select" id="lead_status_id" name="lead_status_id">
+                                    <option value="">All Statuses</option>
+                                    @foreach($leadStatuses as $status)
+                                        <option value="{{ $status->id }}" {{ (string) $filters['lead_status_id'] === (string) $status->id ? 'selected' : '' }}>
+                                            {{ $status->title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row g-3 mt-1">
-                        <div class="col-12">
-                            <h6 class="mb-0 text-muted">First Lead Filters</h6>
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="avtar avtar-xs bg-light-warning">
+                                <i class="ti ti-flag text-warning"></i>
+                            </span>
+                            <div>
+                                <h6 class="mb-0">First Lead Filters</h6>
+                                <small class="text-muted">Filter by the values captured when the lead was first created</small>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="first_lead_source_id" class="form-label">First Lead Source</label>
-                            <select class="form-select" id="first_lead_source_id" name="first_lead_source_id">
-                                <option value="">All Sources</option>
-                                @foreach($leadSources as $source)
-                                    <option value="{{ $source->id }}" {{ (string) $filters['first_lead_source_id'] === (string) $source->id ? 'selected' : '' }}>
-                                        {{ $source->title }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="first_lead_source_id" class="form-label">First Lead Source</label>
+                                <select class="form-select" id="first_lead_source_id" name="first_lead_source_id">
+                                    <option value="">All Sources</option>
+                                    @foreach($leadSources as $source)
+                                        <option value="{{ $source->id }}" {{ (string) $filters['first_lead_source_id'] === (string) $source->id ? 'selected' : '' }}>
+                                            {{ $source->title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="first_lead_course_id" class="form-label">First Lead Course</label>
+                                <select class="form-select" id="first_lead_course_id" name="first_lead_course_id">
+                                    <option value="">All Courses</option>
+                                    @foreach($courses as $course)
+                                        <option value="{{ $course->id }}" {{ (string) $filters['first_lead_course_id'] === (string) $course->id ? 'selected' : '' }}>
+                                            {{ $course->title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="first_lead_status_id" class="form-label">First Lead Status</label>
+                                <select class="form-select" id="first_lead_status_id" name="first_lead_status_id">
+                                    <option value="">All Statuses</option>
+                                    @foreach($leadStatuses as $status)
+                                        <option value="{{ $status->id }}" {{ (string) $filters['first_lead_status_id'] === (string) $status->id ? 'selected' : '' }}>
+                                            {{ $status->title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="first_lead_course_id" class="form-label">First Lead Course</label>
-                            <select class="form-select" id="first_lead_course_id" name="first_lead_course_id">
-                                <option value="">All Courses</option>
-                                @foreach($courses as $course)
-                                    <option value="{{ $course->id }}" {{ (string) $filters['first_lead_course_id'] === (string) $course->id ? 'selected' : '' }}>
-                                        {{ $course->title }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="first_lead_status_id" class="form-label">First Lead Status</label>
-                            <select class="form-select" id="first_lead_status_id" name="first_lead_status_id">
-                                <option value="">All Statuses</option>
-                                @foreach($leadStatuses as $status)
-                                    <option value="{{ $status->id }}" {{ (string) $filters['first_lead_status_id'] === (string) $status->id ? 'selected' : '' }}>
-                                        {{ $status->title }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 justify-content-end pt-2 border-top">
+                        <button type="button" class="btn btn-primary" id="applyConvertedLeadsFilters">
+                            <i class="ti ti-filter me-1"></i>Filter
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="resetConvertedLeadsFilters">
+                            <i class="ti ti-refresh me-1"></i>Reset
+                        </button>
+                        <a href="{{ route('admin.reports.converted-leads-report.excel') }}" class="btn btn-success" id="exportConvertedLeadsExcel">
+                            <i class="ti ti-file-excel me-1"></i>Excel
+                        </a>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mb-3">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="mb-1">Total Converted</h6>
-                    <h3 class="mb-0 text-success" id="convertedLeadsTotalCount">0</h3>
-                </div>
-                <div class="text-muted" id="convertedLeadsDateRange">
-                    {{ \Carbon\Carbon::parse($fromDate)->format('d M Y') }}
-                    –
-                    {{ \Carbon\Carbon::parse($toDate)->format('d M Y') }}
-                </div>
             </div>
         </div>
     </div>
