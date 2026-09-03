@@ -437,10 +437,68 @@
                 container.find('.edit-btn').show();
             });
 
-            // Helper functions for creating form elements
-            function createInputField(field, currentValue) {
-                const displayValue = currentValue === '-' ? '' : currentValue;
-                return `
+            // Click outside to cancel edit
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.inline-edit').length) {
+                    $('.inline-edit').removeClass('editing');
+                    $('.edit-form').remove();
+                }
+            });
+
+            // Handle update register number button clicks
+            $('.update-register-btn').on('click', function(e) {
+                e.preventDefault();
+                const url = $(this).data('url');
+                const title = $(this).data('title');
+                show_small_modal(url, title);
+            });
+
+            // Handle ID card generation form submission
+            $(document).off('submit', '.id-card-generate-form').on('submit', '.id-card-generate-form', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                const form = $(this);
+                const button = form.find('button[type="submit"]');
+
+                if (button.prop('disabled')) {
+                    return false;
+                }
+
+                const originalText = button.html();
+                const loadingText = button.data('loading-text');
+
+                button.prop('disabled', true).html('<i class="ti ti-loader-2 spin"></i> ' + loadingText);
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toast_success(response.message);
+                            setTimeout(function() {
+                                (typeof window.reloadProgrammeCourseDataTable === 'function' ? window.reloadProgrammeCourseDataTable() : location.reload());
+                            }, 1000);
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error generating ID card:', xhr);
+                        toast_error('Error generating ID card. Please try again.');
+                        button.prop('disabled', false).html(originalText);
+                    }
+                });
+
+                return false;
+            });
+        });
+
+        function createInputField(field, currentValue) {
+            const displayValue = currentValue === '-' ? '' : currentValue;
+            return `
                 <div class="edit-form">
                     <input type="text" value="${displayValue}" class="form-control form-control-sm" autocomplete="off" autocapitalize="off" spellcheck="false">
                     <div class="btn-group mt-1">
@@ -449,14 +507,14 @@
                     </div>
                 </div>
             `;
-            }
+        }
 
-            function createDateField(field, currentValue) {
-                const value = (currentValue && currentValue !== '-') ? currentValue : '';
-                const maxDate = (field === 'class_starting_date' || field === 'class_ending_date') ? '' : new Date().toISOString().split('T')[0];
-                const maxAttr = maxDate ? `max="${maxDate}"` : '';
+        function createDateField(field, currentValue) {
+            const value = (currentValue && currentValue !== '-') ? currentValue : '';
+            const maxDate = (field === 'class_starting_date' || field === 'class_ending_date') ? '' : new Date().toISOString().split('T')[0];
+            const maxAttr = maxDate ? `max="${maxDate}"` : '';
 
-                return `
+            return `
                 <div class="edit-form">
                     <input type="date" ${maxAttr} value="${value}" class="form-control form-control-sm">
                     <div class="btn-group mt-1">
@@ -465,11 +523,11 @@
                     </div>
                 </div>
             `;
-            }
+        }
 
-            function createTimeField(field, currentValue) {
-                const value = (currentValue && currentValue !== '-') ? currentValue : '';
-                return `
+        function createTimeField(field, currentValue) {
+            const value = (currentValue && currentValue !== '-') ? currentValue : '';
+            return `
                 <div class="edit-form">
                     <input type="time" value="${value}" class="form-control form-control-sm">
                     <div class="btn-group mt-1">
@@ -478,10 +536,10 @@
                     </div>
                 </div>
             `;
-            }
+        }
 
-            function createBatchSelect(courseId, currentId) {
-                return `
+        function createBatchSelect(courseId, currentId) {
+            return `
                 <div class="edit-form">
                     <select class="form-select form-select-sm">
                         <option value="">Loading...</option>
@@ -492,10 +550,10 @@
                     </div>
                 </div>
             `;
-            }
+        }
 
-            function createAdmissionBatchField(batchId, currentId) {
-                return `
+        function createAdmissionBatchField(batchId, currentId) {
+            return `
                 <div class="edit-form">
                     <select class="form-select form-select-sm" data-batch-id="${batchId}">
                         <option value="">Loading...</option>
@@ -506,54 +564,54 @@
                     </div>
                 </div>
             `;
+        }
+
+        function loadBatchesForEdit($select, courseId, currentId) {
+            if (!courseId) {
+                $select.html('<option value="">No course selected</option>');
+                return;
             }
 
-            function loadBatchesForEdit($select, courseId, currentId) {
-                if (!courseId) {
-                    $select.html('<option value="">No course selected</option>');
-                    return;
-                }
-
-                $.get(`/api/batches/by-course/${courseId}`)
-                    .done(function(response) {
-                        let options = '<option value="">Select Batch</option>';
-                        if (response.success && response.batches) {
-                            response.batches.forEach(function(batch) {
-                                const isSelected = (currentId && String(currentId) === String(batch.id)) ? 'selected' : '';
-                                options += `<option value="${batch.id}" ${isSelected}>${batch.title}</option>`;
-                            });
-                        }
-                        $select.html(options);
-                        $select.focus();
-                    })
-                    .fail(function() {
-                        $select.html('<option value="">Error loading batches</option>');
-                    });
-            }
-
-            function loadAdmissionBatchesForEdit($select, batchId, currentId) {
-                if (!batchId) {
-                    $select.html('<option value="">No batch selected</option>');
-                    return;
-                }
-
-                $.get(`/api/admission-batches/by-batch/${batchId}`)
-                    .done(function(list) {
-                        let options = '<option value="">Select Admission Batch</option>';
-                        list.forEach(function(item) {
-                            const isSelected = (currentId && String(currentId) === String(item.id)) ? 'selected' : '';
-                            options += `<option value="${item.id}" ${isSelected}>${item.title}</option>`;
+            $.get(`/api/batches/by-course/${courseId}`)
+                .done(function(response) {
+                    let options = '<option value="">Select Batch</option>';
+                    if (response.success && response.batches) {
+                        response.batches.forEach(function(batch) {
+                            const isSelected = (currentId && String(currentId) === String(batch.id)) ? 'selected' : '';
+                            options += `<option value="${batch.id}" ${isSelected}>${batch.title}</option>`;
                         });
-                        $select.html(options);
-                        $select.focus();
-                    })
-                    .fail(function() {
-                        $select.html('<option value="">Error loading admission batches</option>');
-                    });
+                    }
+                    $select.html(options);
+                    $select.focus();
+                })
+                .fail(function() {
+                    $select.html('<option value="">Error loading batches</option>');
+                });
+        }
+
+        function loadAdmissionBatchesForEdit($select, batchId, currentId) {
+            if (!batchId) {
+                $select.html('<option value="">No batch selected</option>');
+                return;
             }
 
-            function createClassTimeSelect(courseId, programmeType, currentId) {
-                return `
+            $.get(`/api/admission-batches/by-batch/${batchId}`)
+                .done(function(list) {
+                    let options = '<option value="">Select Admission Batch</option>';
+                    list.forEach(function(item) {
+                        const isSelected = (currentId && String(currentId) === String(item.id)) ? 'selected' : '';
+                        options += `<option value="${item.id}" ${isSelected}>${item.title}</option>`;
+                    });
+                    $select.html(options);
+                    $select.focus();
+                })
+                .fail(function() {
+                    $select.html('<option value="">Error loading admission batches</option>');
+                });
+        }
+
+        function createClassTimeSelect(courseId, programmeType, currentId) {
+            return `
                 <div class="edit-form">
                     <select class="form-select form-select-sm" data-course-id="${courseId}" data-programme-type="${programmeType}">
                         <option value="">Loading...</option>
@@ -564,368 +622,156 @@
                     </div>
                 </div>
             `;
+        }
+
+        function loadClassTimesForEdit($select, courseId, programmeType, currentId) {
+            if (!courseId || !programmeType) {
+                $select.html('<option value="">No course or programme type selected</option>');
+                return;
             }
 
-            function loadClassTimesForEdit($select, courseId, programmeType, currentId) {
-                if (!courseId || !programmeType) {
-                    $select.html('<option value="">No course or programme type selected</option>');
-                    return;
-                }
-
-                $.get(`/api/class-times/by-course/${courseId}?class_type=${programmeType}`)
-                    .done(function(list) {
-                        let options = '<option value="">Select Class Time</option>';
-                        if (list && list.length > 0) {
-                            list.forEach(function(classTime) {
-                                const fromTime = new Date('2000-01-01 ' + classTime.from_time).toLocaleTimeString('en-US', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    hour12: true
-                                });
-                                const toTime = new Date('2000-01-01 ' + classTime.to_time).toLocaleTimeString('en-US', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    hour12: true
-                                });
-                                const isSelected = (currentId && String(currentId) === String(classTime.id)) ? 'selected' : '';
-                                options += `<option value="${classTime.id}" ${isSelected}>${fromTime} - ${toTime}</option>`;
+            $.get(`/api/class-times/by-course/${courseId}?class_type=${programmeType}`)
+                .done(function(list) {
+                    let options = '<option value="">Select Class Time</option>';
+                    if (list && list.length > 0) {
+                        list.forEach(function(classTime) {
+                            const fromTime = new Date('2000-01-01 ' + classTime.from_time).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
                             });
-                        }
-                        $select.html(options);
-                        $select.focus();
-                    })
-                    .fail(function() {
-                        $select.html('<option value="">Error loading class times</option>');
-                    });
-            }
-            admissionBatchContainer.data('batch-id', value || '');
-            // Clear admission batch if batch changed
-            admissionBatchContainer.find('.display-value').text('N/A');
-            admissionBatchContainer.data('current-id', '');
-        }
-    }
-
-    if (field === 'phone') {
-        const codeVal = extra.code || '';
-        container.siblings('.inline-code-value').data('current', codeVal);
-    }
-    toast_success(response.message);
-    }
-    else {
-        toast_error(response.error || 'Update failed');
-    }
-    },
-    error: function(xhr) {
-            let errorMessage = 'Update failed';
-            if (xhr.responseJSON && xhr.responseJSON.error) {
-                errorMessage = xhr.responseJSON.error;
-            } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                errorMessage = xhr.responseJSON.message;
-            }
-            toast_error(errorMessage);
-        },
-        complete: function() {
-            btn.data('busy', false);
-            btn.prop('disabled', false).html('Save');
-            container.removeClass('editing');
-            container.find('.edit-form').remove();
-        }
-    });
-    });
-
-    // Cancel inline edit
-    $(document).off('click.cancelInline').on('click.cancelInline', '.cancel-edit', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const container = $(this).closest('.inline-edit');
-        container.removeClass('editing');
-        container.find('.edit-form').remove();
-    });
-
-    // Click outside to cancel edit
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('.inline-edit').length) {
-            $('.inline-edit').removeClass('editing');
-            $('.edit-form').remove();
-        }
-    });
-
-    // Handle update register number button clicks
-    $('.update-register-btn').on('click', function(e) {
-        e.preventDefault();
-        const url = $(this).data('url');
-        const title = $(this).data('title');
-        show_small_modal(url, title);
-    });
-
-    // Handle ID card generation form submission
-    $(document).off('submit', '.id-card-generate-form').on('submit', '.id-card-generate-form', function(e) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-
-    const form = $(this);
-    const button = form.find('button[type="submit"]');
-
-    if (button.prop('disabled')) {
-        return false;
-    }
-
-    const originalText = button.html();
-    const loadingText = button.data('loading-text');
-
-    button.prop('disabled', true).html('<i class="ti ti-loader-2 spin"></i> ' + loadingText);
-
-    $.ajax({
-        url: form.attr('action'),
-        type: 'POST',
-        data: form.serialize(),
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            if (response.success) {
-                toast_success(response.message);
-                setTimeout(function() {
-                    (typeof window.reloadProgrammeCourseDataTable === 'function' ? window.reloadProgrammeCourseDataTable() : location.reload());
-                }, 1000);
-            }
-        },
-        error: function(xhr) {
-            console.error('Error generating ID card:', xhr);
-            toast_error('Error generating ID card. Please try again.');
-            button.prop('disabled', false).html(originalText);
-        }
-    });
-
-    return false;
-    });
-    });
-
-    function createInputField(field, currentValue) {
-        const value = (currentValue && currentValue !== '-') ? currentValue : '';
-        return `
-            <div class="edit-form">
-                <input type="text" value="${value}" class="form-control form-control-sm">
-                <div class="btn-group mt-1">
-                    <button class="btn btn-success btn-sm save-edit">Save</button>
-                    <button class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
-                </div>
-            </div>
-        `;
-    }
-
-    function createDateField(field, currentValue) {
-        let value = '';
-        if (currentValue && currentValue !== '-') {
-            // Convert d-m-Y to Y-m-d for input
-            const parts = currentValue.split('-');
-            if (parts.length === 3) {
-                value = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-            }
-        }
-        return `
-            <div class="edit-form">
-                <input type="date" value="${value}" class="form-control form-control-sm">
-                <div class="btn-group mt-1">
-                    <button class="btn btn-success btn-sm save-edit">Save</button>
-                    <button class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
-                </div>
-            </div>
-        `;
-    }
-
-    function createTimeField(field, currentValue) {
-        const value = (currentValue && currentValue !== '-') ? currentValue : '';
-        return `
-            <div class="edit-form">
-                <input type="time" value="${value}" class="form-control form-control-sm">
-                <div class="btn-group mt-1">
-                    <button class="btn btn-success btn-sm save-edit">Save</button>
-                    <button class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
-                </div>
-            </div>
-        `;
-    }
-
-    function createBatchSelect(courseId, currentId) {
-        return `
-            <div class="edit-form">
-                <select class="form-select form-select-sm">
-                    <option value="">Loading...</option>
-                </select>
-                <div class="btn-group mt-1">
-                    <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
-                    <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
-                </div>
-            </div>
-        `;
-    }
-
-    function createBatchSelect(courseId, currentId) {
-        return `
-            <div class="edit-form">
-                <select class="form-select form-select-sm">
-                    <option value="">Loading...</option>
-                </select>
-                <div class="btn-group mt-1">
-                    <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
-                    <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
-                </div>
-            </div>
-        `;
-    }
-
-    function createAdmissionBatchField(batchId, currentId) {
-        return `
-            <div class="edit-form">
-                <select class="form-select form-select-sm" data-batch-id="${batchId}">
-                    <option value="">Loading...</option>
-                </select>
-                <div class="btn-group mt-1">
-                    <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
-                    <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
-                </div>
-            </div>
-        `;
-    }
-
-    function loadBatchesForEdit($select, courseId, currentId) {
-        if (!courseId) {
-            $select.html('<option value="">No course selected</option>');
-            return;
-        }
-
-        $.get(`/api/batches/by-course/${courseId}`)
-            .done(function(response) {
-                let options = '<option value="">Select Batch</option>';
-                if (response.success && response.batches) {
-                    response.batches.forEach(function(batch) {
-                        const isSelected = (currentId && String(currentId) === String(batch.id)) ? 'selected' : '';
-                        options += `<option value="${batch.id}" ${isSelected}>${batch.title}</option>`;
-                    });
-                }
-                $select.html(options);
-                $select.focus();
-            })
-            .fail(function() {
-                $select.html('<option value="">Error loading batches</option>');
-            });
-    }
-
-    function loadAdmissionBatchesForEdit($select, batchId, currentId) {
-        if (!batchId) {
-            $select.html('<option value="">No batch selected</option>');
-            return;
-        }
-
-        $.get(`/api/admission-batches/by-batch/${batchId}`)
-            .done(function(list) {
-                let options = '<option value="">Select Admission Batch</option>';
-                list.forEach(function(item) {
-                    const isSelected = (currentId && String(currentId) === String(item.id)) ? 'selected' : '';
-                    options += `<option value="${item.id}" ${isSelected}>${item.title}</option>`;
+                            const toTime = new Date('2000-01-01 ' + classTime.to_time).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                            const isSelected = (currentId && String(currentId) === String(classTime.id)) ? 'selected' : '';
+                            options += `<option value="${classTime.id}" ${isSelected}>${fromTime} - ${toTime}</option>`;
+                        });
+                    }
+                    $select.html(options);
+                    $select.focus();
+                })
+                .fail(function() {
+                    $select.html('<option value="">Error loading class times</option>');
                 });
-                $select.html(options);
-                $select.focus();
-            })
-            .fail(function() {
-                $select.html('<option value="">Error loading admission batches</option>');
-            });
-    }
-
-    function createPhoneField(currentCode, currentPhone) {
-        const codeOptionsEl = document.getElementById('country-codes-json');
-        let codeOptions = {};
-        try {
-            codeOptions = codeOptionsEl ? JSON.parse(codeOptionsEl.textContent || '{}') : {};
-        } catch (e) {
-            codeOptions = {};
         }
-        const buildOptions = (selected) => {
-            let opts = '<option value="">Select Country</option>';
-            for (const c in codeOptions) {
-                const isSel = String(selected) === String(c) ? 'selected' : '';
-                opts += `<option value="${c}" ${isSel}>${c} - ${codeOptions[c]}</option>`;
+
+        function createPhoneField(currentCode, currentPhone) {
+            const codeOptionsEl = document.getElementById('country-codes-json');
+            let codeOptions = {};
+            try {
+                codeOptions = codeOptionsEl ? JSON.parse(codeOptionsEl.textContent || '{}') : {};
+            } catch (e) {
+                codeOptions = {};
             }
-            return opts;
-        };
-        const safePhone = (currentPhone && currentPhone !== 'N/A') ? currentPhone : '';
-        return `
-            <div class="edit-form">
-                <div class="row g-1">
-                    <div class="col-5">
-                        <select class="form-select form-select-sm" name="code">
-                            ${buildOptions(currentCode)}
-                        </select>
+            const buildOptions = (selected) => {
+                let opts = '<option value="">Select Country</option>';
+                for (const c in codeOptions) {
+                    const isSel = String(selected || '').trim() === String(c || '').trim() ? 'selected' : '';
+                    opts += `<option value="${c}" ${isSel}>${c} - ${codeOptions[c]}</option>`;
+                }
+                return opts;
+            };
+            const safePhone = (currentPhone && currentPhone !== 'N/A') ? currentPhone : '';
+            return `
+                <div class="edit-form">
+                    <div class="row g-1">
+                        <div class="col-5">
+                            <select class="form-select form-select-sm" name="code">
+                                ${buildOptions(currentCode)}
+                            </select>
+                        </div>
+                        <div class="col-7">
+                            <input type="text" value="${safePhone}" class="form-control form-control-sm" placeholder="Phone number">
+                        </div>
                     </div>
-                    <div class="col-7">
-                        <input type="text" value="${safePhone}" class="form-control form-control-sm" placeholder="Phone number">
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
                     </div>
                 </div>
-                <div class="btn-group mt-1">
-                    <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
-                    <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
-                </div>
-            </div>
-        `;
-    }
-
-    function createSelectField(field, currentValue) {
-        let options = '';
-
-        if (field === 'call_status') {
-            options = `
-                <option value="">Select Call Status</option>
-                <option value="Call Not Answered" ${currentValue === 'Call Not Answered' ? 'selected' : ''}>Call Not Answered</option>
-                <option value="Switched Off" ${currentValue === 'Switched Off' ? 'selected' : ''}>Switched Off</option>
-                <option value="Line Busy" ${currentValue === 'Line Busy' ? 'selected' : ''}>Line Busy</option>
-                <option value="Student Asks to Call Later" ${currentValue === 'Student Asks to Call Later' ? 'selected' : ''}>Student Asks to Call Later</option>
-                <option value="Lack of Interest in Conversation" ${currentValue === 'Lack of Interest in Conversation' ? 'selected' : ''}>Lack of Interest in Conversation</option>
-                <option value="Wrong Contact" ${currentValue === 'Wrong Contact' ? 'selected' : ''}>Wrong Contact</option>
-                <option value="Inconsistent Responses" ${currentValue === 'Inconsistent Responses' ? 'selected' : ''}>Inconsistent Responses</option>
-                <option value="Task Complete" ${currentValue === 'Task Complete' ? 'selected' : ''}>Task Complete</option>
-                <option value="Admission cancel" ${currentValue === 'Admission cancel' ? 'selected' : ''}>Admission cancel</option>
-            `;
-        } else if (field === 'class_information') {
-            options = `
-                <option value="">Select Class Information</option>
-                <option value="phone call" ${currentValue === 'phone call' ? 'selected' : ''}>Phone Call</option>
-                <option value="whatsapp" ${currentValue === 'whatsapp' ? 'selected' : ''}>WhatsApp</option>
-            `;
-        } else if (field === 'orientation_class_status') {
-            options = `
-                <option value="">Select Orientation Class Status</option>
-                <option value="Participated" ${currentValue === 'Participated' ? 'selected' : ''}>Participated</option>
-                <option value="Did not participated" ${currentValue === 'Did not participated' ? 'selected' : ''}>Did not participated</option>
-            `;
-        } else if (field === 'whatsapp_group_status') {
-            options = `
-                <option value="">Select WhatsApp Group Status</option>
-                <option value="sent link" ${currentValue === 'sent link' ? 'selected' : ''}>Sent Link</option>
-                <option value="task complete" ${currentValue === 'task complete' ? 'selected' : ''}>Task Complete</option>
-            `;
-        } else if (field === 'class_status') {
-            options = `
-                <option value="">Select Class Status</option>
-                <option value="Running" ${currentValue === 'Running' ? 'selected' : ''}>Running</option>
-                <option value="Cancel" ${currentValue === 'Cancel' ? 'selected' : ''}>Cancel</option>
-                <option value="complete" ${currentValue === 'complete' ? 'selected' : ''}>Complete</option>
             `;
         }
 
-        return `
-            <div class="edit-form">
-                <select class="form-select form-select-sm">
-                    ${options}
-                </select>
-                <div class="btn-group mt-1">
-                    <button class="btn btn-success btn-sm save-edit">Save</button>
-                    <button class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+        function createSelectFieldFromOptions(field, currentValue, options) {
+            let optionsHtml = '<option value="">Select ' + field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) + '</option>';
+
+            if (options && typeof options === 'object') {
+                for (const [value, label] of Object.entries(options)) {
+                    const selected = (currentValue && String(currentValue).toLowerCase().trim() === String(value).toLowerCase().trim()) ? 'selected' : '';
+                    optionsHtml += `<option value="${value}" ${selected}>${label}</option>`;
+                }
+            }
+
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        ${optionsHtml}
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
                 </div>
-            </div>
-        `;
-    }
+            `;
+        }
+
+        function createSelectField(field, currentValue) {
+            let options = '';
+
+            if (field === 'call_status') {
+                options = `
+                    <option value="">Select Call Status</option>
+                    <option value="Call Not Answered" ${currentValue === 'Call Not Answered' ? 'selected' : ''}>Call Not Answered</option>
+                    <option value="Switched Off" ${currentValue === 'Switched Off' ? 'selected' : ''}>Switched Off</option>
+                    <option value="Line Busy" ${currentValue === 'Line Busy' ? 'selected' : ''}>Line Busy</option>
+                    <option value="Student Asks to Call Later" ${currentValue === 'Student Asks to Call Later' ? 'selected' : ''}>Student Asks to Call Later</option>
+                    <option value="Lack of Interest in Conversation" ${currentValue === 'Lack of Interest in Conversation' ? 'selected' : ''}>Lack of Interest in Conversation</option>
+                    <option value="Wrong Contact" ${currentValue === 'Wrong Contact' ? 'selected' : ''}>Wrong Contact</option>
+                    <option value="Inconsistent Responses" ${currentValue === 'Inconsistent Responses' ? 'selected' : ''}>Inconsistent Responses</option>
+                    <option value="Task Complete" ${currentValue === 'Task Complete' ? 'selected' : ''}>Task Complete</option>
+                    <option value="Admission cancel" ${currentValue === 'Admission cancel' ? 'selected' : ''}>Admission cancel</option>
+                `;
+            } else if (field === 'class_information') {
+                options = `
+                    <option value="">Select Class Information</option>
+                    <option value="phone call" ${currentValue === 'phone call' ? 'selected' : ''}>Phone Call</option>
+                    <option value="whatsapp" ${currentValue === 'whatsapp' ? 'selected' : ''}>WhatsApp</option>
+                `;
+            } else if (field === 'orientation_class_status') {
+                options = `
+                    <option value="">Select Orientation Class Status</option>
+                    <option value="Participated" ${currentValue === 'Participated' ? 'selected' : ''}>Participated</option>
+                    <option value="Did not participated" ${currentValue === 'Did not participated' ? 'selected' : ''}>Did not participated</option>
+                `;
+            } else if (field === 'whatsapp_group_status') {
+                options = `
+                    <option value="">Select WhatsApp Group Status</option>
+                    <option value="sent link" ${currentValue === 'sent link' ? 'selected' : ''}>Sent Link</option>
+                    <option value="task complete" ${currentValue === 'task complete' ? 'selected' : ''}>Task Complete</option>
+                `;
+            } else if (field === 'class_status') {
+                options = `
+                    <option value="">Select Class Status</option>
+                    <option value="Running" ${currentValue === 'Running' ? 'selected' : ''}>Running</option>
+                    <option value="Cancel" ${currentValue === 'Cancel' ? 'selected' : ''}>Cancel</option>
+                    <option value="complete" ${currentValue === 'complete' ? 'selected' : ''}>Complete</option>
+                `;
+            }
+
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        ${options}
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button class="btn btn-success btn-sm save-edit">Save</button>
+                        <button class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
 
     // Toggle Academic Verification with confirmation modal
     let academicVerifyUrl = null;

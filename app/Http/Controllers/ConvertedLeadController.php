@@ -2026,6 +2026,7 @@ class ConvertedLeadController extends Controller
         $convertedLeads = collect();
 
         // Get filter data
+        $course = \App\Models\Course::find(11);
         $courses = \App\Models\Course::where('is_active', 1)->get();
         $batches = \App\Models\Batch::where('course_id', 11)->orderBy('is_active', 'desc')->orderBy('title')->get();
         $admission_batches = \App\Models\AdmissionBatch::orderBy('is_active', 'desc')->orderBy('title')->get();
@@ -2036,7 +2037,6 @@ class ConvertedLeadController extends Controller
         
         // Get class times for course_id = 11 (AI Integrated Digital Marketing)
         $classTimes = collect();
-        $course = \App\Models\Course::find(11);
         if ($course && $course->needs_time) {
             $classTimes = \App\Models\ClassTime::where('course_id', 11)->where('is_active', true)->get();
         }

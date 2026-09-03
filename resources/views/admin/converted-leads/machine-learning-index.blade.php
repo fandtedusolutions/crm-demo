@@ -742,6 +742,29 @@
             `;
         }
 
+        function createSelectFieldFromOptions(field, currentValue, options) {
+            let optionsHtml = '<option value="">Select ' + field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) + '</option>';
+
+            if (options && typeof options === 'object') {
+                for (const [value, label] of Object.entries(options)) {
+                    const selected = (currentValue && String(currentValue).toLowerCase().trim() === String(value).toLowerCase().trim()) ? 'selected' : '';
+                    optionsHtml += `<option value="${value}" ${selected}>${label}</option>`;
+                }
+            }
+
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        ${optionsHtml}
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
         function createSelectField(field, currentValue) {
             let options = '';
 

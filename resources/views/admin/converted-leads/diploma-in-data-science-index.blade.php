@@ -356,10 +356,6 @@
                 const courseId = container.data('course-id');
                 const currentId = container.data('current-id') !== undefined ? String(container.data('current-id')).trim() : '';
                 editForm = createBatchSelect(courseId, currentId);
-            } else if (field === 'batch_id') {
-                const courseId = container.data('course-id');
-                const currentId = container.data('current-id');
-                editForm = createBatchSelect(courseId, currentId);
             } else if (field === 'admission_batch_id') {
                 const batchId = container.data('batch-id');
                 const currentId = container.data('current-id');
@@ -369,6 +365,10 @@
                 const programmeType = container.data('programme-type');
                 const currentId = container.data('current-id');
                 editForm = createClassTimeSelect(courseId, programmeType, currentId);
+            } else if (container.data('field-type') === 'select') {
+                // Handle fields with data-field-type="select" using data-options
+                const options = container.data('options');
+                editForm = createSelectFieldFromOptions(field, currentValue, options);
             } else {
                 editForm = createInputField(field, currentValue);
             }
@@ -693,7 +693,7 @@
 
             if (options && typeof options === 'object') {
                 for (const [value, label] of Object.entries(options)) {
-                    const selected = (currentValue && String(currentValue).toLowerCase() === String(value).toLowerCase()) ? 'selected' : '';
+                    const selected = (currentValue && String(currentValue).toLowerCase().trim() === String(value).toLowerCase().trim()) ? 'selected' : '';
                     optionsHtml += `<option value="${value}" ${selected}>${label}</option>`;
                 }
             }
