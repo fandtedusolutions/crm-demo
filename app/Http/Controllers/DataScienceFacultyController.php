@@ -11,6 +11,7 @@ use App\Models\ClassTime;
 use App\Models\OfflinePlace;
 use App\Helpers\AuthHelper;
 use App\Helpers\RoleHelper;
+use App\Support\DataScienceFacultyTrackColumns;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
@@ -171,6 +172,13 @@ class DataScienceFacultyController extends Controller
     public function updateMentorDetails(Request $request, $id)
     {
         try {
+            if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor() && !RoleHelper::is_academic_assistant() && !RoleHelper::is_hod() && !RoleHelper::is_faculty()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Access denied'
+                ], 403);
+            }
+
             $restrictedFields = [
                 'phone',
                 'batch_id',
@@ -185,17 +193,6 @@ class DataScienceFacultyController extends Controller
                 'class_time_id',
                 'programme_type',
                 'location',
-                'total_class',
-                'total_present',
-                'total_absent',
-                'final_certificate_examination_date',
-                'certificate_examination_marks',
-                'final_interview_date',
-                'interview_marks',
-                'certificate_distribution_date',
-                'experience_certificate_distribution_date',
-                'cancelled_date',
-                'remarks',
             ];
 
             $isRestricted = in_array($request->field, $restrictedFields, true);
@@ -251,6 +248,7 @@ class DataScienceFacultyController extends Controller
                 }
                 $convertedLead->save();
                 $responseValue = $this->formatResponseValue($field, $value, $convertedLead);
+                $rawValue = ($value === '' ? null : $value);
             } elseif (in_array($field, $studentDetailFields)) {
                 $studentDetails = $convertedLead->studentDetails;
                 if (!$studentDetails) {
@@ -260,6 +258,7 @@ class DataScienceFacultyController extends Controller
                 $studentDetails->$field = $value;
                 $studentDetails->save();
                 $responseValue = $value;
+                $rawValue = ($value === '' ? null : $value);
             } elseif (in_array($field, $leadDetailFields)) {
                 $leadDetail = $convertedLead->leadDetail;
                 if (!$leadDetail) {
@@ -270,8 +269,20 @@ class DataScienceFacultyController extends Controller
                 $leadDetail->$field = $value;
                 $leadDetail->save();
                 $responseValue = $this->formatResponseValue($field, $value, $convertedLead);
+                $rawValue = ($value === '' ? null : $value);
+            } elseif (DataScienceFacultyTrackColumns::isTrackField($field)) {
+                $mentorDetails = $convertedLead->mentorDetails;
+                if (!$mentorDetails) {
+                    $mentorDetails = new ConvertedStudentMentorDetail();
+                    $mentorDetails->converted_student_id = $id;
+                }
+                DataScienceFacultyTrackColumns::setTrackValue($mentorDetails, $field, ($value === '' ? null : $value));
+                $mentorDetails->save();
+
+                $responseValue = DataScienceFacultyTrackColumns::displayValue($mentorDetails, $field);
+                $rawValue = DataScienceFacultyTrackColumns::trackValue($mentorDetails, $field);
             } else {
-                // Handle mentor detail fields
+                // Handle legacy mentor detail fields
                 $mentorDetails = $convertedLead->mentorDetails;
                 if (!$mentorDetails) {
                     $mentorDetails = new ConvertedStudentMentorDetail();
@@ -280,16 +291,18 @@ class DataScienceFacultyController extends Controller
                 $mentorDetails->$field = $value;
                 $mentorDetails->save();
                 $responseValue = $value;
+                $rawValue = ($value === '' ? null : $value);
             }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Updated successfully',
-                'value' => $responseValue
+                'value' => $responseValue,
+                'raw_value' => $rawValue
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error updating data science mentor details: ' . $e->getMessage());
+            Log::error('Error updating data science faculty details: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'error' => 'Update failed: ' . $e->getMessage()
@@ -302,6 +315,11 @@ class DataScienceFacultyController extends Controller
      */
     private function getValidationRules($field)
     {
+        $trackRule = DataScienceFacultyTrackColumns::validationRuleFor($field);
+        if ($trackRule) {
+            return $trackRule;
+        }
+
         $rules = [
             'whatsapp_group_status' => 'nullable|in:sent link,task complete',
             'ai_workshop_attendance' => 'nullable|in:Attended,Not Attended',

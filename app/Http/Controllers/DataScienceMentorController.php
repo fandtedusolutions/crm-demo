@@ -11,6 +11,7 @@ use App\Models\ClassTime;
 use App\Models\OfflinePlace;
 use App\Helpers\AuthHelper;
 use App\Helpers\RoleHelper;
+use App\Support\DataScienceMentorTrackColumns;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
@@ -168,6 +169,13 @@ class DataScienceMentorController extends Controller
     public function updateMentorDetails(Request $request, $id)
     {
         try {
+            if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor() && !RoleHelper::is_academic_assistant() && !RoleHelper::is_hod() && !RoleHelper::is_mentor()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Access denied'
+                ], 403);
+            }
+
             $restrictedFields = [
                 'phone',
                 'batch_id',
@@ -185,14 +193,6 @@ class DataScienceMentorController extends Controller
                 'total_class',
                 'total_present',
                 'total_absent',
-                'final_certificate_examination_date',
-                'certificate_examination_marks',
-                'final_interview_date',
-                'interview_marks',
-                'certificate_distribution_date',
-                'experience_certificate_distribution_date',
-                'cancelled_date',
-                'remarks',
             ];
 
             $isRestricted = in_array($request->field, $restrictedFields, true);
@@ -201,6 +201,23 @@ class DataScienceMentorController extends Controller
                 return response()->json([
                     'success' => false,
                     'error' => 'Access denied'
+                ], 403);
+            }
+
+            $facultyManagedFields = [
+                'current_month',
+                'current_module',
+                'm1_marks',
+                'm2_marks',
+                'm3_marks',
+                'm4_marks',
+                'm5_marks',
+                'm6_marks',
+            ];
+            if (in_array($request->field, $facultyManagedFields, true) && !RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_faculty()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'This field can only be updated by Faculty or Admin'
                 ], 403);
             }
 
@@ -263,8 +280,27 @@ class DataScienceMentorController extends Controller
                 $leadDetail->$field = $value;
                 $leadDetail->save();
                 $responseValue = $this->formatResponseValue($field, $value, $convertedLead);
+            } elseif (DataScienceMentorTrackColumns::isTrackField($field)) {
+                $mentorDetails = $convertedLead->mentorDetails;
+                if (!$mentorDetails) {
+                    $mentorDetails = new ConvertedStudentMentorDetail();
+                    $mentorDetails->converted_student_id = $id;
+                }
+                DataScienceMentorTrackColumns::setTrackValue($mentorDetails, $field, ($value === '' ? null : $value));
+                $mentorDetails->save();
+
+                $responseValue = $value;
+                if (in_array($field, DataScienceMentorTrackColumns::dateFields(), true) && $value) {
+                    try {
+                        $responseValue = \Carbon\Carbon::parse($value)->format('d-m-Y');
+                    } catch (\Exception $e) {
+                        $responseValue = $value;
+                    }
+                } elseif ($value === null || $value === '') {
+                    $responseValue = '-';
+                }
             } else {
-                // Handle mentor detail fields
+                // Handle legacy mentor detail fields
                 $mentorDetails = $convertedLead->mentorDetails;
                 if (!$mentorDetails) {
                     $mentorDetails = new ConvertedStudentMentorDetail();
@@ -278,7 +314,8 @@ class DataScienceMentorController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Updated successfully',
-                'value' => $responseValue
+                'value' => $responseValue,
+                'raw_value' => ($value === '' ? null : $value)
             ]);
 
         } catch (\Exception $e) {
@@ -295,6 +332,11 @@ class DataScienceMentorController extends Controller
      */
     private function getValidationRules($field)
     {
+        $trackRule = DataScienceMentorTrackColumns::validationRuleFor($field);
+        if ($trackRule) {
+            return $trackRule;
+        }
+
         $rules = [
             'whatsapp_group_status' => 'nullable|in:sent link,task complete',
             'ai_workshop_attendance' => 'nullable|in:Attended,Not Attended',
