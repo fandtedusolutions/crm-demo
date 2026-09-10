@@ -31,6 +31,8 @@ class GmvssConvertedLeadsDataTableFormatter
         return array_merge($keys, [
             'batch',
             'admission_batch',
+            'finance_approval',
+            'faculty',
             'class',
             'mail',
             'course',

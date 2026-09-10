@@ -213,6 +213,8 @@
                                 @endif
                                 <th>Batch</th>
                                 <th>Admission Batch</th>
+                                <th>Finance Approval</th>
+                                <th>Faculty</th>
                                 <th>Internship ID</th>
                                 <th>App</th>
                                 <th>Group</th>
@@ -501,6 +503,8 @@
     $hotelManagementColumns = array_merge($hotelManagementColumns, [
         ['data' => 'batch', 'name' => 'batch', 'orderable' => false, 'searchable' => false],
         ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false],
+        ['data' => 'finance_approval', 'name' => 'finance_approval', 'orderable' => false, 'searchable' => false],
+        ['data' => 'faculty', 'name' => 'faculty', 'orderable' => false, 'searchable' => false],
         ['data' => 'internship_id', 'name' => 'internship_id', 'orderable' => false, 'searchable' => false],
         ['data' => 'app', 'name' => 'app', 'orderable' => false, 'searchable' => false],
         ['data' => 'group', 'name' => 'group', 'orderable' => false, 'searchable' => false],
@@ -660,8 +664,10 @@
 
             if (field === 'phone') {
                 formHtml = createPhoneField(code, currentValue);
-            } else if (['app', 'group', 'interview', 'howmany_interview'].includes(field)) {
+            } else if (['app', 'group', 'interview', 'howmany_interview', 'finance_approval'].includes(field)) {
                 formHtml = createSelectField(field, currentValue);
+            } else if (field === 'faculty_id') {
+                formHtml = createFacultyField(currentValue);
             } else if (field === 'admission_batch_id') {
                 const batchId = container.data('batch-id');
                 formHtml = createAdmissionBatchField(batchId, currentValue);
@@ -678,6 +684,9 @@
                 const batchId = container.data('batch-id');
                 const $select = container.find('select');
                 loadAdmissionBatchesForEdit($select, batchId, currentValue);
+            } else if (field === 'faculty_id') {
+                const $select = container.find('select');
+                loadFacultiesForEdit($select, currentValue);
             }
 
             // Focus on input
@@ -879,6 +888,12 @@
                     <option value="9" ${currentValue === '9' ? 'selected' : ''}>9</option>
                     <option value="10" ${currentValue === '10' ? 'selected' : ''}>10</option>
                 `;
+            } else if (field === 'finance_approval') {
+                options = `
+                    <option value="">Select Finance Approval</option>
+                    <option value="Pending" ${(currentValue === 'Pending' || !currentValue) ? 'selected' : ''}>Pending</option>
+                    <option value="Approved" ${currentValue === 'Approved' ? 'selected' : ''}>Approved</option>
+                `;
             }
 
             return `
@@ -892,6 +907,35 @@
                     </div>
                 </div>
             `;
+        }
+
+        function createFacultyField(currentValue) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading faculties...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFacultiesForEdit($select, currentValue) {
+            $.get('/api/faculties').done(function(response) {
+                let options = '<option value="">Select Faculty</option>';
+                if (response.success && response.faculties) {
+                    response.faculties.forEach(function(item) {
+                        const selected = (currentValue && String(currentValue) === String(item.id)) ? 'selected' : '';
+                        options += `<option value="${item.id}" ${selected}>${item.name}</option>`;
+                    });
+                }
+                $select.html(options);
+            }).fail(function() {
+                $select.html('<option value="">Error loading faculties</option>');
+            });
         }
 
         function createAdmissionBatchField(batchId, currentValue) {

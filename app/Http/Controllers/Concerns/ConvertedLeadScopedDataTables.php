@@ -81,6 +81,18 @@ trait ConvertedLeadScopedDataTables
         if (RoleHelper::is_academic_assistant()) {
             return;
         }
+        if (RoleHelper::is_faculty()) {
+            $query->where('converted_leads.faculty_id', AuthHelper::getCurrentUserId());
+
+            return;
+        }
+        if (RoleHelper::is_mentor()) {
+            $query->whereHas('admissionBatch', function ($q) {
+                $q->where('mentor_id', AuthHelper::getCurrentUserId());
+            });
+
+            return;
+        }
         if (RoleHelper::is_telecaller()) {
             $query->whereHas('lead', function ($q) {
                 $q->where('telecaller_id', AuthHelper::getCurrentUserId());
@@ -202,6 +214,7 @@ trait ConvertedLeadScopedDataTables
             'leadDetail.classTime',
             'batch',
             'admissionBatch',
+            'faculty',
             'courseFlag',
         ];
 
@@ -367,6 +380,14 @@ trait ConvertedLeadScopedDataTables
         $ccDateCell = $this->programmeInlineDateField('complete_cancel_date', $cl->id, $sd?->complete_cancel_date, $canEditInline);
         $remarksCell = $this->programmeInlineTextField('remarks', $cl->id, $sd?->remarks, $canEditInline);
 
+        $financeApprovalCell = view('admin.converted-leads.partials.dt-cell-inline-finance-approval', [
+            'convertedLead' => $cl,
+        ])->render();
+
+        $facultyCell = view('admin.converted-leads.partials.dt-cell-inline-faculty', [
+            'convertedLead' => $cl,
+        ])->render();
+
         $hasIdCard = $idCardLeadIds->has($cl->id);
         $actionsHtml = view('admin.converted-leads.partials.dt-cell-actions', [
             'convertedLead' => $cl,
@@ -391,6 +412,8 @@ trait ConvertedLeadScopedDataTables
             'class_time' => $classTimeCell,
             'batch' => $batchCell,
             'admission_batch' => $admCell,
+            'finance_approval' => $financeApprovalCell,
+            'faculty' => $facultyCell,
             'internship_id' => $internCell,
             'email' => e($cl->email ?? '-'),
             'call_status' => $callStatusCell,
@@ -503,6 +526,14 @@ trait ConvertedLeadScopedDataTables
         $ccDateCell = $this->programmeInlineDateField('complete_cancel_date', $cl->id, $sd?->complete_cancel_date, $canEditInline);
         $remarksCell = $this->programmeInlineTextField('remarks', $cl->id, $sd?->remarks, $canEditInline);
 
+        $financeApprovalCell = view('admin.converted-leads.partials.dt-cell-inline-finance-approval', [
+            'convertedLead' => $cl,
+        ])->render();
+
+        $facultyCell = view('admin.converted-leads.partials.dt-cell-inline-faculty', [
+            'convertedLead' => $cl,
+        ])->render();
+
         $hasIdCard = $idCardLeadIds->has($cl->id);
         $actionsHtml = view('admin.converted-leads.partials.dt-cell-actions', [
             'convertedLead' => $cl,
@@ -524,6 +555,8 @@ trait ConvertedLeadScopedDataTables
             'whatsapp' => $whatsappCell,
             'batch' => $batchCell,
             'admission_batch' => $admCell,
+            'finance_approval' => $financeApprovalCell,
+            'faculty' => $facultyCell,
             'internship_id' => $internCell,
             'email' => e($cl->email ?? '-'),
             'call_status' => $callStatusCell,

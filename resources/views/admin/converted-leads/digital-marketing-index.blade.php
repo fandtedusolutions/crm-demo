@@ -219,6 +219,8 @@
                                     <th>Class Time</th>
                                     <th>Batch</th>
                                     <th>Admission Batch</th>
+                                    <th>Finance Approval</th>
+                                    <th>Faculty</th>
                                     <th>Internship ID</th>
                                     <th>Email</th>
                                     <th>Call Status</th>
@@ -432,6 +434,8 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
     ['data' => 'class_time', 'name' => 'class_time', 'orderable' => false, 'searchable' => false],
     ['data' => 'batch', 'name' => 'batch', 'orderable' => false, 'searchable' => false],
     ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false],
+    ['data' => 'finance_approval', 'name' => 'finance_approval', 'orderable' => false, 'searchable' => false],
+    ['data' => 'faculty', 'name' => 'faculty', 'orderable' => false, 'searchable' => false],
     ['data' => 'internship_id', 'name' => 'internship_id', 'orderable' => false, 'searchable' => false],
     ['data' => 'email', 'name' => 'email', 'orderable' => false, 'searchable' => false],
     ['data' => 'call_status', 'name' => 'call_status', 'orderable' => false, 'searchable' => false],
@@ -685,7 +689,9 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
             if (field === 'phone') {
                 const currentCode = container.siblings('.inline-code-value').data('current') || '';
                 editForm = createPhoneField(currentCode, currentValue);
-            } else if (['call_status', 'class_information', 'orientation_class_status', 'whatsapp_group_status', 'class_status'].includes(field)) {
+            } else if (field === 'faculty_id') {
+                editForm = createFacultySelect(currentId);
+            } else if (['call_status', 'class_information', 'orientation_class_status', 'whatsapp_group_status', 'class_status', 'finance_approval'].includes(field)) {
                 editForm = createSelectField(field, currentValue);
             } else if (['class_starting_date', 'class_ending_date', 'complete_cancel_date'].includes(field)) {
                 editForm = createDateField(field, currentValue);
@@ -726,6 +732,9 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
                 const currentId = container.data('current-id');
                 const $select = container.find('select');
                 loadAdmissionBatchesForEdit($select, batchId, currentId);
+            } else if (field === 'faculty_id') {
+                const $select = container.find('select');
+                loadFaculties($select, currentId);
             } else if (field === 'class_time_id') {
                 const courseId = container.data('course-id');
                 const programmeType = container.data('programme-type');
@@ -780,7 +789,7 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
                         // Update the data-current attribute with the new display value
                         container.data('current', displayValue);
                         // Update data-current-id for fields that use it (store the ID, not the display value)
-                        if (field === 'batch_id' || field === 'admission_batch_id' || field === 'class_time_id') {
+                        if (field === 'batch_id' || field === 'admission_batch_id' || field === 'class_time_id' || field === 'faculty_id') {
                             container.data('current-id', value || '');
                         }
                         // Handle class_time_id display update
@@ -799,19 +808,20 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
                             const row = container.closest('tr');
                             const admissionBatchContainer = row.find('[data-field="admission_batch_id"]');
                             if (admissionBatchContainer.length) {
-                                admissionBatchContainer.data('batch-id', value || '');
-                                // Clear admission batch if batch changed
+                                admissionBatchContainer.data('batch-id', value);
+                                // Also clear admission batch value since batch changed
+                                admissionBatchContainer.find('.display-value').text('-');
+                                admissionBatchContainer.data('current', '-');
                                 admissionBatchContainer.data('current-id', '');
-                                admissionBatchContainer.find('.display-value').text('N/A');
                             }
                         }
                         if (field === 'phone') {
                             const codeVal = extra.code || '';
                             container.siblings('.inline-code-value').data('current', codeVal);
                         }
-                        toast_success(response.message);
+                        show_alert('success', response.message || 'Updated successfully!');
                     } else {
-                        toast_error(response.error || 'Update failed');
+                        show_alert('error', response.error || 'Update failed');
                     }
                 },
                 error: function(xhr) {
@@ -826,7 +836,7 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
                             errorMessage = fieldErrors.join(', ');
                         }
                     }
-                    toast_error(errorMessage);
+                    show_alert('error', errorMessage);
                 },
                 complete: function() {
                     btn.data('busy', false);
@@ -961,6 +971,38 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
                 })
                 .fail(function() {
                     $select.html('<option value="">Error loading admission batches</option>');
+                });
+        }
+
+        function createFacultySelect(currentId) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading faculties...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFaculties(select, currentId) {
+            $.get('/api/faculties')
+                .done(function(response) {
+                    let options = '<option value="">Select Faculty</option>';
+                    if (response.success && response.faculties) {
+                        response.faculties.forEach(function(fac) {
+                            const isSelected = (currentId && String(currentId) === String(fac.id)) ? 'selected' : '';
+                            options += `<option value="${fac.id}" ${isSelected}>${fac.name}</option>`;
+                        });
+                    }
+                    select.html(options);
+                    select.focus();
+                })
+                .fail(function() {
+                    select.html('<option value="">Error loading faculties</option>');
                 });
         }
 
@@ -1111,6 +1153,12 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
                     <option value="Running" ${currentValue === 'Running' ? 'selected' : ''}>Running</option>
                     <option value="Cancel" ${currentValue === 'Cancel' ? 'selected' : ''}>Cancel</option>
                     <option value="complete" ${currentValue === 'complete' ? 'selected' : ''}>Complete</option>
+                `;
+            } else if (field === 'finance_approval') {
+                options = `
+                    <option value="">Select Finance Approval</option>
+                    <option value="Pending" ${(currentValue === 'Pending' || !currentValue) ? 'selected' : ''}>Pending</option>
+                    <option value="Approved" ${currentValue === 'Approved' ? 'selected' : ''}>Approved</option>
                 `;
             }
 

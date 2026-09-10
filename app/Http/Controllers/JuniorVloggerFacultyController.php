@@ -55,12 +55,7 @@ class JuniorVloggerFacultyController extends Controller
                     $query->whereRaw('1 = 0');
                 }
             } elseif (RoleHelper::is_faculty()) {
-                $mentorAdmissionBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())->pluck('id')->toArray();
-                if (!empty($mentorAdmissionBatchIds)) {
-                    $query->whereIn('admission_batch_id', $mentorAdmissionBatchIds);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
+                $query->where('converted_leads.faculty_id', AuthHelper::getCurrentUserId());
             } elseif (RoleHelper::is_team_lead() || RoleHelper::is_senior_manager()) {
                 $teamId = $currentUser->team_id;
                 if ($teamId) {

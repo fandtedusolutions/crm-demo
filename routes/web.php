@@ -101,6 +101,7 @@ Route::get('/api/subject-areas', [App\Http\Controllers\SubjectAreaController::cl
 Route::get('/api/flags', [App\Http\Controllers\FlagController::class, 'listActive'])->name('api.flags');
 Route::get('/api/support-flags', [App\Http\Controllers\SupportFlagController::class, 'listActive'])->name('api.support-flags');
 Route::get('/api/course-flags', [App\Http\Controllers\CourseFlagController::class, 'listActive'])->name('api.course-flags');
+Route::get('/api/faculties', [App\Http\Controllers\FacultyController::class, 'listActive'])->name('api.faculties');
 Route::get('/api/batches/by-course/{courseId}', [App\Http\Controllers\BatchController::class, 'getByCourse'])->name('api.batches.by-course');
 Route::get('/api/sub-courses/by-course/{courseId}', [App\Http\Controllers\SubCourseController::class, 'getByCourse'])->name('api.sub-courses.by-course');
 Route::get('/api/admission-batches/by-batch/{batchId}', [App\Http\Controllers\AdmissionBatchController::class, 'getByBatch'])->name('api.admission-batches.by-batch');

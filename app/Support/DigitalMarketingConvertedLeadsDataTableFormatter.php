@@ -34,6 +34,8 @@ class DigitalMarketingConvertedLeadsDataTableFormatter
             'class_time',
             'batch',
             'admission_batch',
+            'finance_approval',
+            'faculty',
             'internship_id',
             'email',
             'call_status',

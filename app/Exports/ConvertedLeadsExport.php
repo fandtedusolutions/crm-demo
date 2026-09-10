@@ -43,6 +43,8 @@ class ConvertedLeadsExport implements FromCollection, WithHeadings, WithMapping,
             'Course',
             'Batch',
             'Admission Batch',
+            'Finance Approval',
+            'Faculty',
             'Status',
             'Cancelled By',
             'REG. FEE',
@@ -88,6 +90,8 @@ class ConvertedLeadsExport implements FromCollection, WithHeadings, WithMapping,
             $convertedLead->course ? $convertedLead->course->title : '-',
             $convertedLead->batch ? $convertedLead->batch->title : '-',
             $convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : '-',
+            $convertedLead->finance_approval ?? 'Pending',
+            $convertedLead->faculty ? $convertedLead->faculty->name : '-',
             $convertedLead->status ?? '-',
             $convertedLead->cancelledBy ? $convertedLead->cancelledBy->name : '-',
             $convertedLead->studentDetails ? ($convertedLead->studentDetails->reg_fee ?? '-') : '-',
@@ -139,11 +143,13 @@ class ConvertedLeadsExport implements FromCollection, WithHeadings, WithMapping,
             'N' => 25, // Course
             'O' => 20, // Batch
             'P' => 20, // Admission Batch
-            'Q' => 15, // Status
-            'R' => 20, // Cancelled By
-            'S' => 12, // REG. FEE
-            'T' => 25, // Mail
-            'U' => 15, // Pending Payment
+            'Q' => 18, // Finance Approval
+            'R' => 20, // Faculty
+            'S' => 15, // Status
+            'T' => 20, // Cancelled By
+            'U' => 12, // REG. FEE
+            'V' => 25, // Mail
+            'W' => 15, // Pending Payment
         ];
     }
 }

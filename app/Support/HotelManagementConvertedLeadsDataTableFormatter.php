@@ -32,6 +32,8 @@ class HotelManagementConvertedLeadsDataTableFormatter
         return array_merge($keys, [
             'batch',
             'admission_batch',
+            'finance_approval',
+            'faculty',
             'internship_id',
             'app',
             'group',

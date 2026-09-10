@@ -187,6 +187,9 @@
         </div>
     </td>
 
+    @include('admin.converted-leads.partials.inline-finance-approval-cell', ['convertedLead' => $convertedLead])
+    @include('admin.converted-leads.partials.inline-faculty-cell', ['convertedLead' => $convertedLead])
+
     <td>
         <div class="inline-edit" data-field="passed_year" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->leadDetail?->passed_year }}">
             <span class="display-value">{{ $convertedLead->leadDetail?->passed_year ?? '-' }}</span>

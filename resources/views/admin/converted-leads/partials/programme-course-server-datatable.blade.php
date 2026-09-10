@@ -48,6 +48,8 @@
     $cols = array_merge($cols, [
         $dtCol('batch'),
         $dtCol('admission_batch'),
+        $dtCol('finance_approval'),
+        $dtCol('faculty'),
         $dtCol('internship_id'),
         $dtCol('email'),
         $dtCol('call_status'),

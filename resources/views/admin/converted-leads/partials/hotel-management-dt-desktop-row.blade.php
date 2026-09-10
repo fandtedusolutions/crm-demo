@@ -118,6 +118,8 @@
             @endif
         </div>
     </td>
+    @include('admin.converted-leads.partials.inline-finance-approval-cell', ['convertedLead' => $convertedLead])
+    @include('admin.converted-leads.partials.inline-faculty-cell', ['convertedLead' => $convertedLead])
     <td>
         <div class="inline-edit" data-field="internship_id" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->studentDetails?->internship_id }}">
             <span class="display-value">{{ $convertedLead->studentDetails?->internship_id ?? 'N/A' }}</span>

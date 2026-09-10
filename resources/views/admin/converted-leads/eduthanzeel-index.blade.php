@@ -180,6 +180,8 @@
                                     @endif
                                     <th>Batch</th>
                                     <th>Admission Batch</th>
+                                    <th>Finance Approval</th>
+                                    <th>Faculty</th>
                                     <th>Email</th>
                                     <th>Tutor</th>
                                     <th>Class Time</th>
@@ -296,6 +298,8 @@
                                             @endif
                                         </div>
                                     </td>
+                                    @include('admin.converted-leads.partials.inline-finance-approval-cell', ['convertedLead' => $convertedLead])
+                                    @include('admin.converted-leads.partials.inline-faculty-cell', ['convertedLead' => $convertedLead])
                                     <td>{{ $convertedLead->email ?: '-' }}</td>
                                     <td>
                                         <div class="inline-edit" data-field="teacher_id" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->studentDetails?->teacher_id }}">
@@ -777,7 +781,10 @@
             if (field === 'phone') {
                 const currentCode = container.siblings('.inline-code-value').data('current') || '';
                 editForm = createPhoneField(currentCode, currentValue);
-            } else if (['class_status', 'continuing_studies'].includes(field)) {
+            } else if (field === 'faculty_id') {
+                const currentId = container.data('current-id');
+                editForm = createFacultySelect(currentId);
+            } else if (['class_status', 'continuing_studies', 'finance_approval'].includes(field)) {
                 editForm = createSelectField(field, currentValue);
             } else if (['screening', 'screening_date'].includes(field)) {
                 editForm = createDateField(field, currentValue);
@@ -800,6 +807,12 @@
                 const batchId = container.data('batch-id');
                 const $select = container.find('select');
                 loadAdmissionBatchesForEdit($select, batchId, currentValue);
+            }
+
+            if (field === 'faculty_id') {
+                const currentId = container.data('current-id');
+                const $select = container.find('select');
+                loadFaculties($select, currentId);
             }
 
             container.find('input, select').first().focus();
@@ -865,6 +878,9 @@
                             // Update the data-current attribute with the new value
                             container.data('current', response.value || value);
                         }
+                        if (field === 'faculty_id') {
+                            container.data('current-id', value || '');
+                        }
                         if (field === 'phone') {
                             const codeVal = extra.code || '';
                             container.siblings('.inline-code-value').data('current', codeVal);
@@ -922,6 +938,35 @@
             `;
         }
 
+        function createFacultySelect(currentId) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading faculties...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFaculties($select, currentId) {
+            $.get('/api/faculties').done(function(response) {
+                let options = '<option value="">Select Faculty</option>';
+                if (response.success && response.faculties) {
+                    response.faculties.forEach(function(fac) {
+                        const isSelected = (currentId && String(currentId) === String(fac.id)) ? 'selected' : '';
+                        options += `<option value="${fac.id}" ${isSelected}>${fac.name}</option>`;
+                    });
+                }
+                $select.html(options);
+            }).fail(function() {
+                $select.html('<option value="">Error loading faculties</option>');
+            });
+        }
+
         function createDateField(field, currentValue) {
             const value = (currentValue && currentValue !== '-') ? currentValue : '';
             return `
@@ -948,11 +993,11 @@
             `;
         }
 
-        function createAdmissionBatchField(batchId, currentValue) {
+        function createAdmissionBatchField(batchId, currentId) {
             return `
                 <div class="edit-form">
                     <select class="form-select form-select-sm" data-batch-id="${batchId}">
-                        <option value="">Select Admission Batch</option>
+                        <option value="">Loading...</option>
                     </select>
                     <div class="btn-group mt-1">
                         <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
@@ -962,22 +1007,25 @@
             `;
         }
 
-        function loadAdmissionBatchesForEdit($select, batchId, currentValue) {
+        function loadAdmissionBatchesForEdit($select, batchId, currentId) {
             if (!batchId) {
                 $select.html('<option value="">No batch selected</option>');
                 return;
             }
 
-            $.get(`/api/admission-batches/by-batch/${batchId}`).done(function(list) {
-                let options = '<option value="">Select Admission Batch</option>';
-                list.forEach(function(item) {
-                    const selected = String(currentValue) === String(item.id) ? 'selected' : '';
-                    options += `<option value="${item.id}" ${selected}>${item.title}</option>`;
+            $.get(`/api/admission-batches/by-batch/${batchId}`)
+                .done(function(list) {
+                    let options = '<option value="">Select Admission Batch</option>';
+                    list.forEach(function(item) {
+                        const isSelected = (currentId && String(currentId) === String(item.id)) ? 'selected' : '';
+                        options += `<option value="${item.id}" ${isSelected}>${item.title}</option>`;
+                    });
+                    $select.html(options);
+                    $select.focus();
+                })
+                .fail(function() {
+                    $select.html('<option value="">Error loading admission batches</option>');
                 });
-                $select.html(options);
-            }).fail(function() {
-                $select.html('<option value="">Error loading admission batches</option>');
-            });
         }
 
         function createPhoneField(currentCode, currentPhone) {
@@ -991,7 +1039,7 @@
             const buildOptions = (selected) => {
                 let opts = '<option value="">Select Country</option>';
                 for (const c in codeOptions) {
-                    const isSel = String(selected) === String(c) ? 'selected' : '';
+                    const isSel = String(selected || '').trim() === String(c || '').trim() ? 'selected' : '';
                     opts += `<option value="${c}" ${isSel}>${c} - ${codeOptions[c]}</option>`;
                 }
                 return opts;
@@ -1056,6 +1104,12 @@
                     <option value="">Select Continuing Studies</option>
                     <option value="yes" ${currentValue === 'yes' ? 'selected' : ''}>Yes</option>
                     <option value="no" ${currentValue === 'no' ? 'selected' : ''}>No</option>
+                `;
+            } else if (field === 'finance_approval') {
+                options = `
+                    <option value="">Select Finance Approval</option>
+                    <option value="Pending" ${(currentValue === 'Pending' || !currentValue) ? 'selected' : ''}>Pending</option>
+                    <option value="Approved" ${currentValue === 'Approved' ? 'selected' : ''}>Approved</option>
                 `;
             }
 

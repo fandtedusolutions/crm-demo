@@ -99,6 +99,8 @@
                                 <th>Phone</th>
                                 <th>Batch</th>
                                 <th>Admission Batch</th>
+                                <th>Finance Approval</th>
+                                <th>Faculty</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -129,6 +131,15 @@
                                 <td>{{ \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone) }}</td>
                                 <td>{{ $convertedLead->batch?->title ?: '-' }}</td>
                                 <td>{{ $convertedLead->admissionBatch?->title ?: '-' }}</td>
+                                <td>
+                                    @php
+                                        $fApp = $convertedLead->finance_approval ?? 'Pending';
+                                    @endphp
+                                    <span class="badge {{ $fApp === 'Approved' ? 'bg-success' : 'bg-warning text-dark' }}">
+                                        {{ $fApp }}
+                                    </span>
+                                </td>
+                                <td>{{ $convertedLead->faculty?->name ?? '-' }}</td>
                                 <td>{{ $convertedLead->status ?: '-' }}</td>
                                 <td>
                                     <a href="{{ route('admin.converted-leads.show', $convertedLead->id) }}" class="btn btn-sm btn-outline-primary" title="View">
@@ -138,7 +149,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="11" class="text-center">No converted leads found</td>
+                                <td colspan="13" class="text-center">No converted leads found</td>
                             </tr>
                             @endforelse
                         </tbody>

@@ -141,6 +141,9 @@
 
     <td>{{ $convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : 'N/A' }}</td>
 
+    @include('admin.converted-leads.partials.inline-finance-approval-cell', ['convertedLead' => $convertedLead])
+    @include('admin.converted-leads.partials.inline-faculty-cell', ['convertedLead' => $convertedLead])
+
     <td>
         <div class="inline-edit" data-field="selected_courses" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->leadDetail?->selected_courses }}">
             <span class="display-value">

@@ -36,6 +36,8 @@ class UgpgConvertedLeadsDataTableFormatter
             'course_name',
             'batch',
             'admission_batch',
+            'finance_approval',
+            'faculty',
             'back_year',
             'actions',
         ]);

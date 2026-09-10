@@ -156,6 +156,8 @@
                                     <th>Email</th>
                                     <th>Batch</th>
                                     <th>Admission Batch</th>
+                                    <th>Finance Approval</th>
+                                    <th>Faculty</th>
                                     <th>Selected Courses</th>
                                     <th>Board/University</th>
                                     <th>Course Type</th>
@@ -476,6 +478,8 @@
         ['data' => 'email', 'name' => 'email', 'orderable' => false, 'searchable' => false],
         ['data' => 'batch', 'name' => 'batch', 'orderable' => false, 'searchable' => false],
         ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false],
+        ['data' => 'finance_approval', 'name' => 'finance_approval', 'orderable' => false, 'searchable' => false],
+        ['data' => 'faculty', 'name' => 'faculty', 'orderable' => false, 'searchable' => false],
         ['data' => 'selected_courses', 'name' => 'selected_courses', 'orderable' => false, 'searchable' => false],
         ['data' => 'board_university', 'name' => 'board_university', 'orderable' => false, 'searchable' => false],
         ['data' => 'course_type', 'name' => 'course_type', 'orderable' => false, 'searchable' => false],
@@ -677,6 +681,10 @@
             } else if (field === 'admission_batch_id') {
                 const batchId = container.data('batch-id') || '';
                 editForm = createAdmissionBatchSelect(batchId, currentValue);
+            } else if (field === 'faculty_id') {
+                editForm = createFacultySelect(currentId);
+            } else if (field === 'finance_approval') {
+                editForm = createFinanceApprovalSelect(currentValue);
             } else if (field === 'course_type') {
                 editForm = createCourseTypeSelect(currentValue);
             } else if (field === 'university_id') {
@@ -700,6 +708,9 @@
                 const currentId = container.data('current-id') || '';
                 const $select = container.find('.admission-batch-select');
                 loadAdmissionBatchesForEdit($select, batchId, currentId);
+            } else if (field === 'faculty_id') {
+                const $select = container.find('select');
+                loadFaculties($select, currentId);
             } else if (field === 'batch_id') {
                 // When batch changes, update admission batch dropdown if it exists in the same row
                 const $batchSelect = container.find('.batch-select');
@@ -791,6 +802,8 @@
                         } else if (field === 'whatsapp_number') {
                             const codeVal = extra.whatsapp_code || '';
                             container.siblings('.inline-code-value[data-field="whatsapp_code"]').data('current', codeVal);
+                        } else if (field === 'faculty_id' || field === 'admission_batch_id') {
+                            container.data('current-id', value || '');
                         } else if (field === 'batch_id') {
                             // Update batch_id in data attribute and refresh admission batch if needed
                             container.data('batch-id', value);
@@ -1054,6 +1067,62 @@
                     </div>
                 </div>
             `;
+        }
+
+        function createFinanceApprovalSelect(currentValue) {
+            const options = [
+                { value: 'Pending', label: 'Pending' },
+                { value: 'Approved', label: 'Approved' }
+            ];
+            const selected = (currentValue === 'N/A' || !currentValue) ? 'Pending' : currentValue;
+            const optionTags = options.map(opt => {
+                const isSel = selected === opt.value ? 'selected' : '';
+                return `<option value="${opt.value}" ${isSel}>${opt.label}</option>`;
+            }).join('');
+
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        ${optionTags}
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createFacultySelect(currentId) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading faculties...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFaculties(select, currentId) {
+            $.get('/api/faculties')
+                .done(function(response) {
+                    let options = '<option value="">Select Faculty</option>';
+                    if (response.success && response.faculties) {
+                        response.faculties.forEach(function(fac) {
+                            const isSelected = (currentId && String(currentId) === String(fac.id)) ? 'selected' : '';
+                            options += `<option value="${fac.id}" ${isSelected}>${fac.name}</option>`;
+                        });
+                    }
+                    select.html(options);
+                    select.focus();
+                })
+                .fail(function() {
+                    select.html('<option value="">Error loading faculties</option>');
+                });
         }
 
         function createPhoneField(currentCode, currentPhone, codeFieldName) {

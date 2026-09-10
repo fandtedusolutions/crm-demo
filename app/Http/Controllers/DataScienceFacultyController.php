@@ -63,16 +63,8 @@ class DataScienceFacultyController extends Controller
             } elseif (RoleHelper::is_mentor_head()) {
                 // Mentor Head: Can see all support verified leads
             } elseif (RoleHelper::is_faculty()) {
-                // Regular Mentor: Filter by admission_batch_id where mentor_id matches
-                $mentorAdmissionBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())
-                    ->pluck('id')
-                    ->toArray();
-                
-                if (!empty($mentorAdmissionBatchIds)) {
-                    $query->whereIn('admission_batch_id', $mentorAdmissionBatchIds);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
+                // Faculty: Filter by faculty_id
+                $query->where('converted_leads.faculty_id', AuthHelper::getCurrentUserId());
             } elseif (RoleHelper::is_team_lead()) {
                 $teamId = $currentUser->team_id;
                 if ($teamId) {

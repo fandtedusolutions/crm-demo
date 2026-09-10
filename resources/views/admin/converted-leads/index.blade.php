@@ -250,6 +250,8 @@
                                     <th>Course</th>
                                     <th>Batch</th>
                                     <th>Admission Batch</th>
+                                    <th>Finance Approval</th>
+                                    <th>Faculty</th>
                                     <th>Status</th>
                                     <th>Cancelled By</th>
                                     <th>REG. FEE</th>
@@ -336,6 +338,8 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
     ['data' => 'course', 'name' => 'course', 'orderable' => false, 'searchable' => false],
     ['data' => 'batch', 'name' => 'batch', 'orderable' => false, 'searchable' => false],
     ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false],
+    ['data' => 'finance_approval', 'name' => 'finance_approval', 'orderable' => false, 'searchable' => false],
+    ['data' => 'faculty', 'name' => 'faculty', 'orderable' => false, 'searchable' => false],
     ['data' => 'status', 'name' => 'status', 'orderable' => false, 'searchable' => false],
     ['data' => 'cancelled_by', 'name' => 'cancelled_by', 'orderable' => false, 'searchable' => false],
     ['data' => 'reg_fee', 'name' => 'reg_fee', 'orderable' => false, 'searchable' => false],
@@ -1041,6 +1045,10 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             } else if (field === 'admission_batch_id') {
                 const batchId = container.data('batch-id');
                 editForm = createAdmissionBatchSelect(batchId, currentId);
+            } else if (field === 'faculty_id') {
+                editForm = createFacultySelect(currentId);
+            } else if (field === 'finance_approval') {
+                editForm = createFinanceApprovalSelect(currentValue);
             } else if (field === 'status') {
                 editForm = createStatusSelect(currentValue);
             } else if (field === 'reg_fee') {
@@ -1064,6 +1072,9 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
                 const batchId = container.data('batch-id');
                 const select = container.find('select');
                 loadAdmissionBatches(batchId, select, currentId);
+            } else if (field === 'faculty_id') {
+                const select = container.find('select');
+                loadFaculties(select, currentId);
             } else {
                 container.find('input, select').first().focus();
             }
@@ -1123,7 +1134,7 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
                             }
                         }
                         // Update data-current-id for fields that use it (store the ID, not the display value)
-                        if (field === 'batch_id' || field === 'admission_batch_id') {
+                        if (field === 'batch_id' || field === 'admission_batch_id' || field === 'faculty_id') {
                             container.data('current-id', value || '');
                         }
 
@@ -1327,6 +1338,62 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
                     </div>
                 </div>
             `;
+        }
+
+        function createFinanceApprovalSelect(currentValue) {
+            const options = [
+                { value: 'Pending', label: 'Pending' },
+                { value: 'Approved', label: 'Approved' }
+            ];
+            const selected = (currentValue === 'N/A' || !currentValue) ? 'Pending' : currentValue;
+            const optionTags = options.map(opt => {
+                const isSel = selected === opt.value ? 'selected' : '';
+                return `<option value="${opt.value}" ${isSel}>${opt.label}</option>`;
+            }).join('');
+
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        ${optionTags}
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createFacultySelect(currentId) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading faculties...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFaculties(select, currentId) {
+            $.get('/api/faculties')
+                .done(function(response) {
+                    let options = '<option value="">Select Faculty</option>';
+                    if (response.success && response.faculties) {
+                        response.faculties.forEach(function(fac) {
+                            const isSelected = (currentId && String(currentId) === String(fac.id)) ? 'selected' : '';
+                            options += `<option value="${fac.id}" ${isSelected}>${fac.name}</option>`;
+                        });
+                    }
+                    select.html(options);
+                    select.focus();
+                })
+                .fail(function() {
+                    select.html('<option value="">Error loading faculties</option>');
+                });
         }
 
         function loadBatches(courseId, select, currentId) {

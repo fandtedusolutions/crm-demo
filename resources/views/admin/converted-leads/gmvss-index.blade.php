@@ -188,6 +188,8 @@
                                     @endif
                                     <th>Batch</th>
                                     <th>Admission Batch</th>
+                                    <th>Finance Approval</th>
+                                    <th>Faculty</th>
                                     <th>Class</th>
                                     <th>Mail</th>
                                     <th>Course</th>
@@ -706,6 +708,8 @@
     $gmvssConvertedLeadsColumns = array_merge($gmvssConvertedLeadsColumns, [
         ['data' => 'batch', 'name' => 'batch', 'orderable' => false, 'searchable' => false],
         ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false],
+        ['data' => 'finance_approval', 'name' => 'finance_approval', 'orderable' => false, 'searchable' => false],
+        ['data' => 'faculty', 'name' => 'faculty', 'orderable' => false, 'searchable' => false],
         ['data' => 'class', 'name' => 'class', 'orderable' => false, 'searchable' => false],
         ['data' => 'mail', 'name' => 'mail', 'orderable' => false, 'searchable' => false],
         ['data' => 'course', 'name' => 'course', 'orderable' => false, 'searchable' => false],
@@ -1157,7 +1161,9 @@
 
             if (field === 'admission_batch_id') {
                 editForm = createAdmissionBatchField(container.data('batch-id'), currentId);
-            } else if (['registration_link_id', 'certificate_status', 'class'].includes(field)) {
+            } else if (field === 'faculty_id') {
+                editForm = createFacultySelect(currentId);
+            } else if (['registration_link_id', 'certificate_status', 'class', 'finance_approval'].includes(field)) {
                 editForm = createSelectField(field, currentValue);
             } else if (['certificate_received_date', 'certificate_issued_date'].includes(field)) {
                 editForm = createDateField(field, currentValue);
@@ -1171,7 +1177,12 @@
             container.addClass('editing');
             container.append(editForm);
 
-            container.find('input, select').first().focus();
+            if (field === 'faculty_id') {
+                const select = container.find('select');
+                loadFaculties(select, currentId);
+            } else {
+                container.find('input, select').first().focus();
+            }
         });
 
         // Save inline edit
@@ -1358,6 +1369,11 @@
                     options += `<option value="sslc" ${normalizedValue === 'sslc' ? 'selected' : ''}>SSLC</option>`;
                     options += `<option value="plustwo" ${normalizedValue === 'plustwo' ? 'selected' : ''}>Plus Two</option>`;
                     break;
+                case 'finance_approval':
+                    options = '<option value="">Select Finance Approval</option>';
+                    options += `<option value="Pending" ${(selectedValue === 'Pending' || !selectedValue) ? 'selected' : ''}>Pending</option>`;
+                    options += `<option value="Approved" ${selectedValue === 'Approved' ? 'selected' : ''}>Approved</option>`;
+                    break;
             }
 
             return `
@@ -1371,6 +1387,38 @@
                     </div>
                 </div>
             `;
+        }
+
+        function createFacultySelect(currentId) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading faculties...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFaculties(select, currentId) {
+            $.get('/api/faculties')
+                .done(function(response) {
+                    let options = '<option value="">Select Faculty</option>';
+                    if (response.success && response.faculties) {
+                        response.faculties.forEach(function(fac) {
+                            const isSelected = (currentId && String(currentId) === String(fac.id)) ? 'selected' : '';
+                            options += `<option value="${fac.id}" ${isSelected}>${fac.name}</option>`;
+                        });
+                    }
+                    select.html(options);
+                    select.focus();
+                })
+                .fail(function() {
+                    select.html('<option value="">Error loading faculties</option>');
+                });
         }
 
         function createAdmissionBatchField(batchId, currentAdmissionBatchId) {

@@ -266,12 +266,15 @@ class ConvertedLeadsExportController extends Controller
         }
 
         if (RoleHelper::is_faculty()) {
-            $facultyBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())->pluck('id')->toArray();
-            if (! empty($facultyBatchIds)) {
-                $query->whereIn('admission_batch_id', $facultyBatchIds);
-            } else {
-                $query->whereRaw('1 = 0');
-            }
+            $query->where('converted_leads.faculty_id', AuthHelper::getCurrentUserId());
+
+            return;
+        }
+
+        if (RoleHelper::is_mentor()) {
+            $query->whereHas('admissionBatch', function ($q) {
+                $q->where('mentor_id', AuthHelper::getCurrentUserId());
+            });
 
             return;
         }

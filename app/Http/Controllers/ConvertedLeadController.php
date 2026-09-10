@@ -126,6 +126,7 @@ class ConvertedLeadController extends Controller
                 'invoices.payments',
                 'batch',
                 'admissionBatch',
+                'faculty',
             ])->orderBy('id', 'desc')
                 ->skip($start)
                 ->take($length)
@@ -234,6 +235,18 @@ class ConvertedLeadController extends Controller
             } else {
                 $query->whereRaw('1 = 0');
             }
+
+            return;
+        }
+        if (RoleHelper::is_faculty()) {
+            $query->where('converted_leads.faculty_id', AuthHelper::getCurrentUserId());
+
+            return;
+        }
+        if (RoleHelper::is_mentor()) {
+            $query->whereHas('admissionBatch', function ($q) {
+                $q->where('mentor_id', AuthHelper::getCurrentUserId());
+            });
 
             return;
         }
@@ -431,6 +444,14 @@ class ConvertedLeadController extends Controller
             ? '<span class="badge bg-warning">Pending</span>'
             : '<span class="text-muted">No</span>';
 
+        $financeApprovalHtml = view('admin.converted-leads.partials.dt-cell-inline-finance-approval', [
+            'convertedLead' => $convertedLead,
+        ])->render();
+
+        $facultyHtml = view('admin.converted-leads.partials.dt-cell-inline-faculty', [
+            'convertedLead' => $convertedLead,
+        ])->render();
+
         $leadCreatedBy = ($convertedLead->lead && $convertedLead->lead->createdBy)
             ? e($convertedLead->lead->createdBy->name)
             : '<span class="text-muted">N/A</span>';
@@ -456,6 +477,8 @@ class ConvertedLeadController extends Controller
             'course' => e($convertedLead->course ? $convertedLead->course->title : 'N/A'),
             'batch' => e($convertedLead->batch ? $convertedLead->batch->title : 'N/A'),
             'admission_batch' => e($convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : 'N/A'),
+            'finance_approval' => $financeApprovalHtml,
+            'faculty' => $facultyHtml,
             'status' => e($convertedLead->status ?? 'N/A'),
             'cancelled_by' => $cancelledByHtml,
             'reg_fee' => e($regFeeValue ?? 'N/A'),
@@ -1818,14 +1841,7 @@ class ConvertedLeadController extends Controller
             } elseif (RoleHelper::is_mentor_head()) {
                 // Mentor Head: Can see all leads
             } elseif (RoleHelper::is_faculty()) {
-                $facultyAdmissionBatchIds = \App\Models\AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())
-                    ->pluck('id')
-                    ->toArray();
-                if (!empty($facultyAdmissionBatchIds)) {
-                    $query->whereIn('admission_batch_id', $facultyAdmissionBatchIds);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
+                $query->where('converted_leads.faculty_id', AuthHelper::getCurrentUserId());
             } elseif (RoleHelper::is_senior_manager()) {
                 $teamId = $currentUser->team_id;
                 if ($teamId) {
@@ -4050,12 +4066,24 @@ class ConvertedLeadController extends Controller
         
         // If mentor, restrict to allowed fields only
         $mentorAllowedFields = ['register_number', 'phone', 'enroll_no', 'registration_link_id', 'certificate_status', 'certificate_received_date', 'certificate_issued_date', 'remarks', 'all_online_result_publication_date', 'online_result_publication_date', 'certificate_publication_date', 'certificate_distribution_mode', 'courier_tracking_number', 'flag_id', 'call_time'];
-        $financeAllowedFields = ['status', 'exam_fee', 'registration_link_id'];
+        $financeAllowedFields = ['status', 'exam_fee', 'registration_link_id', 'finance_approval'];
 
         $convertedLead = ConvertedLead::findOrFail($id);
 
         if ($denied = \App\Support\MentorFlagFieldSupport::mentorLeadScopeDeniedJsonResponse($convertedLead)) {
             return $denied;
+        }
+
+        if ($field === 'finance_approval') {
+            if (! RoleHelper::is_admin_or_super_admin() && ! RoleHelper::is_finance()) {
+                return response()->json(['error' => 'You do not have permission to edit finance approval.'], 403);
+            }
+        }
+
+        if ($field === 'faculty_id') {
+            if (! RoleHelper::is_admin_or_super_admin() && ! RoleHelper::is_admission_counsellor() && ! RoleHelper::is_academic_assistant()) {
+                return response()->json(['error' => 'You do not have permission to assign faculty.'], 403);
+            }
         }
         
         // Additional role-based access control
@@ -4083,6 +4111,8 @@ class ConvertedLeadController extends Controller
             'phone',
             'batch_id',
             'admission_batch_id',
+            'faculty_id',
+            'finance_approval',
             'internship_id',
             'email',
             'call_status',
@@ -4143,6 +4173,8 @@ class ConvertedLeadController extends Controller
             'course_flag_id' => \App\Support\CourseFlagFieldSupport::validationRule(),
             'batch_id' => 'nullable|exists:batches,id',
             'admission_batch_id' => 'nullable|exists:admission_batches,id',
+            'faculty_id' => 'nullable|exists:users,id',
+            'finance_approval' => 'required|string|in:Pending,Approved',
             'academic_assistant_id' => 'nullable|exists:users,id',
             'username' => 'nullable|string|max:255',
             'password' => 'nullable|string|max:255',
@@ -4506,6 +4538,15 @@ class ConvertedLeadController extends Controller
         } elseif ($field === 'academic_assistant_id' && $updatedValue) {
             $user = \App\Models\User::find($updatedValue);
             $updatedValue = $user ? $user->name : $updatedValue;
+        } elseif ($field === 'faculty_id') {
+            if ($updatedValue) {
+                $user = \App\Models\User::find($updatedValue);
+                $updatedValue = $user ? $user->name : 'N/A';
+            } else {
+                $updatedValue = 'N/A';
+            }
+        } elseif ($field === 'finance_approval') {
+            $updatedValue = $updatedValue ?? 'Pending';
         } elseif (in_array($field, ['phone', 'code'])) {
             // For phone/code updates, return formatted display
             $updatedValue = \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone);
@@ -4739,7 +4780,7 @@ class ConvertedLeadController extends Controller
         $value = $request->value;
 
         // Validate field
-        $allowedFields = ['batch_id', 'admission_batch_id', 'remarks', 'status', 'reg_fee', 'exam_fee', 'id_card', 'tma', 'academic_assistant_id'];
+        $allowedFields = ['batch_id', 'admission_batch_id', 'faculty_id', 'remarks', 'status', 'reg_fee', 'exam_fee', 'id_card', 'tma', 'academic_assistant_id'];
         if (!in_array($field, $allowedFields)) {
             return response()->json([
                 'success' => false,

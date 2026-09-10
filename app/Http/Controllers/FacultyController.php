@@ -220,4 +220,20 @@ class FacultyController extends Controller
 
         return redirect()->route('admin.faculty.index')->with('message_success', 'Password updated successfully!');
     }
+
+    /**
+     * Get active faculty users for select options
+     */
+    public function listActive(Request $request)
+    {
+        $faculties = User::where('role_id', 16)
+            ->where('is_active', 1)
+            ->orderBy('name')
+            ->get(['id', 'name', 'code', 'phone']);
+
+        return response()->json([
+            'success' => true,
+            'faculties' => $faculties,
+        ]);
+    }
 }

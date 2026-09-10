@@ -9,6 +9,8 @@
     $canInlineEditPersonal = \App\Helpers\RoleHelper::is_admin_or_super_admin()
         || \App\Helpers\RoleHelper::is_admission_counsellor()
         || \App\Helpers\RoleHelper::is_academic_assistant();
+    $canInlineEditFinance = \App\Helpers\RoleHelper::is_admin_or_super_admin()
+        || \App\Helpers\RoleHelper::is_finance();
     $leadDetail = $convertedLead->leadDetail;
     $personalDobRaw = $convertedLead->dob
         ? (strtotime($convertedLead->dob) ? date('Y-m-d', strtotime($convertedLead->dob)) : $convertedLead->dob)
@@ -201,6 +203,21 @@
                             <div class="col-12">
                                 <label class="form-label text-muted">Admission Batch</label>
                                 <p class="fw-bold">{{ $convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : 'N/A' }}</p>
+                            </div>
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Finance Approval',
+                                'field' => 'finance_approval',
+                                'type' => 'select',
+                                'displayValue' => $convertedLead->finance_approval ?? 'Pending',
+                                'rawValue' => $convertedLead->finance_approval ?? 'Pending',
+                                'options' => ['Pending' => 'Pending', 'Approved' => 'Approved'],
+                                'canEdit' => $canInlineEditFinance,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 12,
+                            ])
+                            <div class="col-12">
+                                <label class="form-label text-muted">Faculty</label>
+                                <p class="fw-bold">{{ $convertedLead->faculty ? $convertedLead->faculty->name : 'N/A' }}</p>
                             </div>
                             <div class="col-12">
                                 <label class="form-label text-muted">Subject</label>
@@ -1212,7 +1229,7 @@
 @endpush
 
 @push('scripts')
-@if($canInlineEditPersonal)
+@if($canInlineEditPersonal || $canInlineEditFinance)
     <script src="{{ asset('assets/js/converted-lead-show-inline-edit.js') }}"></script>
 @endif
 @endpush

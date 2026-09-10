@@ -184,6 +184,8 @@
                                     <th>Tutor</th>
                                     <th>Batch</th>
                                     <th>Admission Batch</th>
+                                    <th>Finance Approval</th>
+                                    <th>Faculty</th>
                                     <th>Subject</th>
                                     <th>Screening Date</th>
                                     <th>Class Time</th>
@@ -292,6 +294,8 @@
                                             @endif
                                         </div>
                                     </td>
+                                    @include('admin.converted-leads.partials.inline-finance-approval-cell', ['convertedLead' => $convertedLead])
+                                    @include('admin.converted-leads.partials.inline-faculty-cell', ['convertedLead' => $convertedLead])
                                     <td>
                                         <div class="inline-edit" data-field="subject_id" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->subject_id }}">
                                             <span class="display-value">{{ $convertedLead->subject?->title ?: '-' }}</span>
@@ -712,7 +716,10 @@
                     editForm = createTeacherField(field, currentValue);
                 } else if (field === 'subject_id') {
                     editForm = createSubjectField(field, currentValue);
-                } else if (['class_status', 'continuing_studies'].includes(field)) {
+                } else if (field === 'faculty_id') {
+                    const currentId = container.data('current-id');
+                    editForm = createFacultySelect(currentId);
+                } else if (['class_status', 'continuing_studies', 'finance_approval'].includes(field)) {
                     editForm = createSelectField(field, currentValue);
                 } else if (['screening', 'screening_date'].includes(field)) {
                     editForm = createDateField(field, currentValue);
@@ -745,6 +752,12 @@
                     const currentId = container.data('current-id');
                     const $select = container.find('select');
                     loadBatchesForEdit($select, courseId, currentId);
+                }
+
+                if (field === 'faculty_id') {
+                    const currentId = container.data('current-id');
+                    const $select = container.find('select');
+                    loadFaculties($select, currentId);
                 }
 
                 container.find('input, select').first().focus();
@@ -814,7 +827,7 @@
                                 if (field === 'register_number') {
                                     currentForEditing = value || '';
                                 }
-                                if (['teacher_id', 'subject_id', 'batch_id', 'admission_batch_id'].includes(field)) {
+                                if (['teacher_id', 'subject_id', 'batch_id', 'admission_batch_id', 'faculty_id'].includes(field)) {
                                     currentForEditing = value || '';
                                 }
                                 if (field === 'phone') {
@@ -829,7 +842,7 @@
                                 // Fallback for pages where it's a sibling element
                                 container.siblings('.inline-code-value').data('current', codeVal);
                             }
-                            if (field === 'batch_id') {
+                            if (field === 'batch_id' || field === 'faculty_id') {
                                 container.data('current-id', value || '');
                             }
                             toast_success(response.message);
@@ -883,6 +896,35 @@
                     </div>
                 </div>
             `;
+            }
+
+            function createFacultySelect(currentId) {
+                return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading faculties...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+            }
+
+            function loadFaculties($select, currentId) {
+                $.get('/api/faculties').done(function(response) {
+                    let options = '<option value="">Select Faculty</option>';
+                    if (response.success && response.faculties) {
+                        response.faculties.forEach(function(fac) {
+                            const isSelected = (currentId && String(currentId) === String(fac.id)) ? 'selected' : '';
+                            options += `<option value="${fac.id}" ${isSelected}>${fac.name}</option>`;
+                        });
+                    }
+                    $select.html(options);
+                }).fail(function() {
+                    $select.html('<option value="">Error loading faculties</option>');
+                });
             }
 
             function createDateField(field, currentValue) {
@@ -1040,6 +1082,12 @@
                         <option value="">Select Continuing Studies</option>
                         <option value="yes" ${currentValue === 'yes' ? 'selected' : ''}>Yes</option>
                         <option value="no" ${currentValue === 'no' ? 'selected' : ''}>No</option>
+                    `;
+                } else if (field === 'finance_approval') {
+                    options = `
+                        <option value="">Select Finance Approval</option>
+                        <option value="Pending" ${(currentValue === 'Pending' || !currentValue) ? 'selected' : ''}>Pending</option>
+                        <option value="Approved" ${currentValue === 'Approved' ? 'selected' : ''}>Approved</option>
                     `;
                 }
 

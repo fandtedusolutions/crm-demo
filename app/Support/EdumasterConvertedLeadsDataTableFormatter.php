@@ -32,6 +32,8 @@ class EdumasterConvertedLeadsDataTableFormatter
             'email',
             'batch',
             'admission_batch',
+            'finance_approval',
+            'faculty',
             'selected_courses',
             'board_university',
             'course_type',

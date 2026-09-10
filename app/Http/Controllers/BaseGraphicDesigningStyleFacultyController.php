@@ -57,15 +57,7 @@ abstract class BaseGraphicDesigningStyleFacultyController extends Controller
                 }
             } elseif (RoleHelper::is_mentor_head()) {
             } elseif (RoleHelper::is_faculty()) {
-                $mentorAdmissionBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())
-                    ->pluck('id')
-                    ->toArray();
-
-                if (!empty($mentorAdmissionBatchIds)) {
-                    $query->whereIn('admission_batch_id', $mentorAdmissionBatchIds);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
+                $query->where('converted_leads.faculty_id', AuthHelper::getCurrentUserId());
             } elseif (RoleHelper::is_team_lead()) {
                 $teamId = $currentUser->team_id;
                 if ($teamId) {

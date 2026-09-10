@@ -32,6 +32,8 @@
     </td>
     <td>{{ $convertedLead->batch?->title ?? 'N/A' }}</td>
     <td>{{ $convertedLead->admissionBatch?->title ?? 'N/A' }}</td>
+    @include('admin.converted-leads.partials.inline-finance-approval-cell', ['convertedLead' => $convertedLead])
+    @include('admin.converted-leads.partials.inline-faculty-cell', ['convertedLead' => $convertedLead])
     <td>{{ $convertedLead->studentDetails?->internship_id ?? 'N/A' }}</td>
     <td>{{ $convertedLead->email ?? '-' }}</td>
     <td>{{ $convertedLead->studentDetails?->call_status ?? '-' }}</td>

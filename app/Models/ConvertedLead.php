@@ -50,6 +50,8 @@ class ConvertedLead extends Model
         'course_flag_id',
         'admission_batch_id',
         'admission_batch_assigned_at',
+        'finance_approval',
+        'faculty_id',
         'is_postpond_batch',
         'remarks',
         'created_by',
@@ -154,6 +156,11 @@ class ConvertedLead extends Model
     public function academicAssistant()
     {
         return $this->belongsTo(User::class, 'academic_assistant_id');
+    }
+
+    public function faculty()
+    {
+        return $this->belongsTo(User::class, 'faculty_id');
     }
 
     public function createdBy()

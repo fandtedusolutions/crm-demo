@@ -224,6 +224,8 @@
                                     <th>Batch</th>
                                     <th>Course</th>
                                     <th>Admission Batch</th>
+                                    <th>Finance Approval</th>
+                                    <th>Faculty</th>
                                     <th>Registered Person</th>
                                     <th>Username</th>
                                     <th>Password</th>
@@ -332,6 +334,8 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
     ['data' => 'batch', 'name' => 'batch', 'orderable' => false, 'searchable' => false],
     ['data' => 'course', 'name' => 'course', 'orderable' => false, 'searchable' => false],
     ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false],
+    ['data' => 'finance_approval', 'name' => 'finance_approval', 'orderable' => false, 'searchable' => false],
+    ['data' => 'faculty', 'name' => 'faculty', 'orderable' => false, 'searchable' => false],
     ['data' => 'registered_person', 'name' => 'registered_person', 'orderable' => false, 'searchable' => false],
     ['data' => 'username', 'name' => 'username', 'orderable' => false, 'searchable' => false],
     ['data' => 'password', 'name' => 'password', 'orderable' => false, 'searchable' => false],
@@ -843,9 +847,11 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
             } else if (field === 'admission_batch_id') {
                 const batchId = container.data('batch-id');
                 editForm = createAdmissionBatchSelect(batchId, currentId);
+            } else if (field === 'faculty_id') {
+                editForm = createFacultySelect(currentId);
             } else if (field === 'academic_assistant_id') {
                 editForm = createAcademicAssistantSelect(currentId);
-            } else if (['status', 'reg_fee', 'exam_fee', 'id_card', 'tma'].includes(field)) {
+            } else if (['status', 'reg_fee', 'exam_fee', 'id_card', 'tma', 'finance_approval'].includes(field)) {
                 editForm = createSelectField(field, currentValue);
             } else if (field === 'phone') {
                 const currentCode = container.siblings('.inline-code-value').data('current') || '';
@@ -870,6 +876,9 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                 const batchId = container.data('batch-id');
                 const select = container.find('select');
                 loadAdmissionBatches(batchId, select, currentId);
+            } else if (field === 'faculty_id') {
+                const select = container.find('select');
+                loadFaculties(select, currentId);
             } else if (field === 'academic_assistant_id') {
                 const select = container.find('select');
                 loadAcademicAssistants(select, currentId);
@@ -925,7 +934,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                         // Update the data-current attribute with the new display value
                         container.data('current', displayValue);
                         // Update data-current-id for fields that use it (store the ID, not the display value)
-                        if (field === 'batch_id' || field === 'subject_id' || field === 'admission_batch_id' || field === 'academic_assistant_id') {
+                        if (field === 'batch_id' || field === 'subject_id' || field === 'admission_batch_id' || field === 'faculty_id' || field === 'academic_assistant_id') {
                             container.data('current-id', value || '');
                         }
                         if (field === 'phone') {
@@ -1077,6 +1086,11 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                     options += `<option value="Uploaded" ${selectedValue === 'Uploaded' ? 'selected' : ''}>Uploaded</option>`;
                     options += `<option value="Not Upload" ${selectedValue === 'Not Upload' ? 'selected' : ''}>Not Upload</option>`;
                     break;
+                case 'finance_approval':
+                    options = '<option value="">Select Finance Approval</option>';
+                    options += `<option value="Pending" ${(selectedValue === 'Pending' || !selectedValue) ? 'selected' : ''}>Pending</option>`;
+                    options += `<option value="Approved" ${selectedValue === 'Approved' ? 'selected' : ''}>Approved</option>`;
+                    break;
             }
 
             return `
@@ -1090,6 +1104,38 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                     </div>
                 </div>
             `;
+        }
+
+        function createFacultySelect(currentId) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading faculties...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFaculties(select, currentId) {
+            $.get('/api/faculties')
+                .done(function(response) {
+                    let options = '<option value="">Select Faculty</option>';
+                    if (response.success && response.faculties) {
+                        response.faculties.forEach(function(fac) {
+                            const isSelected = (currentId && String(currentId) === String(fac.id)) ? 'selected' : '';
+                            options += `<option value="${fac.id}" ${isSelected}>${fac.name}</option>`;
+                        });
+                    }
+                    select.html(options);
+                    select.focus();
+                })
+                .fail(function() {
+                    select.html('<option value="">Error loading faculties</option>');
+                });
         }
 
         function createSubjectSelect(courseId, currentId) {

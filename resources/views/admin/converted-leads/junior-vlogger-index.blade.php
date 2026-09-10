@@ -144,6 +144,8 @@
                                     <th>Batch</th>
                                     <th>Class Time</th>
                                     <th>Academic Batch</th>
+                                    <th>Finance Approval</th>
+                                    <th>Faculty</th>
                                     <th>Full Name</th>
                                     <th>Date of Birth</th>
                                     <th>Age</th>
@@ -239,6 +241,8 @@
                                             @endif
                                         </div>
                                     </td>
+                                    @include('admin.converted-leads.partials.inline-finance-approval-cell', ['convertedLead' => $convertedLead])
+                                    @include('admin.converted-leads.partials.inline-faculty-cell', ['convertedLead' => $convertedLead])
                                     <td>
                                         {{ $convertedLead->name }}
                                         @if($convertedLead->is_cancelled)
@@ -456,6 +460,51 @@ $(document).ready(function() {
             '</div>';
     }
 
+    function createInlineFacultySelect() {
+        return '' +
+            '<div class="edit-form">' +
+                '<select class="form-select form-select-sm">' +
+                    '<option value="">Loading faculties...</option>' +
+                '</select>' +
+                '<div class="btn-group mt-1">' +
+                    '<button type="button" class="btn btn-success btn-sm save-edit">Save</button>' +
+                    '<button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>' +
+                '</div>' +
+            '</div>';
+    }
+
+    function createInlineFinanceApprovalSelect(currentValue) {
+        var selectedValue = (currentValue || '').trim();
+        var pendingSel = (selectedValue === 'Pending' || !selectedValue) ? 'selected' : '';
+        var approvedSel = selectedValue === 'Approved' ? 'selected' : '';
+        return '' +
+            '<div class="edit-form">' +
+                '<select class="form-select form-select-sm">' +
+                    '<option value="Pending" ' + pendingSel + '>Pending</option>' +
+                    '<option value="Approved" ' + approvedSel + '>Approved</option>' +
+                '</select>' +
+                '<div class="btn-group mt-1">' +
+                    '<button type="button" class="btn btn-success btn-sm save-edit">Save</button>' +
+                    '<button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>' +
+                '</div>' +
+            '</div>';
+    }
+
+    function loadInlineFaculties($select, currentId) {
+        $.get('/api/faculties').done(function(response) {
+            var options = '<option value="">Select Faculty</option>';
+            if (response.success && response.faculties) {
+                response.faculties.forEach(function(fac) {
+                    var isSelected = (currentId && String(currentId) === String(fac.id)) ? 'selected' : '';
+                    options += '<option value="' + fac.id + '" ' + isSelected + '>' + fac.name + '</option>';
+                });
+            }
+            $select.html(options).focus();
+        }).fail(function() {
+            $select.html('<option value="">Error loading faculties</option>');
+        });
+    }
+
     function loadInlineBatches(courseId, $select, currentId) {
         if (!courseId) {
             $select.html('<option value="">No course selected</option>');
@@ -525,6 +574,10 @@ $(document).ready(function() {
             editForm = createInlineBatchSelect();
         } else if (field === 'admission_batch_id') {
             editForm = createInlineAdmissionBatchSelect();
+        } else if (field === 'faculty_id') {
+            editForm = createInlineFacultySelect();
+        } else if (field === 'finance_approval') {
+            editForm = createInlineFinanceApprovalSelect(currentValue);
         } else if (inlineDateFields.indexOf(field) !== -1) {
             editForm = createInlineDateField(currentValue);
         } else {
@@ -542,6 +595,9 @@ $(document).ready(function() {
             var batchId = container.data('batch-id');
             var selectAb = container.find('select');
             loadInlineAdmissionBatches(batchId, selectAb, currentId);
+        } else if (field === 'faculty_id') {
+            var selectFac = container.find('select');
+            loadInlineFaculties(selectFac, currentId);
         } else {
             container.find('input, select').first().focus();
         }
@@ -573,7 +629,7 @@ $(document).ready(function() {
                     var displayValue = response.value || 'N/A';
                     container.find('.display-value').text(displayValue);
                     container.data('current', (inlineDateFields.indexOf(field) !== -1) ? value : displayValue);
-                    if (field === 'batch_id' || field === 'admission_batch_id') {
+                    if (field === 'batch_id' || field === 'admission_batch_id' || field === 'faculty_id') {
                         container.data('current-id', value || '');
                     }
                     if (typeof toast_success === 'function') toast_success(response.message);

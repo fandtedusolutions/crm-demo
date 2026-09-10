@@ -32,6 +32,8 @@ class BosseConvertedLeadsDataTableFormatter
         $keys = array_merge($keys, [
             'batch',
             'admission_batch',
+            'finance_approval',
+            'faculty',
             'registered_person',
             'subject',
             'subject_area',

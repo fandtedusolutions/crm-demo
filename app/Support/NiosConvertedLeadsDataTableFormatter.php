@@ -24,7 +24,7 @@ class NiosConvertedLeadsDataTableFormatter
             $keys[] = 'parent_phone';
         }
         $keys = array_merge($keys, [
-            'batch', 'course', 'admission_batch', 'registered_person', 'username', 'password',
+            'batch', 'course', 'admission_batch', 'finance_approval', 'faculty', 'registered_person', 'username', 'password',
             'admission_status', 'student_reg_fee', 'exam_fee', 'ref_no', 'enroll_no', 'mail',
             'id_card', 'tma', 'remarks', 'actions',
         ]);
