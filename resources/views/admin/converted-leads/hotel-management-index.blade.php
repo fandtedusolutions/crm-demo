@@ -643,20 +643,28 @@
             loadAdmissionBatchesByBatch(bid, '');
         });
 
-        // Inline editing functionality
-        $('.inline-edit .edit-btn').on('click', function(e) {
+        // Inline editing functionality (delegated for DataTables)
+        $(document).on('click', '.inline-edit .edit-btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
 
             const container = $(this).closest('.inline-edit');
             const field = container.data('field');
             const currentValue = container.data('current');
+            const currentId = container.data('current-id') !== undefined ? String(container.data('current-id')).trim() : '';
             const id = container.data('id');
             const code = container.data('code');
 
             if (container.hasClass('editing')) {
                 return;
             }
+
+            $('.inline-edit.editing').not(container).each(function() {
+                $(this).removeClass('editing');
+                $(this).find('.edit-form').remove();
+                $(this).find('.display-value').show();
+                $(this).find('.edit-btn').show();
+            });
 
             container.addClass('editing');
 
@@ -667,10 +675,10 @@
             } else if (['app', 'group', 'interview', 'howmany_interview', 'finance_approval'].includes(field)) {
                 formHtml = createSelectField(field, currentValue);
             } else if (field === 'faculty_id') {
-                formHtml = createFacultyField(currentValue);
+                formHtml = createFacultyField(currentId);
             } else if (field === 'admission_batch_id') {
                 const batchId = container.data('batch-id');
-                formHtml = createAdmissionBatchField(batchId, currentValue);
+                formHtml = createAdmissionBatchField(batchId, currentId);
             } else {
                 formHtml = createInputField(field, currentValue);
             }
@@ -683,10 +691,10 @@
             if (field === 'admission_batch_id') {
                 const batchId = container.data('batch-id');
                 const $select = container.find('select');
-                loadAdmissionBatchesForEdit($select, batchId, currentValue);
+                loadAdmissionBatchesForEdit($select, batchId, currentId);
             } else if (field === 'faculty_id') {
                 const $select = container.find('select');
-                loadFacultiesForEdit($select, currentValue);
+                loadFacultiesForEdit($select, currentId);
             }
 
             // Focus on input
@@ -740,6 +748,9 @@
                         }
                         container.find('.display-value').text(displayValue).show();
                         container.data('current', response.value || value);
+                        if (field === 'batch_id' || field === 'admission_batch_id' || field === 'faculty_id') {
+                            container.data('current-id', value || '');
+                        }
 
                         // Show success message
                         show_alert('success', 'Updated successfully!');

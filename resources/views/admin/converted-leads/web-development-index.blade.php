@@ -214,6 +214,8 @@
                                     <th>Class Time</th>
                                     <th>Batch</th>
                                     <th>Admission Batch</th>
+                                    <th>Finance Approval</th>
+                                    <th>Faculty</th>
                                     <th>Internship ID</th>
                                     <th>Email</th>
                                     <th>Call Status</th>
@@ -254,21 +256,28 @@
 
                 const container = $(this).closest('.inline-edit');
                 const field = container.data('field');
-                const currentValue = container.data('current');
+                const id = container.data('id');
+                const currentValue = container.data('current') !== undefined ? String(container.data('current')).trim() : container.find('.display-value').text().trim();
+                const currentId = container.data('current-id') !== undefined ? String(container.data('current-id')).trim() : '';
 
-                // Remove any existing edit forms
-                container.find('.edit-form').remove();
+                if (container.hasClass('editing')) {
+                    return;
+                }
 
                 // Remove editing class from other containers
-                $('.inline-edit').removeClass('editing');
-                $('.edit-form').remove();
+                $('.inline-edit.editing').not(container).each(function() {
+                    $(this).removeClass('editing');
+                    $(this).find('.edit-form').remove();
+                });
 
                 let editForm = '';
 
                 if (field === 'phone') {
                     const currentCode = container.siblings('.inline-code-value').data('current') || '';
                     editForm = createPhoneField(currentCode, currentValue);
-                } else if (['call_status', 'class_information', 'orientation_class_status', 'whatsapp_group_status', 'class_status'].includes(field)) {
+                } else if (field === 'faculty_id') {
+                    editForm = createFacultySelect(currentId);
+                } else if (['call_status', 'class_information', 'orientation_class_status', 'whatsapp_group_status', 'class_status', 'finance_approval'].includes(field)) {
                     editForm = createSelectField(field, currentValue);
                 } else if (['class_starting_date', 'class_ending_date', 'complete_cancel_date'].includes(field)) {
                     editForm = createDateField(field, currentValue);
@@ -276,20 +285,13 @@
                     editForm = createTimeField(field, currentValue);
                 } else if (field === 'batch_id') {
                     const courseId = container.data('course-id');
-                    const currentId = container.data('current-id') !== undefined ? String(container.data('current-id')).trim() : '';
-                    editForm = createBatchSelect(courseId, currentId);
-                } else if (field === 'batch_id') {
-                    const courseId = container.data('course-id');
-                    const currentId = container.data('current-id');
                     editForm = createBatchSelect(courseId, currentId);
                 } else if (field === 'admission_batch_id') {
                     const batchId = container.data('batch-id');
-                    const currentId = container.data('current-id');
                     editForm = createAdmissionBatchField(batchId, currentId);
                 } else if (field === 'class_time_id') {
                     const courseId = container.data('course-id');
                     const programmeType = container.data('programme-type');
-                    const currentId = container.data('current-id');
                     editForm = createClassTimeSelect(courseId, programmeType, currentId);
                 } else if (container.data('field-type') === 'select') {
                     // Handle fields with data-field-type="select" using data-options
@@ -305,18 +307,18 @@
                 // Load options for select fields that need dynamic loading
                 if (field === 'batch_id') {
                     const courseId = container.data('course-id');
-                    const currentId = container.data('current-id');
                     const $select = container.find('select');
                     loadBatchesForEdit($select, courseId, currentId);
                 } else if (field === 'admission_batch_id') {
                     const batchId = container.data('batch-id');
-                    const currentId = container.data('current-id');
                     const $select = container.find('select');
                     loadAdmissionBatchesForEdit($select, batchId, currentId);
+                } else if (field === 'faculty_id') {
+                    const $select = container.find('select');
+                    loadFaculties($select, currentId);
                 } else if (field === 'class_time_id') {
                     const courseId = container.data('course-id');
                     const programmeType = container.data('programme-type');
-                    const currentId = container.data('current-id');
                     const $select = container.find('select');
                     loadClassTimesForEdit($select, courseId, programmeType, currentId);
                 } else {
@@ -368,7 +370,7 @@
                             // Update the data-current attribute with the new display value
                             container.data('current', displayValue);
                             // Update data-current-id for fields that use it (store the ID, not the display value)
-                            if (field === 'batch_id' || field === 'admission_batch_id' || field === 'class_time_id') {
+                            if (field === 'batch_id' || field === 'admission_batch_id' || field === 'class_time_id' || field === 'faculty_id') {
                                 container.data('current-id', value || '');
                             }
 
@@ -610,6 +612,38 @@
                 });
         }
 
+        function createFacultySelect(currentId) {
+            return `
+                <div class="edit-form">
+                    <select class="form-select form-select-sm">
+                        <option value="">Loading faculties...</option>
+                    </select>
+                    <div class="btn-group mt-1">
+                        <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadFaculties($select, currentId) {
+            $.get('/api/faculties')
+                .done(function(response) {
+                    let options = '<option value="">Select Faculty</option>';
+                    if (response.success && response.faculties) {
+                        response.faculties.forEach(function(fac) {
+                            const isSelected = (currentId && String(currentId) === String(fac.id)) ? 'selected' : '';
+                            options += `<option value="${fac.id}" ${isSelected}>${fac.name}</option>`;
+                        });
+                    }
+                    $select.html(options);
+                    $select.focus();
+                })
+                .fail(function() {
+                    $select.html('<option value="">Error loading faculties</option>');
+                });
+        }
+
         function createClassTimeSelect(courseId, programmeType, currentId) {
             return `
                 <div class="edit-form">
@@ -757,6 +791,12 @@
                     <option value="Running" ${currentValue === 'Running' ? 'selected' : ''}>Running</option>
                     <option value="Cancel" ${currentValue === 'Cancel' ? 'selected' : ''}>Cancel</option>
                     <option value="complete" ${currentValue === 'complete' ? 'selected' : ''}>Complete</option>
+                `;
+            } else if (field === 'finance_approval') {
+                options = `
+                    <option value="">Select Finance Approval</option>
+                    <option value="Pending" ${(currentValue === 'Pending' || !currentValue) ? 'selected' : ''}>Pending</option>
+                    <option value="Approved" ${currentValue === 'Approved' ? 'selected' : ''}>Approved</option>
                 `;
             }
 

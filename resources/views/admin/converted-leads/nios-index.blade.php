@@ -229,8 +229,8 @@
                                     <th>Registered Person</th>
                                     <th>Username</th>
                                     <th>Password</th>
-                                    <th>REG. FEE</th>
                                     <th>REG. STATUS</th>
+                                    <th>REG. FEE</th>
                                     <th>EXAM FEE</th>
                                     <th>Ref No</th>
                                     <th>Enroll No</th>

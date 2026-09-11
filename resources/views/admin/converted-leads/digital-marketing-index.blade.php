@@ -674,6 +674,7 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
             const field = container.data('field');
             const id = container.data('id');
             const currentValue = container.data('current') !== undefined ? String(container.data('current')).trim() : container.find('.display-value').text().trim();
+            const currentId = container.data('current-id') !== undefined ? String(container.data('current-id')).trim() : '';
 
             if (container.hasClass('editing')) {
                 return;
