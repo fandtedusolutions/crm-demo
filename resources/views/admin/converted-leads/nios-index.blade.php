@@ -159,6 +159,15 @@
                             </select>
                         </div>
 
+                        <div class="col-12 col-sm-6 col-md-2">
+                            <label for="re_mode" class="form-label">Re-Mode</label>
+                            <select class="form-select" id="re_mode" name="re_mode">
+                                <option value="">All</option>
+                                <option value="Normal" {{ request('re_mode')==='Normal' ? 'selected' : '' }}>Normal</option>
+                                <option value="TOC" {{ request('re_mode')==='TOC' ? 'selected' : '' }}>TOC</option>
+                            </select>
+                        </div>
+
                         <div class="col-12 col-md-4">
                             <div class="d-flex gap-2 flex-wrap">
                                 <button type="submit" class="btn btn-primary">
@@ -224,6 +233,7 @@
                                     <th>Batch</th>
                                     <th>Course</th>
                                     <th>Admission Batch</th>
+                                    <th>Re-Mode</th>
                                     <th>Finance Approval</th>
                                     <th>Faculty</th>
                                     <th>Registered Person</th>
@@ -334,6 +344,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
     ['data' => 'batch', 'name' => 'batch', 'orderable' => false, 'searchable' => false],
     ['data' => 'course', 'name' => 'course', 'orderable' => false, 'searchable' => false],
     ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false],
+    ['data' => 're_mode', 'name' => 're_mode', 'orderable' => false, 'searchable' => false],
     ['data' => 'finance_approval', 'name' => 'finance_approval', 'orderable' => false, 'searchable' => false],
     ['data' => 'faculty', 'name' => 'faculty', 'orderable' => false, 'searchable' => false],
     ['data' => 'registered_person', 'name' => 'registered_person', 'orderable' => false, 'searchable' => false],
@@ -591,7 +602,8 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                 reg_fee: $('#reg_fee').val() || '',
                 exam_fee: $('#exam_fee').val() || '',
                 id_card: $('#id_card').val() || '',
-                tma: $('#tma').val() || ''
+                tma: $('#tma').val() || '',
+                re_mode: $('#re_mode').val() || ''
             };
         }
 
@@ -851,7 +863,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                 editForm = createFacultySelect(currentId);
             } else if (field === 'academic_assistant_id') {
                 editForm = createAcademicAssistantSelect(currentId);
-            } else if (['status', 'reg_fee', 'exam_fee', 'id_card', 'tma', 'finance_approval'].includes(field)) {
+            } else if (['status', 'reg_fee', 'exam_fee', 'id_card', 'tma', 'finance_approval', 're_mode'].includes(field)) {
                 editForm = createSelectField(field, currentValue);
             } else if (field === 'phone') {
                 const currentCode = container.siblings('.inline-code-value').data('current') || '';
@@ -941,6 +953,17 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                             const codeVal = extra.code || '';
                             container.siblings('.inline-code-value').data('current', codeVal);
                         }
+                        if (field === 'register_number') {
+                            let regNum = (response.value && response.value !== '-' && response.value !== 'N/A' && response.value !== 'Not Set') ? response.value : '';
+                            container.data('current', regNum);
+                            container.find('.badge').remove();
+                            container.find('.display-value').remove();
+                            if (regNum) {
+                                container.prepend(`<span class="badge bg-success"><span class="display-value">${regNum}</span></span>`);
+                            } else {
+                                container.prepend(`<span class="display-value text-muted">Not Set</span>`);
+                            }
+                        }
                         toast_success(response.message);
                     } else {
                         toast_error(response.error || 'Update failed');
@@ -995,7 +1018,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
             }
 
             const inputType = 'text';
-            const displayValue = currentValue === 'N/A' ? '' : currentValue;
+            const displayValue = (currentValue === 'N/A' || currentValue === 'Not Set' || currentValue === '-') ? '' : currentValue;
             const commonAttrs = 'autocomplete="off" autocapitalize="off" spellcheck="false" name="inline-temp"';
             const valueAttr = `value="${displayValue}"`;
             return `
@@ -1090,6 +1113,11 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                     options = '<option value="">Select Finance Approval</option>';
                     options += `<option value="Pending" ${(selectedValue === 'Pending' || !selectedValue) ? 'selected' : ''}>Pending</option>`;
                     options += `<option value="Approved" ${selectedValue === 'Approved' ? 'selected' : ''}>Approved</option>`;
+                    break;
+                case 're_mode':
+                    options = '<option value="">Select Re-Mode</option>';
+                    options += `<option value="Normal" ${selectedValue === 'Normal' ? 'selected' : ''}>Normal</option>`;
+                    options += `<option value="TOC" ${selectedValue === 'TOC' ? 'selected' : ''}>TOC</option>`;
                     break;
             }
 

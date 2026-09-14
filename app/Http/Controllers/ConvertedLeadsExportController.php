@@ -375,7 +375,7 @@ class ConvertedLeadsExportController extends Controller
             $query->where('status', $request->status);
         }
 
-        foreach (['reg_fee', 'exam_fee', 'id_card', 'tma'] as $field) {
+        foreach (['reg_fee', 'exam_fee', 'id_card', 'tma', 're_mode'] as $field) {
             if ($request->filled($field)) {
                 $query->whereHas('studentDetails', function ($q) use ($request, $field) {
                     $q->where($field, $request->$field);

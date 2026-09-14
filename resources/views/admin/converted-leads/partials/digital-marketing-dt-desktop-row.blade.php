@@ -7,7 +7,20 @@
     <td>@include('admin.converted-leads.partials.status-badge', ['convertedLead' => $convertedLead, 'type' => 'academic', 'showToggle' => $canToggleAcademic, 'toggleUrl' => $canToggleAcademic ? route('admin.converted-leads.toggle-academic-verify', $convertedLead->id) : null, 'title' => 'academic', 'useModal' => true])</td>
     <td>@include('admin.converted-leads.partials.status-badge', ['convertedLead' => $convertedLead, 'type' => 'support', 'showToggle' => $canToggleSupport, 'toggleUrl' => $canToggleSupport ? route('admin.support-converted-leads.toggle-support-verify', $convertedLead->id) : null, 'title' => 'support', 'useModal' => true])</td>
     <td>{{ optional($convertedLead->created_at)->format('d-m-Y') }}</td>
-    <td>{{ $convertedLead->register_number ?? '-' }}</td>
+    <td>
+        <div class="inline-edit" data-field="register_number" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->register_number }}">
+            @if($convertedLead->register_number)
+                <span class="badge bg-success"><span class="display-value">{{ $convertedLead->register_number }}</span></span>
+            @else
+                <span class="display-value text-muted">Not Set</span>
+            @endif
+            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                <button type="button" class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit">
+                    <i class="ti ti-edit"></i>
+                </button>
+            @endif
+        </div>
+    </td>
     @include('admin.converted-leads.partials.inline-course-flag-cell', ['convertedLead' => $convertedLead])
     <td>
         {{ $convertedLead->name }}
@@ -46,16 +59,25 @@
     <td>{{ $convertedLead->studentDetails?->complete_cancel_date ? \Carbon\Carbon::parse($convertedLead->studentDetails->complete_cancel_date)->format('d-m-Y') : '-' }}</td>
     <td>{{ $convertedLead->studentDetails?->remarks ?? '-' }}</td>
     <td>
-        <a href="{{ route('admin.converted-leads.show', $convertedLead->id) }}" class="btn btn-sm btn-outline-primary" title="View Details"><i class="ti ti-eye"></i></a>
-        <a href="{{ route('admin.invoices.index', $convertedLead->id) }}" class="btn btn-sm btn-success" title="View Invoice"><i class="ti ti-receipt"></i></a>
-        @if($hasIdCard)
-            <a href="{{ route('admin.converted-leads.id-card-view', $convertedLead->id) }}" class="btn btn-sm btn-success" title="View ID Card" target="_blank"><i class="ti ti-id"></i></a>
-        @else
-            <form class="d-inline id-card-generate-form" action="{{ route('admin.converted-leads.id-card-generate', $convertedLead->id) }}" method="POST">
-                @csrf
-                <button type="submit" class="btn btn-sm btn-warning" title="Generate ID Card"><i class="ti ti-id"></i></button>
-            </form>
-        @endif
+        <div class="" role="group">
+            <a href="{{ route('admin.converted-leads.show', $convertedLead->id) }}" class="btn btn-sm btn-outline-primary" title="View Details"><i class="ti ti-eye"></i></a>
+            <a href="{{ route('admin.invoices.index', $convertedLead->id) }}" class="btn btn-sm btn-success" title="View Invoice"><i class="ti ti-receipt"></i></a>
+            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_support_team())
+                <button type="button" class="btn btn-sm btn-info update-register-btn" title="Update Register Number"
+                    data-url="{{ route('admin.converted-leads.update-register-number-modal', $convertedLead->id) }}"
+                    data-title="Update Register Number">
+                    <i class="ti ti-edit"></i>
+                </button>
+            @endif
+            @if($hasIdCard)
+                <a href="{{ route('admin.converted-leads.id-card-view', $convertedLead->id) }}" class="btn btn-sm btn-success" title="View ID Card" target="_blank"><i class="ti ti-id"></i></a>
+            @else
+                <form class="d-inline id-card-generate-form" action="{{ route('admin.converted-leads.id-card-generate', $convertedLead->id) }}" method="POST">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-warning" title="Generate ID Card"><i class="ti ti-id"></i></button>
+                </form>
+            @endif
+        </div>
     </td>
 </tr>
 

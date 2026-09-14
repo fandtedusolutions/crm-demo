@@ -17,6 +17,7 @@ class ConvertedStudentDetail extends Model
         'internship_id',
         'id_card',
         'tma',
+        're_mode',
         'deleted_by',
         'registration_number',
         'converted_date',

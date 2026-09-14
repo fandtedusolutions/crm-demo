@@ -357,6 +357,11 @@ class ConvertedLead extends Model
         return $this->studentDetails?->tma;
     }
 
+    public function getReModeAttribute()
+    {
+        return $this->studentDetails?->re_mode;
+    }
+
     /**
      * Setter methods to update fields in ConvertedStudentDetail
      */
@@ -392,6 +397,13 @@ class ConvertedLead extends Model
     {
         if ($this->studentDetails) {
             $this->studentDetails->update(['tma' => $value]);
+        }
+    }
+
+    public function setReModeAttribute($value)
+    {
+        if ($this->studentDetails) {
+            $this->studentDetails->update(['re_mode' => $value]);
         }
     }
 }

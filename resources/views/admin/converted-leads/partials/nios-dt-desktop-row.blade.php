@@ -151,6 +151,16 @@
             @endif
         </div>
     </td>
+    <td>
+        <div class="inline-edit" data-field="re_mode" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->studentDetails?->re_mode }}">
+            <span class="display-value">{{ $convertedLead->studentDetails?->re_mode ?? 'N/A' }}</span>
+            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit">
+                <i class="ti ti-edit"></i>
+            </button>
+            @endif
+        </div>
+    </td>
     @include('admin.converted-leads.partials.inline-finance-approval-cell', ['convertedLead' => $convertedLead])
     @include('admin.converted-leads.partials.inline-faculty-cell', ['convertedLead' => $convertedLead])
     <td>

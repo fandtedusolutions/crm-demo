@@ -665,6 +665,15 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
             window.reloadDigitalMarketingTable(true);
         });
 
+        $(document).on('click', '.update-register-btn', function(e) {
+            e.preventDefault();
+            const url = $(this).data('url');
+            const title = $(this).data('title');
+            if (typeof show_small_modal === 'function' && url) {
+                show_small_modal(url, title);
+            }
+        });
+
         // Inline editing functionality
         $(document).on('click', '.edit-btn', function(e) {
             e.preventDefault();
@@ -820,6 +829,17 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
                             const codeVal = extra.code || '';
                             container.siblings('.inline-code-value').data('current', codeVal);
                         }
+                        if (field === 'register_number') {
+                            let regNum = (response.value && response.value !== '-' && response.value !== 'N/A' && response.value !== 'Not Set') ? response.value : '';
+                            container.data('current', regNum);
+                            container.find('.badge').remove();
+                            container.find('.display-value').remove();
+                            if (regNum) {
+                                container.prepend(`<span class="badge bg-success"><span class="display-value">${regNum}</span></span>`);
+                            } else {
+                                container.prepend(`<span class="display-value text-muted">Not Set</span>`);
+                            }
+                        }
                         show_alert('success', response.message || 'Updated successfully!');
                     } else {
                         show_alert('error', response.error || 'Update failed');
@@ -861,7 +881,7 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
 
         // Helper functions for creating form elements
         function createInputField(field, currentValue) {
-            const displayValue = currentValue === '-' ? '' : currentValue;
+            const displayValue = (currentValue === '-' || currentValue === 'Not Set' || currentValue === 'N/A') ? '' : currentValue;
             return `
                 <div class="edit-form">
                     <input type="text" value="${displayValue}" class="form-control form-control-sm" autocomplete="off" autocapitalize="off" spellcheck="false">

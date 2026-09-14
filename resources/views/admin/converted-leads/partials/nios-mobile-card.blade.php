@@ -119,6 +119,10 @@
                 <small class="text-muted d-block">Converted Date</small>
                 <span class="fw-medium">{{ $convertedLead->created_at->format('d-m-Y') }}</span>
             </div>
+            <div class="col-6">
+                <small class="text-muted d-block">Re-Mode</small>
+                <span class="fw-medium">{{ $convertedLead->studentDetails?->re_mode ?? 'N/A' }}</span>
+            </div>
         </div>
 
         <div class="d-flex gap-2 flex-wrap">

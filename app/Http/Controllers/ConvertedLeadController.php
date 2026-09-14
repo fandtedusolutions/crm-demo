@@ -828,6 +828,12 @@ class ConvertedLeadController extends Controller
             });
         }
 
+        if ($request->filled('re_mode')) {
+            $query->whereHas('studentDetails', function ($q) use ($request) {
+                $q->where('re_mode', $request->re_mode);
+            });
+        }
+
         if ($request->filled('is_b2b')) {
             $value = $request->is_b2b;
             if ($value === 'b2b') {
@@ -4187,6 +4193,7 @@ class ConvertedLeadController extends Controller
             'enroll_no' => 'nullable|string|max:255',
             'id_card' => 'nullable|string|in:processing,download,not downloaded',
             'tma' => 'nullable|string|in:Uploaded,Not Upload',
+            're_mode' => 'nullable|string|in:Normal,TOC',
             'registration_number' => 'nullable|string|max:255',
             'enrollment_number' => 'nullable|string|max:255',
             'registration_link_id' => 'nullable|exists:registration_links,id',
@@ -4371,7 +4378,7 @@ class ConvertedLeadController extends Controller
         ];
 
         // Handle fields that are now in ConvertedStudentDetail
-        $studentDetailFields = ['reg_fee', 'exam_fee', 'enroll_no', 'internship_id', 'id_card', 'tma', 'registration_number', 'enrollment_number', 'registration_link_id', 'certificate_status', 'certificate_received_date', 'certificate_issued_date', 'remarks', 'continuing_studies', 'reason', 'application_number', 'board_registration_number', 'st', 'phy', 'che', 'bio', 'app', 'group', 'interview', 'howmany_interview', 'call_status', 'class_information', 'orientation_class_status', 'class_starting_date', 'class_ending_date', 'whatsapp_group_status', 'class_time', 'class_status', 'complete_cancel_date', 'teacher_id', 'screening'];
+        $studentDetailFields = ['reg_fee', 'exam_fee', 'enroll_no', 'internship_id', 'id_card', 'tma', 're_mode', 'registration_number', 'enrollment_number', 'registration_link_id', 'certificate_status', 'certificate_received_date', 'certificate_issued_date', 'remarks', 'continuing_studies', 'reason', 'application_number', 'board_registration_number', 'st', 'phy', 'che', 'bio', 'app', 'group', 'interview', 'howmany_interview', 'call_status', 'class_information', 'orientation_class_status', 'class_starting_date', 'class_ending_date', 'whatsapp_group_status', 'class_time', 'class_status', 'complete_cancel_date', 'teacher_id', 'screening'];
         
         // Handle fields that are in ConvertedStudentMentorDetail
         $mentorDetailFields = ['all_online_result_publication_date', 'online_result_publication_date', 'certificate_publication_date', 'certificate_distribution_mode', 'courier_tracking_number', 'call_time'];
@@ -4466,6 +4473,11 @@ class ConvertedLeadController extends Controller
             if ($field === 'name') {
                 $convertedLead->name_updated_by = AuthHelper::getCurrentUserId();
                 $convertedLead->name_updated_at = now();
+            }
+
+            if ($field === 'register_number') {
+                $convertedLead->reg_updated_by = AuthHelper::getCurrentUserId();
+                $convertedLead->reg_updated_at = now();
             }
 
             if ($field === 'admission_batch_id' && (string) $oldAdmissionBatchId !== (string) $value) {
