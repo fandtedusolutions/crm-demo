@@ -94,7 +94,11 @@ class NiosConvertedLeadsDataTableFormatter
         $cells = [];
         foreach ($row->childNodes as $child) {
             if ($child instanceof DOMElement && strtolower($child->tagName) === 'td') {
-                $cells[] = $dom->saveHTML($child);
+                $innerHtml = '';
+                foreach ($child->childNodes as $tdChild) {
+                    $innerHtml .= $dom->saveHTML($tdChild);
+                }
+                $cells[] = $innerHtml;
             }
         }
 

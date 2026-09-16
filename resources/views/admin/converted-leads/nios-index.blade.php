@@ -437,41 +437,13 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
         font-size: 11px;
     }
 
-    /* DataTable Table Alignment & Layout Fixes */
-    .dataTables_wrapper {
-        width: 100%;
-        position: relative;
-        clear: both;
-    }
-
-    .dataTables_wrapper .dataTables_scroll {
-        overflow-x: auto;
-        width: 100%;
-    }
-
-    .dataTables_scrollHead,
-    .dataTables_scrollBody {
-        width: 100% !important;
-    }
-
-    .dataTables_scrollHeadInner,
-    .dataTables_scrollHeadInner table,
-    .dataTables_scrollBody table,
-    #convertedLeadsTable {
-        width: 100% !important;
-        margin-bottom: 0 !important;
-    }
-
-    .dataTables_scrollHead table thead th,
-    .dataTables_scrollBody table tbody td,
+    /* DataTable Table Styling */
     #convertedLeadsTable thead th,
     #convertedLeadsTable tbody td {
         white-space: nowrap;
         vertical-align: middle;
-        box-sizing: border-box;
     }
 
-    .dataTables_scrollHead table thead th,
     #convertedLeadsTable thead th {
         background: #fff;
         font-weight: 600;
@@ -479,18 +451,15 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
         padding: 12px 10px;
     }
 
-    .dataTables_scrollBody table tbody td,
     #convertedLeadsTable tbody td {
         padding: 8px 10px;
     }
 
-    #convertedLeadsTable tbody tr:hover,
-    .dataTables_scrollBody table tbody tr:hover {
+    #convertedLeadsTable tbody tr:hover {
         background: #fafbff;
     }
 
-    #convertedLeadsTable td .display-value,
-    .dataTables_scrollBody td .display-value {
+    #convertedLeadsTable td .display-value {
         display: inline-block;
         max-width: 220px;
         overflow: hidden;
@@ -499,13 +468,11 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
         vertical-align: middle;
     }
 
-    #convertedLeadsTable .btn-group .btn,
-    .dataTables_scrollBody .btn-group .btn {
+    #convertedLeadsTable .btn-group .btn {
         margin-right: 4px;
     }
 
-    #convertedLeadsTable .btn-group .btn:last-child,
-    .dataTables_scrollBody .btn-group .btn:last-child {
+    #convertedLeadsTable .btn-group .btn:last-child {
         margin-right: 0;
     }
 
@@ -547,7 +514,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
         function updateNiosUrlWithFilters() {
             const f = getNiosFilterParams();
             const params = new URLSearchParams();
-            if (f.search) params.append('search', f.search);
+            if (f.filter_search) params.append('search', f.filter_search);
             if (f.batch_id) params.append('batch_id', f.batch_id);
             if (f.admission_batch_id) params.append('admission_batch_id', f.admission_batch_id);
             if (f.course_flag_id) params.append('course_flag_id', f.course_flag_id);
@@ -558,6 +525,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
             if (f.exam_fee) params.append('exam_fee', f.exam_fee);
             if (f.id_card) params.append('id_card', f.id_card);
             if (f.tma) params.append('tma', f.tma);
+            if (f.re_mode) params.append('re_mode', f.re_mode);
             const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
             window.history.replaceState({ path: newUrl }, '', newUrl);
         }
@@ -578,6 +546,7 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
             if (p.get('exam_fee')) $('#exam_fee').val(p.get('exam_fee'));
             if (p.get('id_card')) $('#id_card').val(p.get('id_card'));
             if (p.get('tma')) $('#tma').val(p.get('tma'));
+            if (p.get('re_mode')) $('#re_mode').val(p.get('re_mode'));
         }
 
         function reloadNiosTable() {
