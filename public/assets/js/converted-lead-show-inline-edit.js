@@ -87,6 +87,10 @@
       return { "": "Select Language", malayalam: "Malayalam", hindi: "Hindi", arabic: "Arabic", tamil: "Tamil" };
     }
 
+    if (field === "re_mode") {
+      return { "": "Select Re-Mode", Normal: "Normal", TOC: "TOC" };
+    }
+
     var raw = container.attr("data-options-json");
     if (!raw) return {};
 

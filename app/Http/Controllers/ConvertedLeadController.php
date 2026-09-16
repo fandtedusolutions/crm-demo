@@ -4451,6 +4451,10 @@ class ConvertedLeadController extends Controller
             }
             $studentDetail->{$field} = $value;
             $studentDetail->save();
+
+            if ($field === 're_mode' && $convertedLead->leadDetail) {
+                $convertedLead->leadDetail->update(['re_mode' => $value]);
+            }
         } elseif (in_array($field, $mentorDetailFields)) {
             // Update in ConvertedStudentMentorDetail
             $mentorDetail = $convertedLead->mentorDetails;

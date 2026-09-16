@@ -5955,6 +5955,10 @@ class LeadController extends Controller
 
                 $studentDetail->update([$field => $value]);
 
+                if ($lead && $lead->is_converted && $lead->convertedLead && $lead->convertedLead->studentDetails) {
+                    $lead->convertedLead->studentDetails->update(['re_mode' => $value]);
+                }
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Registration details updated successfully.',

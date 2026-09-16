@@ -162,6 +162,14 @@
                     <td class="label">Second Language</td>
                     <td class="value">{{ $convertedLead->leadDetail->second_language ?? 'N/A' }}</td>
                 </tr>
+                @if(!empty($convertedLead->leadDetail->re_mode) || !empty($convertedLead->studentDetails?->re_mode))
+                <tr>
+                    <td class="label">Re-Mode</td>
+                    <td class="value">{{ $convertedLead->studentDetails?->re_mode ?? ($convertedLead->leadDetail->re_mode ?? 'N/A') }}</td>
+                    <td class="label"></td>
+                    <td class="value"></td>
+                </tr>
+                @endif
                 <tr>
                     <td class="label">Personal Phone</td>
                     <td class="value">

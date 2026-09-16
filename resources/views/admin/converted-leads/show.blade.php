@@ -403,6 +403,10 @@
                                 <label class="form-label text-muted">TMA</label>
                                 <p class="fw-bold"><span class="badge bg-{{ $tmaBadge }}">{{ $convertedLead->studentDetails?->tma ?? 'N/A' }}</span></p>
                             </div>
+                            <div class="col-md-3">
+                                <label class="form-label text-muted">Re-Mode</label>
+                                <p class="fw-bold"><span class="badge bg-light text-dark border">{{ $convertedLead->studentDetails?->re_mode ?? ($leadDetail?->re_mode ?? 'N/A') }}</span></p>
+                            </div>
                         </div>
                     </div>
 
@@ -512,6 +516,19 @@
                                 'convertedLeadId' => $convertedLead->id,
                                 'col' => 3,
                             ])
+                            @if(in_array($convertedLead->course_id, [1]) || !empty($leadDetail?->re_mode) || !empty($convertedLead->studentDetails?->re_mode))
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Re-Mode',
+                                'field' => 're_mode',
+                                'type' => 'select',
+                                'options' => ['' => 'Select Re-Mode', 'Normal' => 'Normal', 'TOC' => 'TOC'],
+                                'displayValue' => $convertedLead->studentDetails?->re_mode ?? ($leadDetail?->re_mode ?? 'N/A'),
+                                'rawValue' => $convertedLead->studentDetails?->re_mode ?? ($leadDetail?->re_mode ?? ''),
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 3,
+                            ])
+                            @endif
                             @include('admin.converted-leads.partials.show-inline-field', [
                                 'label' => 'Personal Phone',
                                 'field' => 'personal_number',
