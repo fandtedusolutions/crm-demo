@@ -320,46 +320,46 @@
 @php
 $niosConvertedLeadsColumns = [];
 if (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant()) {
-    $niosConvertedLeadsColumns[] = ['data' => 'batch_cb', 'name' => 'batch_cb', 'orderable' => false, 'searchable' => false];
+    $niosConvertedLeadsColumns[] = ['data' => 'batch_cb', 'name' => 'batch_cb', 'orderable' => false, 'searchable' => false, 'width' => '40px', 'className' => 'text-center align-middle'];
 }
 $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
-    ['data' => 'index', 'name' => 'index', 'orderable' => false, 'searchable' => false],
-    ['data' => 'academic', 'name' => 'academic', 'orderable' => false, 'searchable' => false],
-    ['data' => 'support', 'name' => 'support', 'orderable' => false, 'searchable' => false],
-    ['data' => 'register_number', 'name' => 'register_number', 'orderable' => false, 'searchable' => false],
-    ['data' => 'course_flag', 'name' => 'course_flag', 'orderable' => false, 'searchable' => false],
-    ['data' => 'converted_date', 'name' => 'converted_date', 'orderable' => false, 'searchable' => false],
-    ['data' => 'dob', 'name' => 'dob', 'orderable' => false, 'searchable' => false],
-    ['data' => 'type', 'name' => 'type', 'orderable' => false, 'searchable' => false],
-    ['data' => 'name_col', 'name' => 'name_col', 'orderable' => false, 'searchable' => false],
-    ['data' => 'subject', 'name' => 'subject', 'orderable' => false, 'searchable' => false],
-    ['data' => 'subject_area', 'name' => 'subject_area', 'orderable' => false, 'searchable' => false],
-    ['data' => 'mobile', 'name' => 'mobile', 'orderable' => false, 'searchable' => false],
-    ['data' => 'whatsapp', 'name' => 'whatsapp', 'orderable' => false, 'searchable' => false],
+    ['data' => 'index', 'name' => 'index', 'orderable' => false, 'searchable' => false, 'width' => '50px', 'className' => 'text-center align-middle'],
+    ['data' => 'academic', 'name' => 'academic', 'orderable' => false, 'searchable' => false, 'width' => '130px', 'className' => 'align-middle'],
+    ['data' => 'support', 'name' => 'support', 'orderable' => false, 'searchable' => false, 'width' => '130px', 'className' => 'align-middle'],
+    ['data' => 'register_number', 'name' => 'register_number', 'orderable' => false, 'searchable' => false, 'width' => '150px', 'className' => 'align-middle'],
+    ['data' => 'course_flag', 'name' => 'course_flag', 'orderable' => false, 'searchable' => false, 'width' => '160px', 'className' => 'align-middle'],
+    ['data' => 'converted_date', 'name' => 'converted_date', 'orderable' => false, 'searchable' => false, 'width' => '120px', 'className' => 'align-middle'],
+    ['data' => 'dob', 'name' => 'dob', 'orderable' => false, 'searchable' => false, 'width' => '120px', 'className' => 'align-middle'],
+    ['data' => 'type', 'name' => 'type', 'orderable' => false, 'searchable' => false, 'width' => '110px', 'className' => 'align-middle'],
+    ['data' => 'name_col', 'name' => 'name_col', 'orderable' => false, 'searchable' => false, 'width' => '220px', 'className' => 'align-middle'],
+    ['data' => 'subject', 'name' => 'subject', 'orderable' => false, 'searchable' => false, 'width' => '150px', 'className' => 'align-middle'],
+    ['data' => 'subject_area', 'name' => 'subject_area', 'orderable' => false, 'searchable' => false, 'width' => '160px', 'className' => 'align-middle'],
+    ['data' => 'mobile', 'name' => 'mobile', 'orderable' => false, 'searchable' => false, 'width' => '140px', 'className' => 'align-middle'],
+    ['data' => 'whatsapp', 'name' => 'whatsapp', 'orderable' => false, 'searchable' => false, 'width' => '140px', 'className' => 'align-middle'],
 ]);
 if (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor()) {
-    $niosConvertedLeadsColumns[] = ['data' => 'parent_phone', 'name' => 'parent_phone', 'orderable' => false, 'searchable' => false];
+    $niosConvertedLeadsColumns[] = ['data' => 'parent_phone', 'name' => 'parent_phone', 'orderable' => false, 'searchable' => false, 'width' => '140px', 'className' => 'align-middle'];
 }
 $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
-    ['data' => 'batch', 'name' => 'batch', 'orderable' => false, 'searchable' => false],
-    ['data' => 'course', 'name' => 'course', 'orderable' => false, 'searchable' => false],
-    ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false],
-    ['data' => 're_mode', 'name' => 're_mode', 'orderable' => false, 'searchable' => false],
-    ['data' => 'finance_approval', 'name' => 'finance_approval', 'orderable' => false, 'searchable' => false],
-    ['data' => 'faculty', 'name' => 'faculty', 'orderable' => false, 'searchable' => false],
-    ['data' => 'registered_person', 'name' => 'registered_person', 'orderable' => false, 'searchable' => false],
-    ['data' => 'username', 'name' => 'username', 'orderable' => false, 'searchable' => false],
-    ['data' => 'password', 'name' => 'password', 'orderable' => false, 'searchable' => false],
-    ['data' => 'admission_status', 'name' => 'admission_status', 'orderable' => false, 'searchable' => false],
-    ['data' => 'student_reg_fee', 'name' => 'student_reg_fee', 'orderable' => false, 'searchable' => false],
-    ['data' => 'exam_fee', 'name' => 'exam_fee', 'orderable' => false, 'searchable' => false],
-    ['data' => 'ref_no', 'name' => 'ref_no', 'orderable' => false, 'searchable' => false],
-    ['data' => 'enroll_no', 'name' => 'enroll_no', 'orderable' => false, 'searchable' => false],
-    ['data' => 'mail', 'name' => 'mail', 'orderable' => false, 'searchable' => false],
-    ['data' => 'id_card', 'name' => 'id_card', 'orderable' => false, 'searchable' => false],
-    ['data' => 'tma', 'name' => 'tma', 'orderable' => false, 'searchable' => false],
-    ['data' => 'remarks', 'name' => 'remarks', 'orderable' => false, 'searchable' => false],
-    ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],
+    ['data' => 'batch', 'name' => 'batch', 'orderable' => false, 'searchable' => false, 'width' => '140px', 'className' => 'align-middle'],
+    ['data' => 'course', 'name' => 'course', 'orderable' => false, 'searchable' => false, 'width' => '160px', 'className' => 'align-middle'],
+    ['data' => 'admission_batch', 'name' => 'admission_batch', 'orderable' => false, 'searchable' => false, 'width' => '150px', 'className' => 'align-middle'],
+    ['data' => 're_mode', 'name' => 're_mode', 'orderable' => false, 'searchable' => false, 'width' => '110px', 'className' => 'align-middle'],
+    ['data' => 'finance_approval', 'name' => 'finance_approval', 'orderable' => false, 'searchable' => false, 'width' => '140px', 'className' => 'align-middle'],
+    ['data' => 'faculty', 'name' => 'faculty', 'orderable' => false, 'searchable' => false, 'width' => '140px', 'className' => 'align-middle'],
+    ['data' => 'registered_person', 'name' => 'registered_person', 'orderable' => false, 'searchable' => false, 'width' => '160px', 'className' => 'align-middle'],
+    ['data' => 'username', 'name' => 'username', 'orderable' => false, 'searchable' => false, 'width' => '140px', 'className' => 'align-middle'],
+    ['data' => 'password', 'name' => 'password', 'orderable' => false, 'searchable' => false, 'width' => '140px', 'className' => 'align-middle'],
+    ['data' => 'admission_status', 'name' => 'admission_status', 'orderable' => false, 'searchable' => false, 'width' => '130px', 'className' => 'align-middle'],
+    ['data' => 'student_reg_fee', 'name' => 'student_reg_fee', 'orderable' => false, 'searchable' => false, 'width' => '120px', 'className' => 'align-middle'],
+    ['data' => 'exam_fee', 'name' => 'exam_fee', 'orderable' => false, 'searchable' => false, 'width' => '120px', 'className' => 'align-middle'],
+    ['data' => 'ref_no', 'name' => 'ref_no', 'orderable' => false, 'searchable' => false, 'width' => '130px', 'className' => 'align-middle'],
+    ['data' => 'enroll_no', 'name' => 'enroll_no', 'orderable' => false, 'searchable' => false, 'width' => '130px', 'className' => 'align-middle'],
+    ['data' => 'mail', 'name' => 'mail', 'orderable' => false, 'searchable' => false, 'width' => '180px', 'className' => 'align-middle'],
+    ['data' => 'id_card', 'name' => 'id_card', 'orderable' => false, 'searchable' => false, 'width' => '120px', 'className' => 'align-middle'],
+    ['data' => 'tma', 'name' => 'tma', 'orderable' => false, 'searchable' => false, 'width' => '120px', 'className' => 'align-middle'],
+    ['data' => 'remarks', 'name' => 'remarks', 'orderable' => false, 'searchable' => false, 'width' => '180px', 'className' => 'align-middle'],
+    ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false, 'width' => '220px', 'className' => 'text-center align-middle'],
 ]);
 @endphp
 <div id="niosConvertedLeadsConfig" data-data-url="{{ route('admin.nios-converted-leads.data') }}" style="display:none"></div>
@@ -437,24 +437,60 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
         font-size: 11px;
     }
 
+    /* DataTable Table Alignment & Layout Fixes */
+    .dataTables_wrapper {
+        width: 100%;
+        position: relative;
+        clear: both;
+    }
+
+    .dataTables_wrapper .dataTables_scroll {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .dataTables_scrollHead,
+    .dataTables_scrollBody {
+        width: 100% !important;
+    }
+
+    .dataTables_scrollHeadInner,
+    .dataTables_scrollHeadInner table,
+    .dataTables_scrollBody table,
+    #convertedLeadsTable {
+        width: 100% !important;
+        margin-bottom: 0 !important;
+    }
+
+    .dataTables_scrollHead table thead th,
+    .dataTables_scrollBody table tbody td,
     #convertedLeadsTable thead th,
     #convertedLeadsTable tbody td {
         white-space: nowrap;
+        vertical-align: middle;
+        box-sizing: border-box;
     }
 
+    .dataTables_scrollHead table thead th,
     #convertedLeadsTable thead th {
-        position: sticky;
-        top: 0;
-        z-index: 5;
         background: #fff;
-        box-shadow: inset 0 -1px 0 #e9ecef;
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+        padding: 12px 10px;
     }
 
-    #convertedLeadsTable tbody tr:hover {
+    .dataTables_scrollBody table tbody td,
+    #convertedLeadsTable tbody td {
+        padding: 8px 10px;
+    }
+
+    #convertedLeadsTable tbody tr:hover,
+    .dataTables_scrollBody table tbody tr:hover {
         background: #fafbff;
     }
 
-    #convertedLeadsTable td .display-value {
+    #convertedLeadsTable td .display-value,
+    .dataTables_scrollBody td .display-value {
         display: inline-block;
         max-width: 220px;
         overflow: hidden;
@@ -463,118 +499,19 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
         vertical-align: middle;
     }
 
-    #convertedLeadsTable .btn-group .btn {
+    #convertedLeadsTable .btn-group .btn,
+    .dataTables_scrollBody .btn-group .btn {
         margin-right: 4px;
     }
 
-    #convertedLeadsTable .btn-group .btn:last-child {
+    #convertedLeadsTable .btn-group .btn:last-child,
+    .dataTables_scrollBody .btn-group .btn:last-child {
         margin-right: 0;
     }
 
     .card .card-body #filterForm {
         border-bottom: 1px dashed #e9ecef;
         padding-bottom: 8px;
-    }
-
-    /* Column-specific min-widths by position */
-    #convertedLeadsTable thead th:nth-child(1),
-    #convertedLeadsTable tbody td:nth-child(1) {
-        min-width: 60px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(2),
-    #convertedLeadsTable tbody td:nth-child(2) {
-        min-width: 140px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(3),
-    #convertedLeadsTable tbody td:nth-child(3) {
-        min-width: 120px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(4),
-    #convertedLeadsTable tbody td:nth-child(4) {
-        min-width: 120px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(5),
-    #convertedLeadsTable tbody td:nth-child(5) {
-        min-width: 220px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(6),
-    #convertedLeadsTable tbody td:nth-child(6) {
-        min-width: 180px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(7),
-    #convertedLeadsTable tbody td:nth-child(7) {
-        min-width: 140px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(8),
-    #convertedLeadsTable tbody td:nth-child(8) {
-        min-width: 180px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(9),
-    #convertedLeadsTable tbody td:nth-child(9) {
-        min-width: 180px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(10),
-    #convertedLeadsTable tbody td:nth-child(10) {
-        min-width: 160px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(11),
-    #convertedLeadsTable tbody td:nth-child(11) {
-        min-width: 140px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(12),
-    #convertedLeadsTable tbody td:nth-child(12) {
-        min-width: 140px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(13),
-    #convertedLeadsTable tbody td:nth-child(13) {
-        min-width: 140px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(14),
-    #convertedLeadsTable tbody td:nth-child(14) {
-        min-width: 140px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(15),
-    #convertedLeadsTable tbody td:nth-child(15) {
-        min-width: 140px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(16),
-    #convertedLeadsTable tbody td:nth-child(16) {
-        min-width: 140px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(17),
-    #convertedLeadsTable tbody td:nth-child(17) {
-        min-width: 200px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(18),
-    #convertedLeadsTable tbody td:nth-child(18) {
-        min-width: 120px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(19),
-    #convertedLeadsTable tbody td:nth-child(19) {
-        min-width: 120px;
-    }
-
-    #convertedLeadsTable thead th:nth-child(20),
-    #convertedLeadsTable tbody td:nth-child(20) {
-        min-width: 140px;
     }
 </style>
 @endpush
@@ -725,6 +662,12 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                 scrollX: true,
                 autoWidth: false,
                 columns: niosColumns,
+                initComplete: function() {
+                    const api = this.api();
+                    setTimeout(function() {
+                        api.columns.adjust();
+                    }, 100);
+                },
                 drawCallback: function() {
                     const api = this.api();
                     const json = api.ajax.json();
@@ -732,9 +675,18 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                     $('#selectAll').prop('checked', false);
                     $('.batch-actions-toolbar').hide();
                     $('.selected-count').text('0 selected');
+                    setTimeout(function() {
+                        api.columns.adjust();
+                    }, 50);
                 }
             });
         }
+
+        $(window).on('resize orientationchange', function() {
+            if (niosConvertedLeadsTable) {
+                niosConvertedLeadsTable.columns.adjust();
+            }
+        });
 
         loadNiosFiltersFromUrl();
         const batchDataSelected = $('#batch_id').data('selected');

@@ -776,6 +776,16 @@ class RegistrationLeadsController extends Controller
             }
             $lead->update($leadUpdateData);
 
+            if ($leadDetail && $leadDetail->re_mode) {
+                \App\Models\ConvertedStudentDetail::firstOrCreate(
+                    ['converted_lead_id' => $convertedLead->id],
+                    [
+                        'course_id' => $lead->course_id,
+                        're_mode' => $leadDetail->re_mode,
+                    ]
+                );
+            }
+
             $invoice = null;
             if ($lead->course_id) {
                 $invoiceController = new \App\Http\Controllers\InvoiceController();

@@ -524,6 +524,19 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Re-Mode <span class="required">*</span></label>
+                                <select class="form-control" name="re_mode" required>
+                                    <option value="">Select Re-Mode</option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="TOC">TOC</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Step 3: Address Information -->

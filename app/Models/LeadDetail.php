@@ -50,6 +50,7 @@ class LeadDetail extends Model
         'sub_course_id',
         'class',
         'second_language',
+        're_mode',
         'medium_of_study',
         'previous_qualification',
         'technology_performance_category',

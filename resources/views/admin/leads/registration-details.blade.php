@@ -582,7 +582,27 @@
                                         <p class="info-value" data-field="second_language" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ strtolower($studentDetail->second_language ?? '') }}">
                                             {{ $studentDetail->second_language ? ucfirst($studentDetail->second_language) : 'N/A' }}
                                             @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
-                                            <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field-type="select" data-options='{"malayalam":"Malayalam","hindi":"Hindi","arabic":"Arabic"}' title="Edit">
+                                            <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="second_language" data-lead-detail-id="{{ $studentDetail->id }}" data-field-type="select" data-options='{"malayalam":"Malayalam","hindi":"Hindi","arabic":"Arabic","tamil":"Tamil"}' title="Edit">
+                                                <i class="ti ti-edit"></i>
+                                            </button>
+                                            @endif
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                            @if($lead->course_id == 1 || !empty($studentDetail->re_mode))
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-icon">
+                                        <i class="ti ti-switch text-info"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <label class="info-label">Re-Mode</label>
+                                        <p class="info-value" data-field="re_mode" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ $studentDetail->re_mode ?? '' }}">
+                                            {{ $studentDetail->re_mode ?? 'N/A' }}
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
+                                            <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="re_mode" data-lead-detail-id="{{ $studentDetail->id }}" data-field-type="select" data-options='{"Normal":"Normal","TOC":"TOC"}' title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
                                             @endif
@@ -2852,7 +2872,7 @@
                             editButton = `<button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="${fieldName}" data-lead-detail-id="${leadDetailIdValue}" data-course-id="${courseId}" data-current-id="${updatedId}" title="Edit"><i class="ti ti-edit"></i></button>`;
                         } else if (fieldName === 'class_time_id') {
                             editButton = `<button class="btn btn-sm btn-outline-primary ms-2 edit-class-time-field" title="Edit"><i class="ti ti-edit"></i></button>`;
-                        } else if (['gender', 'is_employed', 'programme_type', 'location', 'class', 'course_type', 'second_language'].includes(fieldName)) {
+                        } else if (['gender', 'is_employed', 'programme_type', 'location', 'class', 'course_type', 'second_language', 're_mode'].includes(fieldName)) {
                             // For select fields, preserve data attributes
                             const dataValue = data.new_value || value;
                             let optionsAttr = '';
@@ -2870,6 +2890,8 @@
                                 optionsAttr = `data-options='{"UG":"UG","PG":"PG"}'`;
                             } else if (fieldName === 'second_language') {
                                 optionsAttr = `data-options='{"malayalam":"Malayalam","hindi":"Hindi","arabic":"Arabic","tamil":"Tamil"}'`;
+                            } else if (fieldName === 're_mode') {
+                                optionsAttr = `data-options='{"Normal":"Normal","TOC":"TOC"}'`;
                             }
                             editButton = `<button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="${fieldName}" data-lead-detail-id="${leadDetailIdValue}" data-field-type="select" ${optionsAttr} title="Edit"><i class="ti ti-edit"></i></button>`;
                             if (infoValue.dataset) {
