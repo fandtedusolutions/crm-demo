@@ -52,6 +52,15 @@ return [
     ],
 
     /*
+    | LMS course sync (CRM → LMS API).
+    | Header: X-CRM-API-KEY
+    */
+    'lms' => [
+        'api_key' => env('CRM_API_KEY'),
+        'courses_url' => env('LMS_COURSES_API_URL'),
+    ],
+
+    /*
     | NatX Firebase Cloud Messaging (HTTP v1).
     | google-services.json is for the mobile app only.
     | Server needs a Firebase service account JSON file.

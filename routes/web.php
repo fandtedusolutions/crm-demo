@@ -573,6 +573,12 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/course-types-submit', [App\Http\Controllers\CourseTypeController::class, 'submit'])->name('course-types.submit');
         Route::put('/course-types-update/{id}', [App\Http\Controllers\CourseTypeController::class, 'update'])->name('course-types.update');
 
+        // LMS Setup - Course Mapping
+        Route::get('/course-mapping', [App\Http\Controllers\CourseMappingController::class, 'index'])->name('course-mapping.index');
+        Route::post('/course-mapping/refresh', [App\Http\Controllers\CourseMappingController::class, 'refresh'])->name('course-mapping.refresh');
+        Route::post('/course-mapping/{lmsCourseId}/map', [App\Http\Controllers\CourseMappingController::class, 'map'])->name('course-mapping.map');
+        Route::delete('/course-mapping/{lmsCourseId}/unmap', [App\Http\Controllers\CourseMappingController::class, 'unmap'])->name('course-mapping.unmap');
+
         // Stream Specializations Routes
         Route::delete('/stream-specializations-delete/{id}', [App\Http\Controllers\StreamSpecializationController::class, 'delete'])->name('stream-specializations.delete');
         Route::resource('stream-specializations', App\Http\Controllers\StreamSpecializationController::class)->except(['create', 'edit']);

@@ -179,6 +179,7 @@ class PermissionHelper
             'admin/universities/index',
             'admin/university-courses/index',
             'admin/registration-links/index',
+            'admin/course-mapping/index',
             'admin/teams/index',
             'admin/countries/index',
             'admin/boards/index',

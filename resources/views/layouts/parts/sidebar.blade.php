@@ -818,6 +818,21 @@
                 </li>
                 @endif
                 @endif
+
+                {{-- LMS Setup Section --}}
+                @if(has_permission('admin/course-mapping/index'))
+                <li class="pc-item pc-caption">
+                    <label>LMS Setup</label>
+                </li>
+                <li class="pc-item {{ request()->routeIs('admin.course-mapping.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.course-mapping.index') }}" class="pc-link">
+                        <span class="pc-micon">
+                            <i class="ti ti-arrows-exchange"></i>
+                        </span>
+                        <span class="pc-mtext">Course Mapping</span>
+                    </a>
+                </li>
+                @endif
                 
                 {{-- Settings Section --}}
                 @if(has_permission('admin/website/settings') || is_super_admin() || is_admin() || has_permission('profile/index'))
