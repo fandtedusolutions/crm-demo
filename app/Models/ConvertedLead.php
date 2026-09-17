@@ -67,6 +67,9 @@ class ConvertedLead extends Model
         'is_course_changed',
         'course_changed_at',
         'course_changed_by',
+        'is_shared_to_lms',
+        'lms_stream_id',
+        'shared_to_lms_at',
     ];
 
     protected $casts = [
@@ -79,10 +82,12 @@ class ConvertedLead extends Model
         'course_changed_at' => 'datetime',
         'cancelled_at' => 'datetime',
         'admission_batch_assigned_at' => 'datetime',
+        'shared_to_lms_at' => 'datetime',
         'postsale_followupdate' => 'date',
         'called_date' => 'date',
         'called_time' => 'datetime:H:i:s',
         'is_course_changed' => 'boolean',
+        'is_shared_to_lms' => 'boolean',
         'is_cancelled' => 'boolean',
         'is_postpond_batch' => 'boolean',
         'is_b2b' => 'boolean',

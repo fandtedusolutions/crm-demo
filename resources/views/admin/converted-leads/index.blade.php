@@ -261,6 +261,7 @@
                                     <th>Support Verified At</th>
                                     <th>Lead Created By</th>
                                     <th>Pending Payment</th>
+                                    <th>LMS</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -349,6 +350,7 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
     ['data' => 'support_verified_at', 'name' => 'support_verified_at', 'orderable' => false, 'searchable' => false],
     ['data' => 'lead_created_by', 'name' => 'lead_created_by', 'orderable' => false, 'searchable' => false],
     ['data' => 'pending_payment', 'name' => 'pending_payment', 'orderable' => false, 'searchable' => false],
+    ['data' => 'lms_shared', 'name' => 'lms_shared', 'orderable' => false, 'searchable' => false],
     ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],
 ]);
 @endphp
@@ -770,6 +772,65 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             if (typeof show_ajax_modal === 'function' && url) {
                 show_ajax_modal(url, title);
             }
+        });
+
+        // Handle Send to LMS modal buttons
+        $(document).on('click', '.js-send-to-lms-modal', function(e) {
+            e.preventDefault();
+            const url = $(this).data('modal-url');
+            const title = $(this).data('modal-title') || 'Send to LMS';
+            if (typeof show_ajax_modal === 'function' && url) {
+                show_ajax_modal(url, title);
+            }
+        });
+
+        $(document).on('submit', '#sendToLmsForm', function(e) {
+            e.preventDefault();
+            const form = $(this);
+            const submitUrl = form.data('submit-url') || form.attr('action');
+            if (!submitUrl) {
+                return;
+            }
+
+            const submitBtn = form.find('button[type="submit"]');
+            const originalHtml = submitBtn.html();
+            submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Sending...');
+
+            $.ajax({
+                url: submitUrl,
+                method: 'POST',
+                data: form.serialize(),
+                success: function (response) {
+                    $('#ajax_modal').modal('hide');
+                    if (response && response.success) {
+                        if (typeof toast_success === 'function') {
+                            toast_success(response.message || 'Sent to LMS successfully.');
+                        } else if (typeof showToast === 'function') {
+                            showToast(response.message || 'Sent to LMS successfully.', 'success');
+                        }
+                        if (typeof reloadConvertedLeadsTable === 'function') {
+                            reloadConvertedLeadsTable();
+                        } else if ($.fn.DataTable && $.fn.DataTable.isDataTable('#convertedLeadsTable')) {
+                            $('#convertedLeadsTable').DataTable().ajax.reload(null, false);
+                        }
+                    } else if (typeof toast_error === 'function') {
+                        toast_error((response && response.message) || 'Failed to send to LMS.');
+                    }
+                },
+                error: function (xhr) {
+                    const message = (xhr.responseJSON && xhr.responseJSON.message)
+                        ? xhr.responseJSON.message
+                        : 'Failed to send to LMS.';
+                    if (typeof toast_error === 'function') {
+                        toast_error(message);
+                    } else if (typeof showToast === 'function') {
+                        showToast(message, 'error');
+                    }
+                },
+                complete: function () {
+                    submitBtn.prop('disabled', false).html(originalHtml);
+                }
+            });
         });
 
         // Handle cancellation flag modal

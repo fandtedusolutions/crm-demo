@@ -926,6 +926,8 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/converted-leads/{id}/toggle-academic-verify', [App\Http\Controllers\ConvertedLeadController::class, 'toggleAcademicVerification'])->name('converted-leads.toggle-academic-verify');
         Route::get('/converted-leads/{id}/change-course', [App\Http\Controllers\ConvertedLeadController::class, 'showChangeCourseModal'])->name('converted-leads.change-course-modal');
         Route::post('/converted-leads/{id}/change-course', [App\Http\Controllers\ConvertedLeadController::class, 'changeCourse'])->name('converted-leads.change-course');
+        Route::get('/converted-leads/{id}/send-to-lms', [App\Http\Controllers\ConvertedLeadController::class, 'showSendToLmsModal'])->name('converted-leads.send-to-lms-modal');
+        Route::post('/converted-leads/{id}/send-to-lms', [App\Http\Controllers\ConvertedLeadController::class, 'sendToLms'])->name('converted-leads.send-to-lms');
         Route::get('/converted-leads/{id}/course-pricing', [App\Http\Controllers\ConvertedLeadController::class, 'coursePricing'])->name('converted-leads.course-pricing');
         Route::get('/converted-leads/{id}/cancel-flag', [App\Http\Controllers\ConvertedLeadController::class, 'cancelFlag'])->name('converted-leads.cancel-flag');
         Route::post('/converted-leads/{id}/cancel-flag', [App\Http\Controllers\ConvertedLeadController::class, 'cancelFlagSubmit'])->name('converted-leads.cancel-flag-submit');

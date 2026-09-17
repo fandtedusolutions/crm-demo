@@ -52,12 +52,14 @@ return [
     ],
 
     /*
-    | LMS course sync (CRM → LMS API).
+    | LMS course sync / streams (CRM → LMS API).
     | Header: X-CRM-API-KEY
     */
     'lms' => [
         'api_key' => env('CRM_API_KEY'),
         'courses_url' => env('LMS_COURSES_API_URL'),
+        'streams_url' => env('LMS_STREAMS_API_URL'),
+        'leads_url' => env('LMS_LEADS_API_URL'),
     ],
 
     /*

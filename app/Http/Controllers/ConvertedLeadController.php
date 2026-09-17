@@ -43,6 +43,9 @@ use App\Support\HotelManagementConvertedLeadsDataTableFormatter;
 use App\Support\GmvssConvertedLeadsDataTableFormatter;
 use App\Support\DigitalMarketingConvertedLeadsDataTableFormatter;
 use App\Http\Controllers\Concerns\ConvertedLeadScopedDataTables;
+use App\Models\LmsCourseMapping;
+use App\Services\LmsCourseService;
+use RuntimeException;
 
 class ConvertedLeadController extends Controller
 {
@@ -444,6 +447,10 @@ class ConvertedLeadController extends Controller
             ? '<span class="badge bg-warning">Pending</span>'
             : '<span class="text-muted">No</span>';
 
+        $lmsSharedHtml = $convertedLead->is_shared_to_lms
+            ? '<span class="badge bg-success">Already sent to LMS</span>'
+            : '<span class="text-muted">Not sent</span>';
+
         $financeApprovalHtml = view('admin.converted-leads.partials.dt-cell-inline-finance-approval', [
             'convertedLead' => $convertedLead,
         ])->render();
@@ -494,6 +501,7 @@ class ConvertedLeadController extends Controller
                 : '<span class="text-muted">N/A</span>',
             'lead_created_by' => $leadCreatedBy,
             'pending_payment' => $pendingPayment,
+            'lms_shared' => $lmsSharedHtml,
             'actions' => $actionsHtml,
         ];
 
@@ -4858,6 +4866,188 @@ class ConvertedLeadController extends Controller
         return RoleHelper::is_admin_or_super_admin()
             || RoleHelper::is_academic_assistant()
             || RoleHelper::is_admission_counsellor();
+    }
+
+    private function canSendToLms(): bool
+    {
+        return RoleHelper::is_admin_or_super_admin()
+            || RoleHelper::is_admission_counsellor();
+    }
+
+    /**
+     * Show Send to LMS modal for a converted lead.
+     */
+    public function showSendToLmsModal($id)
+    {
+        if (! $this->canSendToLms()) {
+            abort(403, 'Access denied.');
+        }
+
+        $convertedLead = ConvertedLead::with(['course'])->findOrFail($id);
+
+        $mapping = null;
+        $lmsCourse = null;
+        $streams = [];
+        $streamsError = null;
+
+        if ($convertedLead->course_id) {
+            $mapping = LmsCourseMapping::with('lmsCourse')
+                ->where('course_id', $convertedLead->course_id)
+                ->first();
+            $lmsCourse = $mapping?->lmsCourse;
+        }
+
+        if ($lmsCourse && ! $convertedLead->is_shared_to_lms) {
+            try {
+                $streams = app(LmsCourseService::class)->getStreams((int) $lmsCourse->id);
+            } catch (RuntimeException $e) {
+                $streamsError = $e->getMessage();
+            } catch (\Throwable $e) {
+                Log::error('Failed to load LMS streams for converted lead', [
+                    'converted_lead_id' => $convertedLead->id,
+                    'lms_course_id' => $lmsCourse->id,
+                    'error' => $e->getMessage(),
+                ]);
+                $streamsError = 'Failed to load LMS streams. Please try again.';
+            }
+        }
+
+        return view('admin.converted-leads.send-to-lms-modal', compact(
+            'convertedLead',
+            'lmsCourse',
+            'streams',
+            'streamsError'
+        ));
+    }
+
+    /**
+     * Share converted lead to LMS via API, then mark as shared.
+     */
+    public function sendToLms(Request $request, $id)
+    {
+        if (! $this->canSendToLms()) {
+            return response()->json(['success' => false, 'message' => 'Access denied.'], 403);
+        }
+
+        $convertedLead = ConvertedLead::findOrFail($id);
+
+        if ($convertedLead->is_shared_to_lms) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This converted lead was already sent to LMS.',
+            ], 422);
+        }
+
+        if (! $convertedLead->course_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Converted lead has no CRM course assigned.',
+            ], 422);
+        }
+
+        $mapping = LmsCourseMapping::with('lmsCourse')
+            ->where('course_id', $convertedLead->course_id)
+            ->first();
+
+        if (! $mapping || ! $mapping->lmsCourse) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No LMS course is mapped to this CRM course.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'lms_stream_id' => 'required|integer|min:1',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $lmsService = app(LmsCourseService::class);
+
+        try {
+            $streams = $lmsService->getStreams((int) $mapping->lms_course_id);
+        } catch (RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+
+        $streamIds = array_column($streams, 'id');
+        if (! in_array((int) $validated['lms_stream_id'], $streamIds, true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Selected stream is invalid for the mapped LMS course.',
+                'errors' => [
+                    'lms_stream_id' => ['Selected stream is invalid for the mapped LMS course.'],
+                ],
+            ], 422);
+        }
+
+        $phoneNo = preg_replace('/\D+/', '', (string) ($convertedLead->phone ?? '')) ?? '';
+        if (strlen($phoneNo) < 7 || strlen($phoneNo) > 20) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Converted lead phone number must be 7 to 20 digits to send to LMS.',
+            ], 422);
+        }
+
+        $name = trim((string) ($convertedLead->name ?? ''));
+        if ($name === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Converted lead name is required to send to LMS.',
+            ], 422);
+        }
+
+        $age = null;
+        if (! empty($convertedLead->dob)) {
+            try {
+                $age = Carbon::parse($convertedLead->dob)->age;
+            } catch (\Throwable $e) {
+                $age = null;
+            }
+        }
+
+        $payload = [
+            'name' => $name,
+            'phone_no' => $phoneNo,
+            'email' => $convertedLead->email ?: null,
+            'age' => $age,
+            'course_id' => (int) $mapping->lms_course_id,
+            'stream_id' => (int) $validated['lms_stream_id'],
+            'notes' => $validated['notes'] ?? null,
+        ];
+
+        try {
+            $lmsService->createLead($payload);
+        } catch (RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        } catch (\Throwable $e) {
+            Log::error('Failed to send converted lead to LMS', [
+                'converted_lead_id' => $convertedLead->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send lead to LMS. Please try again.',
+            ], 500);
+        }
+
+        $convertedLead->update([
+            'is_shared_to_lms' => true,
+            'lms_stream_id' => (int) $validated['lms_stream_id'],
+            'shared_to_lms_at' => now(),
+            'updated_by' => AuthHelper::getCurrentUserId(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Converted lead sent to LMS successfully.',
+        ]);
     }
 
     private function calculateCoursePricing(ConvertedLead $convertedLead, ?int $courseId, ?int $batchId = null): array
