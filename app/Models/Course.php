@@ -82,6 +82,18 @@ class Course extends Model
         return $this->hasMany(AcademicDeliveryStructure::class);
     }
 
+    public function addonCourses()
+    {
+        return $this->hasMany(AddonCourse::class, 'course_id');
+    }
+
+    public function addons()
+    {
+        return $this->belongsToMany(Course::class, 'addon_courses', 'course_id', 'addon_course_id')
+            ->withPivot('is_active')
+            ->withTimestamps();
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

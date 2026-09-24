@@ -473,6 +473,7 @@
                 <!-- Step 2: Academic Information -->
                 <div class="form-step" id="formStep2">
                     <h4 class="mb-4"><i class="fas fa-book me-2"></i>Academic Information</h4>
+                    @include('public.partials.addon-course-field', ['addonParentCourseId' => 16])
                     
                     <div class="row">
                         <div class="col-md-6">

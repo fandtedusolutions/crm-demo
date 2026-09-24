@@ -542,6 +542,12 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/sub-courses-submit', [App\Http\Controllers\SubCourseController::class, 'submit'])->name('sub-courses.submit');
         Route::put('/sub-courses-update/{id}', [App\Http\Controllers\SubCourseController::class, 'updateForm'])->name('sub-courses.updateForm');
 
+        Route::resource('addon-courses', App\Http\Controllers\AddonCourseController::class)->except(['create', 'edit', 'update', 'store', 'show']);
+        Route::get('/addon-courses-add', [App\Http\Controllers\AddonCourseController::class, 'ajax_add'])->name('addon-courses.add');
+        Route::get('/addon-courses-edit/{id}', [App\Http\Controllers\AddonCourseController::class, 'ajax_edit'])->name('addon-courses.edit');
+        Route::post('/addon-courses-submit', [App\Http\Controllers\AddonCourseController::class, 'submit'])->name('addon-courses.submit');
+        Route::put('/addon-courses-update/{id}', [App\Http\Controllers\AddonCourseController::class, 'updateForm'])->name('addon-courses.updateForm');
+
         Route::delete('/subjects-delete/{id}', [App\Http\Controllers\SubjectController::class, 'delete'])->name('subjects.delete');
         Route::resource('subjects', App\Http\Controllers\SubjectController::class)->except(['create', 'edit']);
         Route::get('/subjects-add', [App\Http\Controllers\SubjectController::class, 'ajax_add'])->name('subjects.add');

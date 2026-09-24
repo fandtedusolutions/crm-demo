@@ -496,6 +496,7 @@
                             </div>
                         </div>
                     </div>
+                    @include('public.partials.addon-course-field', ['addonParentCourseId' => 5])
                     
                 </div>
                 

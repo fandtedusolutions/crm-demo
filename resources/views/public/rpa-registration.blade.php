@@ -427,6 +427,7 @@
                 <!-- Step 2: Communication Details -->
                 <div class="form-step" id="formStep2">
                     <h4 class="mb-4"><i class="fas fa-phone me-2"></i>Communication Details</h4>
+                    @include('public.partials.addon-course-field')
                     
                     <div class="row">
                         <div class="col-md-6">

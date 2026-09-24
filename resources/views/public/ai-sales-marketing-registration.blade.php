@@ -288,6 +288,7 @@
                 {{-- Step 2: Academic Information --}}
                 <div class="form-step" id="formStep2">
                     <h4 class="mb-4"><i class="fas fa-graduation-cap me-2"></i>Academic Information</h4>
+                    @include('public.partials.addon-course-field')
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">

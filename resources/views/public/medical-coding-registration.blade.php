@@ -512,6 +512,7 @@
                             @endif
                         </div>
                     </div>
+                    @include('public.partials.addon-course-field', ['addonParentCourseId' => 3])
 
                     <div class="row">
                         <div class="col-md-6">

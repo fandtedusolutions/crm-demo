@@ -5209,6 +5209,7 @@ class LeadController extends Controller
                 'studentDetails.subject', 
                 'studentDetails.batch',
                 'studentDetails.subCourse',
+                'studentDetails.addonCourse',
                 'studentDetails.classTime',
                 'studentDetails.sslcCertificates',
                 'studentDetails.sslcCertificates.verifiedBy',
@@ -5236,6 +5237,10 @@ class LeadController extends Controller
                     ->where('is_active', true)
                     ->exists();
             }
+
+            $hasAddonCourses = $studentDetail->course_id
+                ? \App\Support\AddonCourseSupport::forCourse((int) $studentDetail->course_id)->isNotEmpty()
+                : false;
             
             // Get class times for the course if it needs time
             $classTimes = collect();
@@ -5250,7 +5255,7 @@ class LeadController extends Controller
                 $offlinePlaceOptions = \App\Support\CourseOfflinePlaceSupport::optionsForSelect($course);
             }
             
-            return view('admin.leads.registration-details', compact('studentDetail', 'lead', 'country_codes', 'hasSubCourses', 'classTimes', 'offlinePlaceOptions'));
+            return view('admin.leads.registration-details', compact('studentDetail', 'lead', 'country_codes', 'hasSubCourses', 'hasAddonCourses', 'classTimes', 'offlinePlaceOptions'));
             
         } catch (\Exception $e) {
             return view('admin.leads.registration-details', compact('lead'))

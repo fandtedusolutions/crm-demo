@@ -242,6 +242,7 @@
 
                 <div class="form-step" id="formStep3">
                     <h5 class="section-title"><i class="fas fa-graduation-cap me-2"></i>3. Academic Background</h5>
+                    @include('public.partials.addon-course-field')
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">

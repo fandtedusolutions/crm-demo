@@ -175,6 +175,7 @@ class PermissionHelper
             'admin/offline-places/index',
             'admin/hod/index',
             'admin/sub-courses/index',
+            'admin/addon-courses/index',
             'admin/course-documents/index',
             'admin/universities/index',
             'admin/university-courses/index',

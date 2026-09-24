@@ -575,6 +575,7 @@
                 <!-- Step 3: Programme Details -->
                 <div class="form-step" id="formStep3">
                     <h4 class="mb-4"><i class="fas fa-graduation-cap me-2"></i>Programme Details</h4>
+                    @include('public.partials.addon-course-field')
                     
                     <div class="row">
                         @include('public.partials.admin-course-type-field')

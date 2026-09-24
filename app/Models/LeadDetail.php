@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\AddonCourseSupport;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,6 +16,7 @@ class LeadDetail extends Model
     protected $fillable = [
         'lead_id',
         'course_id',
+        'addon_course_id',
         'university_id',
         'university_course_id',
         'course_type',
@@ -175,6 +177,29 @@ class LeadDetail extends Model
     public function subCourse()
     {
         return $this->belongsTo(SubCourse::class, 'sub_course_id');
+    }
+
+    public function addonCourse()
+    {
+        return $this->belongsTo(Course::class, 'addon_course_id');
+    }
+
+    protected static function booted()
+    {
+        static::creating(function (LeadDetail $detail) {
+            if ($detail->addon_course_id || !$detail->course_id) {
+                return;
+            }
+
+            $addonCourseId = request()->input('addon_course_id');
+            if ($addonCourseId === null || $addonCourseId === '') {
+                return;
+            }
+
+            if (AddonCourseSupport::isValid((int) $detail->course_id, $addonCourseId)) {
+                $detail->addon_course_id = (int) $addonCourseId;
+            }
+        });
     }
 
     public function classTime()

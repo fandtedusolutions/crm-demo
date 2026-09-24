@@ -303,6 +303,7 @@
                 <!-- Step 3: Programme Details -->
                 <div class="form-step" id="formStep3">
                     <h4 class="mb-4"><i class="fas fa-graduation-cap me-2"></i>Programme Details</h4>
+                    @include('public.partials.addon-course-field', ['addonParentCourseId' => 23])
                     
                     <!-- Select Course Checkboxes -->
                     <div class="form-group">

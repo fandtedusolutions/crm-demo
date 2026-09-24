@@ -777,6 +777,19 @@
                                 </div>
                             </div>
                             @endif
+                            @if(!empty($hasAddonCourses) || $studentDetail->addon_course_id)
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <div class="info-icon">
+                                        <i class="ti ti-books text-primary"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <label class="info-label">Addon Course</label>
+                                        <p class="info-value">{{ $studentDetail->addonCourse->title ?? 'N/A' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                             @if($studentDetail->ug_pg_selection)
                             <div class="col-md-6">
                                 <div class="info-card">
