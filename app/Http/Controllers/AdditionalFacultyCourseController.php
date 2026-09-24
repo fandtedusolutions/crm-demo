@@ -57,7 +57,7 @@ class AdditionalFacultyCourseController extends Controller
             'course',
             'flag', 'courseFlag',
             'mentorDetails',
-        ])->where('course_id', $courseId)
+        ])->forCourseListing($courseId)
             ->where('is_support_verified', 1);
 
         $currentUser = AuthHelper::getCurrentUser();

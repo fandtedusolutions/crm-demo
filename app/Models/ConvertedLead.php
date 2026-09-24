@@ -105,6 +105,40 @@ class ConvertedLead extends Model
         return $this->hasOne(LeadDetail::class, 'lead_id', 'lead_id');
     }
 
+    /**
+     * Primary course rows plus students whose registration addon matches this course.
+     */
+    public function scopeForCourseListing($query, $courseId)
+    {
+        $courseId = (int) $courseId;
+
+        return $query->where(function ($q) use ($courseId) {
+            $q->where($this->qualifyColumn('course_id'), $courseId)
+                ->orWhereHas('leadDetail', function ($detailQuery) use ($courseId) {
+                    $detailQuery->where('addon_course_id', $courseId);
+                });
+        });
+    }
+
+    /**
+     * Same as forCourseListing, for a set of course IDs (e.g. HOD courses).
+     */
+    public function scopeForCourseIdsListing($query, array $courseIds)
+    {
+        $courseIds = array_values(array_filter(array_map('intval', $courseIds)));
+
+        if ($courseIds === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function ($q) use ($courseIds) {
+            $q->whereIn($this->qualifyColumn('course_id'), $courseIds)
+                ->orWhereHas('leadDetail', function ($detailQuery) use ($courseIds) {
+                    $detailQuery->whereIn('addon_course_id', $courseIds);
+                });
+        });
+    }
+
     public function course()
     {
         return $this->belongsTo(Course::class);

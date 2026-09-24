@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\AddonCourse;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class AddonCourseSupport
@@ -35,5 +36,10 @@ class AddonCourseSupport
             ->where('is_active', true)
             ->whereHas('addonCourse', fn ($query) => $query->where('is_active', true))
             ->exists();
+    }
+
+    public static function applyConvertedLeadCourseListing(Builder $query, $courseId): Builder
+    {
+        return $query->forCourseListing($courseId);
     }
 }

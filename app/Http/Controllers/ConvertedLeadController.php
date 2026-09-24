@@ -234,7 +234,7 @@ class ConvertedLeadController extends Controller
         if (RoleHelper::is_hod()) {
             $hodCourseIds = Course::where('hod_id', AuthHelper::getCurrentUserId())->pluck('id')->toArray();
             if (! empty($hodCourseIds)) {
-                $query->whereIn('course_id', $hodCourseIds);
+                $query->forCourseIdsListing($hodCourseIds);
             } else {
                 $query->whereRaw('1 = 0');
             }
@@ -278,7 +278,7 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('course_id')) {
-            $query->where('course_id', $request->course_id);
+            $query->forCourseListing($request->course_id);
         }
 
         if ($request->filled('batch_id')) {
@@ -564,7 +564,7 @@ class ConvertedLeadController extends Controller
                     ->toArray();
                 
                 if (!empty($hodCourseIds)) {
-                    $query->whereIn('course_id', $hodCourseIds);
+                    $query->forCourseIdsListing($hodCourseIds);
                 } else {
                     $query->whereRaw('1 = 0');
                 }
@@ -589,7 +589,7 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('course_id')) {
-            $query->where('course_id', $request->course_id);
+            $query->forCourseListing($request->course_id);
         }
 
         if ($request->filled('batch_id')) {
@@ -678,11 +678,11 @@ class ConvertedLeadController extends Controller
         try {
             set_time_limit(config('timeout.max_execution_time', 300));
 
-            $recordsTotalQuery = ConvertedLead::query()->where('course_id', 1);
+            $recordsTotalQuery = ConvertedLead::query()->forCourseListing(1);
             $this->applyNiosConvertedLeadsRoleScope($recordsTotalQuery);
             $recordsTotal = (clone $recordsTotalQuery)->count();
 
-            $filteredQuery = ConvertedLead::query()->where('course_id', 1);
+            $filteredQuery = ConvertedLead::query()->forCourseListing(1);
             $this->applyNiosConvertedLeadsRoleScope($filteredQuery);
             $this->applyNiosConvertedLeadsListingFilters($filteredQuery, $request);
             $recordsFiltered = (clone $filteredQuery)->count();
@@ -888,11 +888,11 @@ class ConvertedLeadController extends Controller
         try {
             set_time_limit(config('timeout.max_execution_time', 300));
 
-            $recordsTotalQuery = ConvertedLead::query()->where('course_id', 2);
+            $recordsTotalQuery = ConvertedLead::query()->forCourseListing(2);
             $this->applyBosseConvertedLeadsRoleScope($recordsTotalQuery);
             $recordsTotal = (clone $recordsTotalQuery)->count();
 
-            $filteredQuery = ConvertedLead::query()->where('course_id', 2);
+            $filteredQuery = ConvertedLead::query()->forCourseListing(2);
             $this->applyBosseConvertedLeadsRoleScope($filteredQuery);
             $this->applyBosseConvertedLeadsListingFilters($filteredQuery, $request);
             $recordsFiltered = (clone $filteredQuery)->count();
@@ -1050,11 +1050,11 @@ class ConvertedLeadController extends Controller
         try {
             set_time_limit(config('timeout.max_execution_time', 300));
 
-            $baseQuery = ConvertedLead::query()->where('course_id', 9);
+            $baseQuery = ConvertedLead::query()->forCourseListing(9);
             $this->applyUgpgConvertedLeadsRoleScope($baseQuery);
             $recordsTotal = (clone $baseQuery)->count();
 
-            $filteredQuery = ConvertedLead::query()->where('course_id', 9);
+            $filteredQuery = ConvertedLead::query()->forCourseListing(9);
             $this->applyUgpgConvertedLeadsRoleScope($filteredQuery);
             $this->applyUgpgConvertedLeadsListingFilters($filteredQuery, $request);
             $recordsFiltered = (clone $filteredQuery)->count();
@@ -1211,11 +1211,11 @@ class ConvertedLeadController extends Controller
         try {
             set_time_limit(config('timeout.max_execution_time', 300));
 
-            $baseQuery = ConvertedLead::query()->where('course_id', 23);
+            $baseQuery = ConvertedLead::query()->forCourseListing(23);
             $this->applyEdumasterConvertedLeadsRoleScope($baseQuery);
             $recordsTotal = (clone $baseQuery)->count();
 
-            $filteredQuery = ConvertedLead::query()->where('course_id', 23);
+            $filteredQuery = ConvertedLead::query()->forCourseListing(23);
             $this->applyEdumasterConvertedLeadsRoleScope($filteredQuery);
             $this->applyEdumasterConvertedLeadsListingFilters($filteredQuery, $request);
             $recordsFiltered = (clone $filteredQuery)->count();
@@ -1363,11 +1363,11 @@ class ConvertedLeadController extends Controller
         try {
             set_time_limit(config('timeout.max_execution_time', 300));
 
-            $baseQuery = ConvertedLead::query()->where('course_id', 8);
+            $baseQuery = ConvertedLead::query()->forCourseListing(8);
             $this->applyHotelManagementConvertedLeadsRoleScope($baseQuery);
             $recordsTotal = (clone $baseQuery)->count();
 
-            $filteredQuery = ConvertedLead::query()->where('course_id', 8);
+            $filteredQuery = ConvertedLead::query()->forCourseListing(8);
             $this->applyHotelManagementConvertedLeadsRoleScope($filteredQuery);
             $this->applyHotelManagementConvertedLeadsListingFilters($filteredQuery, $request);
             $recordsFiltered = (clone $filteredQuery)->count();
@@ -1529,11 +1529,11 @@ class ConvertedLeadController extends Controller
         try {
             set_time_limit(config('timeout.max_execution_time', 300));
 
-            $baseQuery = ConvertedLead::query()->where('course_id', 16);
+            $baseQuery = ConvertedLead::query()->forCourseListing(16);
             $this->applyGmvssConvertedLeadsRoleScope($baseQuery);
             $recordsTotal = (clone $baseQuery)->count();
 
-            $filteredQuery = ConvertedLead::query()->where('course_id', 16);
+            $filteredQuery = ConvertedLead::query()->forCourseListing(16);
             $this->applyGmvssConvertedLeadsRoleScope($filteredQuery);
             $this->applyGmvssConvertedLeadsListingFilters($filteredQuery, $request);
             $recordsFiltered = (clone $filteredQuery)->count();
@@ -1717,8 +1717,7 @@ class ConvertedLeadController extends Controller
      */
     public function gmvssMentorIndex(Request $request)
     {
-        $query = ConvertedLead::with(['lead.studentDetails', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'batch', 'admissionBatch', 'subject', 'flag', 'courseFlag', 'studentDetails.registrationLink', 'mentorDetails'])
-            ->where('course_id', 16);
+        $query = ConvertedLead::with(['lead.studentDetails', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'batch', 'admissionBatch', 'subject', 'flag', 'courseFlag', 'studentDetails.registrationLink', 'mentorDetails'])->forCourseListing(16);
 
         // Apply role-based filtering
         $currentUser = AuthHelper::getCurrentUser();
@@ -1835,8 +1834,7 @@ class ConvertedLeadController extends Controller
 
     public function gmvssFacultyIndex(Request $request)
     {
-        $query = ConvertedLead::with(['lead.studentDetails', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'batch', 'admissionBatch', 'subject', 'flag', 'courseFlag', 'studentDetails.registrationLink', 'mentorDetails'])
-            ->where('course_id', 16);
+        $query = ConvertedLead::with(['lead.studentDetails', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'batch', 'admissionBatch', 'subject', 'flag', 'courseFlag', 'studentDetails.registrationLink', 'mentorDetails'])->forCourseListing(16);
 
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
@@ -1944,8 +1942,7 @@ class ConvertedLeadController extends Controller
      */
     public function aiPythonIndex(Request $request)
     {
-        $query = ConvertedLead::with(['lead', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject', 'studentDetails', 'courseFlag'])
-            ->where('course_id', 10);
+        $query = ConvertedLead::with(['lead', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject', 'studentDetails', 'courseFlag'])->forCourseListing(10);
 
         // Apply role-based filtering
         $currentUser = AuthHelper::getCurrentUser();
@@ -2079,11 +2076,11 @@ class ConvertedLeadController extends Controller
         try {
             set_time_limit(config('timeout.max_execution_time', 300));
 
-            $totalQuery = ConvertedLead::query()->where('course_id', 11);
+            $totalQuery = ConvertedLead::query()->forCourseListing(11);
             $this->applyDigitalMarketingConvertedLeadsRoleScope($totalQuery);
             $recordsTotal = (clone $totalQuery)->count();
 
-            $filteredQuery = ConvertedLead::query()->where('course_id', 11);
+            $filteredQuery = ConvertedLead::query()->forCourseListing(11);
             $this->applyDigitalMarketingConvertedLeadsRoleScope($filteredQuery);
             $this->applyDigitalMarketingConvertedLeadsListingFilters($filteredQuery, $request);
             $recordsFiltered = (clone $filteredQuery)->count();
@@ -2298,7 +2295,7 @@ class ConvertedLeadController extends Controller
             'lead', 'lead.team', 'lead.team.detail', "lead.{$studentDetailsRelation}.classTime",
             'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject',
             'studentDetails', 'leadDetail', 'batch', 'admissionBatch'
-        ])->where('course_id', $courseId);
+        ])->forCourseListing($courseId);
 
         // Apply role-based filtering
         $currentUser = AuthHelper::getCurrentUser();
@@ -2322,7 +2319,7 @@ class ConvertedLeadController extends Controller
             } elseif (RoleHelper::is_hod()) {
                 $hodCourseIds = Course::where('hod_id', AuthHelper::getCurrentUserId())->pluck('id')->toArray();
                 if (!empty($hodCourseIds)) {
-                    $query->whereIn('course_id', $hodCourseIds);
+                    $query->forCourseIdsListing($hodCourseIds);
                 } else {
                     $query->whereRaw('1 = 0');
                 }
@@ -2488,8 +2485,7 @@ class ConvertedLeadController extends Controller
 
     public function eduthanzeelIndex(Request $request)
     {
-        $query = ConvertedLead::with(['lead', 'lead.team', 'leadDetail', 'course', 'subCourse', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject', 'studentDetails', 'teacher', 'courseFlag'])
-            ->where('course_id', 6);
+        $query = ConvertedLead::with(['lead', 'lead.team', 'leadDetail', 'course', 'subCourse', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject', 'studentDetails', 'teacher', 'courseFlag'])->forCourseListing(6);
 
         // Apply role-based filtering
         $currentUser = AuthHelper::getCurrentUser();
@@ -2575,8 +2571,7 @@ class ConvertedLeadController extends Controller
      */
     public function eschoolIndex(Request $request)
     {
-        $query = ConvertedLead::with(['lead', 'lead.team', 'leadDetail', 'course', 'subCourse', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject', 'studentDetails', 'teacher', 'courseFlag'])
-            ->where('course_id', 5);
+        $query = ConvertedLead::with(['lead', 'lead.team', 'leadDetail', 'course', 'subCourse', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject', 'studentDetails', 'teacher', 'courseFlag'])->forCourseListing(5);
 
         // Apply role-based filtering
         $currentUser = AuthHelper::getCurrentUser();

@@ -34,7 +34,7 @@ class NiosMentorConvertedLeadController extends Controller
             'flag',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 1) // NIOS course
+        ])->forCourseListing(1) // NIOS course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

@@ -38,7 +38,7 @@ class DigitalMarketingFacultyController extends Controller
             'batch',
             'admissionBatch',
             'leadDetail'
-        ])->where('course_id', 11) // AI Integrated Digital Marketing course
+        ])->forCourseListing(11) // AI Integrated Digital Marketing course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

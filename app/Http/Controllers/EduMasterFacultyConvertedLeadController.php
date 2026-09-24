@@ -36,7 +36,7 @@ class EduMasterFacultyConvertedLeadController extends Controller
             'subject',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 23) // EduMaster course
+        ])->forCourseListing(23) // EduMaster course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

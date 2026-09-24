@@ -34,7 +34,7 @@ class UGPGFacultyConvertedLeadController extends Controller
             'subject',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 9) // UG/PG course
+        ])->forCourseListing(9) // UG/PG course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

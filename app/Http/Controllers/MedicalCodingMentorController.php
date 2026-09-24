@@ -43,7 +43,7 @@ class MedicalCodingMentorController extends Controller
             'mentorDetails',
             'batch',
             'admissionBatch',
-        ])->where('course_id', self::COURSE_ID)
+        ])->forCourseListing(self::COURSE_ID)
             ->where('is_support_verified', 1);
 
         $currentUser = AuthHelper::getCurrentUser();

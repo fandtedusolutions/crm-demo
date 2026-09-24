@@ -192,11 +192,11 @@ trait ConvertedLeadScopedDataTables
             ], 422);
         }
 
-        $recordsTotalQuery = ConvertedLead::query()->where('course_id', $scopedCourseId);
+        $recordsTotalQuery = ConvertedLead::query()->forCourseListing($scopedCourseId);
         $this->applyProgrammeCoursePageRoleScope($recordsTotalQuery);
         $recordsTotal = (clone $recordsTotalQuery)->count();
 
-        $filteredQuery = ConvertedLead::query()->where('course_id', $scopedCourseId);
+        $filteredQuery = ConvertedLead::query()->forCourseListing($scopedCourseId);
         $this->applyProgrammeCoursePageRoleScope($filteredQuery);
         $this->applyProgrammeCoursePageFilters($filteredQuery, $request, $scopedCourseId);
         $recordsFiltered = (clone $filteredQuery)->count();

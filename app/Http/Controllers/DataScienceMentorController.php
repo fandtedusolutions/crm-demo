@@ -39,7 +39,7 @@ class DataScienceMentorController extends Controller
             'batch',
             'admissionBatch',
             'leadDetail'
-        ])->where('course_id', 12) // Data Science course
+        ])->forCourseListing(12) // Data Science course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

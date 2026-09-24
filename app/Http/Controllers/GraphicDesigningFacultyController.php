@@ -38,7 +38,7 @@ class GraphicDesigningFacultyController extends Controller
             'batch',
             'admissionBatch',
             'leadDetail'
-        ])->where('course_id', 15) // Diploma in Graphic Designing course
+        ])->forCourseListing(15) // Diploma in Graphic Designing course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

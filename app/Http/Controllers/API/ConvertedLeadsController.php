@@ -62,7 +62,7 @@ class ConvertedLeadsController extends Controller
         }
 
         if ($request->filled('course_id')) {
-            $query->where('course_id', $request->course_id);
+            $query->forCourseListing($request->course_id);
         }
 
         if ($request->filled('batch_id')) {

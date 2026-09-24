@@ -98,7 +98,7 @@ class PostSalesConvertedLeadController extends Controller
             }
 
             if ($request->filled('course_id')) {
-                $query->where('course_id', $request->course_id);
+                $query->forCourseListing($request->course_id);
             }
 
             if ($request->filled('date_from')) {
@@ -1066,7 +1066,7 @@ class PostSalesConvertedLeadController extends Controller
             'batch',
             'postSalesUser:id,name',
         ])
-            ->where('course_id', $request->course_id)
+            ->forCourseListing($request->course_id)
             ->whereDate('created_at', '>=', $request->date_from)
             ->whereDate('created_at', '<=', $request->date_to);
 

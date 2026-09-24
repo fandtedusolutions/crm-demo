@@ -58,7 +58,7 @@ class ESchoolEduthanzeelMentorController extends Controller
             'batch',
             'admissionBatch',
             'subCourse'
-        ])->where('course_id', $courseId)
+        ])->forCourseListing($courseId)
           ->where('is_academic_verified', 1); // Academic must be verified for all
         
         // For mentors, only show support verified leads

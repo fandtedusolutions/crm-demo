@@ -80,7 +80,7 @@ class ConvertedLeadsExportController extends Controller
         $courseId = $this->courseMap[$basePage] ?? null;
 
         if ($courseId !== null) {
-            $query->where('course_id', $courseId);
+            $query->forCourseListing($courseId);
         }
 
         if ($pageType === 'mentor') {
@@ -170,7 +170,7 @@ class ConvertedLeadsExportController extends Controller
         if (RoleHelper::is_hod()) {
             $hodCourseIds = Course::where('hod_id', AuthHelper::getCurrentUserId())->pluck('id')->toArray();
             if (! empty($hodCourseIds)) {
-                $query->whereIn('course_id', $hodCourseIds);
+                $query->forCourseIdsListing($hodCourseIds);
             } else {
                 $query->whereRaw('1 = 0');
             }
@@ -211,7 +211,7 @@ class ConvertedLeadsExportController extends Controller
         if (RoleHelper::is_hod()) {
             $hodCourseIds = Course::where('hod_id', AuthHelper::getCurrentUserId())->pluck('id')->toArray();
             if (! empty($hodCourseIds)) {
-                $query->whereIn('course_id', $hodCourseIds);
+                $query->forCourseIdsListing($hodCourseIds);
             } else {
                 $query->whereRaw('1 = 0');
             }
@@ -257,7 +257,7 @@ class ConvertedLeadsExportController extends Controller
         if (RoleHelper::is_hod()) {
             $hodCourseIds = Course::where('hod_id', AuthHelper::getCurrentUserId())->pluck('id')->toArray();
             if (! empty($hodCourseIds)) {
-                $query->whereIn('course_id', $hodCourseIds);
+                $query->forCourseIdsListing($hodCourseIds);
             } else {
                 $query->whereRaw('1 = 0');
             }
@@ -363,7 +363,7 @@ class ConvertedLeadsExportController extends Controller
         }
 
         if ($request->filled('course_id')) {
-            $query->where('course_id', $request->course_id);
+            $query->forCourseListing($request->course_id);
         }
         if ($request->filled('batch_id')) {
             $query->where('batch_id', $request->batch_id);

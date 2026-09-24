@@ -33,7 +33,7 @@ class MentorConvertedLeadController extends Controller
             'flag',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 2) // Board of Open Schooling and Skill Education course
+        ])->forCourseListing(2) // Board of Open Schooling and Skill Education course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

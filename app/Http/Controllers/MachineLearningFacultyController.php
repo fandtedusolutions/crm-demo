@@ -39,7 +39,7 @@ class MachineLearningFacultyController extends Controller
             'batch',
             'admissionBatch',
             'leadDetail'
-        ])->where('course_id', 20) // Machine Learning course
+        ])->forCourseListing(20) // Machine Learning course
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering

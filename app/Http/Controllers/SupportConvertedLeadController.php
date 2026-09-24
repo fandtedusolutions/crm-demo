@@ -43,7 +43,7 @@ class SupportConvertedLeadController extends Controller
             'subject',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 2) // Board of Open Schooling and Skill Education course
+        ])->forCourseListing(2) // Board of Open Schooling and Skill Education course
           ->where('is_academic_verified', 1);
 
         // Apply role-based filtering
@@ -436,7 +436,7 @@ class SupportConvertedLeadController extends Controller
             'subject',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 1) // NIOS course
+        ])->forCourseListing(1) // NIOS course
           ->where('is_academic_verified', 1);
 
         // Apply role-based filtering
@@ -545,7 +545,7 @@ class SupportConvertedLeadController extends Controller
             'supportFlag',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 9) // UG/PG course
+        ])->forCourseListing(9) // UG/PG course
           ->where('is_academic_verified', 1);
 
         // Apply role-based filtering
@@ -650,7 +650,7 @@ class SupportConvertedLeadController extends Controller
             'supportFlag',
             'batch',
             'admissionBatch'
-        ])->where('course_id', 23) // EduMaster course
+        ])->forCourseListing(23) // EduMaster course
           ->where('is_academic_verified', 1);
 
         // Apply role-based filtering
@@ -1200,7 +1200,7 @@ class SupportConvertedLeadController extends Controller
             'subject',
             'batch',
             'admissionBatch'
-        ])->where('course_id', $courseId)
+        ])->forCourseListing($courseId)
           ->where('is_academic_verified', 1);
 
         // Apply role-based filtering

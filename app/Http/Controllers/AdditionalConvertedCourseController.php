@@ -64,7 +64,7 @@ class AdditionalConvertedCourseController extends Controller
             'batch',
             'admissionBatch',
             'courseFlag',
-        ])->where('course_id', $courseId);
+        ])->forCourseListing($courseId);
 
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {

@@ -41,7 +41,7 @@ abstract class BaseGraphicDesigningStyleMentorController extends Controller
             'batch',
             'admissionBatch',
             'leadDetail',
-        ])->where('course_id', $courseId)
+        ])->forCourseListing($courseId)
           ->where('is_support_verified', 1);
 
         $currentUser = AuthHelper::getCurrentUser();

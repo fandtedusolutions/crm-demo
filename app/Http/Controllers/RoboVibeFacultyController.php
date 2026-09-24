@@ -41,7 +41,7 @@ class RoboVibeFacultyController extends Controller
             'mentorDetails',
             'batch',
             'admissionBatch',
-        ])->where('course_id', self::COURSE_ID);
+        ])->forCourseListing(self::COURSE_ID);
 
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
