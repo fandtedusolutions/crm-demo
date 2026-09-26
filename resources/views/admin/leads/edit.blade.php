@@ -209,6 +209,18 @@
                             </div>
                         </div>
 
+                        <div class="col-lg-12">
+                            <div class="form-group mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_old" id="is_old" value="1" {{ old('is_old', $lead->is_old) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="is_old">
+                                        Is Old
+                                    </label>
+                                    <small class="form-text text-muted d-block">Mark as an old student. Addon course options will appear on the registration form.</small>
+                                </div>
+                            </div>
+                        </div>
+
                         @if(\App\Helpers\RoleHelper::is_admin_or_super_admin())
                         <div class="col-lg-12">
                             <div class="form-group mb-3">

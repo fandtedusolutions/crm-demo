@@ -2,8 +2,16 @@
     $parentCourseId = (isset($course) && $course) ? $course->id : ($addonParentCourseId ?? null);
     $addonCourseOptions = \App\Support\AddonCourseSupport::forCourse($parentCourseId ? (int) $parentCourseId : null);
     $selectedAddonCourseId = (string) old('addon_course_id', '');
+
+    $registrationLead = $lead ?? null;
+    if (!$registrationLead && isset($convertedLead) && $convertedLead) {
+        $registrationLead = $convertedLead->relationLoaded('lead')
+            ? $convertedLead->lead
+            : $convertedLead->lead()->first();
+    }
+    $isOldLead = $registrationLead ? (bool) ($registrationLead->is_old ?? false) : false;
 @endphp
-@if($addonCourseOptions->isNotEmpty())
+@if($isOldLead && $addonCourseOptions->isNotEmpty())
 <div class="row">
     <div class="col-md-6">
         <div class="form-group mb-3">

@@ -2403,6 +2403,7 @@ class LeadController extends Controller
             'add_time' => 'nullable|date_format:H:i',
             'remarks' => 'nullable|string|max:1000',
             'is_b2b' => 'nullable|boolean',
+            'is_old' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -2429,6 +2430,7 @@ class LeadController extends Controller
         $leadData['lead_status_id'] = $leadData['lead_status_id'] ?? 1;
         $leadData['add_date'] = $leadData['add_date'] ?? date('Y-m-d');
         $leadData['add_time'] = $leadData['add_time'] ?? date('H:i');
+        $leadData['is_old'] = $request->boolean('is_old') ? 1 : 0;
         
         // Get interest_status from lead_status
         $leadStatus = LeadStatus::find($leadData['lead_status_id']);
@@ -2508,6 +2510,7 @@ class LeadController extends Controller
             'address' => 'nullable|string|max:500',
             'followup_date' => 'nullable|date',
             'remarks' => 'nullable|string|max:1000',
+            'is_old' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -2541,6 +2544,7 @@ class LeadController extends Controller
         $data['first_lead_source_id'] = $request->lead_source_id;
         $data['first_lead_course_id'] = $request->course_id;
         $data['first_lead_status_id'] = $request->lead_status_id;
+        $data['is_old'] = $request->boolean('is_old') ? 1 : 0;
         
         // Handle is_b2b logic
         if (RoleHelper::is_admin_or_super_admin() && $request->has('is_b2b')) {
@@ -3130,6 +3134,7 @@ class LeadController extends Controller
                 'add_time' => 'nullable|date_format:H:i',
                 'remarks' => 'nullable|string|max:1000',
                 'is_b2b' => 'nullable|boolean',
+                'is_old' => 'nullable|boolean',
             ]);
 
             if ($validator->fails()) {
@@ -3172,6 +3177,7 @@ class LeadController extends Controller
                 'address', 'telecaller_id', 'team_id', 'place', 'course_id', 'batch_id',
                 'university_id', 'followup_date', 'add_date', 'add_time', 'remarks'
             ]);
+            $data['is_old'] = $request->boolean('is_old') ? 1 : 0;
             
             // Handle is_b2b logic
             if (RoleHelper::is_admin_or_super_admin() && $request->has('is_b2b')) {
@@ -5238,7 +5244,7 @@ class LeadController extends Controller
                     ->exists();
             }
 
-            $hasAddonCourses = $studentDetail->course_id
+            $hasAddonCourses = $lead->is_old && $studentDetail->course_id
                 ? \App\Support\AddonCourseSupport::forCourse((int) $studentDetail->course_id)->isNotEmpty()
                 : false;
             
