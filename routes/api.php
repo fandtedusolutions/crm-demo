@@ -25,10 +25,16 @@ use App\Http\Controllers\API\NatX_Api\DeviceTokenController as NatXApiDeviceToke
 use App\Http\Controllers\API\NatX_Api\WorkStatusController as NatXApiWorkStatusController;
 use App\Http\Controllers\API\AppVersionController as CrmAppVersionController;
 use App\Http\Controllers\API\Webhook\MetaWhatsAppLeadWebhookController;
+use App\Http\Controllers\API\Public\FullLeadsByCourseController;
 
 // Meta WhatsApp contact webhook (public — no API key)
 Route::post('v1/webhooks/meta-whatsapp', [MetaWhatsAppLeadWebhookController::class, 'store'])
     ->name('api.webhooks.meta-whatsapp');
+
+// Public CRM sync export (auth via X-CRM-API-KEY)
+Route::get('v1/public/leads/by-course/{course_id}', FullLeadsByCourseController::class)
+    ->whereNumber('course_id')
+    ->name('api.public.leads.by-course');
 
 //Call App API Routes
 Route::prefix('v1/call')->group(function () {
