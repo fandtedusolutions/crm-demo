@@ -11,7 +11,6 @@ use App\Helpers\PaymentProofHelper;
 use App\Helpers\RoleHelper;
 use App\Services\RazorpayService;
 use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -180,8 +179,9 @@ class PaymentController extends Controller
             'amount_paid' => 'required_unless:is_course23,1|numeric|min:0.01',
             'fee_head' => 'nullable|string|max:50',
             'file_upload' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'receipt_files' => 'nullable|array|max:10',
-            'receipt_files.*' => 'file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'payment_proofs' => 'nullable|array|max:10',
+            'payment_proofs.*.transaction_id' => 'nullable|string|max:255',
+            'payment_proofs.*.file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
 
             // Course 23 split-payment fields
             'payment_pg_amount' => 'nullable|numeric|min:0',
@@ -194,16 +194,6 @@ class PaymentController extends Controller
             'payment_plustwo_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'payment_sslc_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'payment_mobile_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'payment_pg_files' => 'nullable|array|max:10',
-            'payment_pg_files.*' => 'file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'payment_ug_files' => 'nullable|array|max:10',
-            'payment_ug_files.*' => 'file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'payment_plustwo_files' => 'nullable|array|max:10',
-            'payment_plustwo_files.*' => 'file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'payment_sslc_files' => 'nullable|array|max:10',
-            'payment_sslc_files.*' => 'file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'payment_mobile_files' => 'nullable|array|max:10',
-            'payment_mobile_files.*' => 'file|mimes:pdf,jpg,jpeg,png|max:2048',
         ];
 
         // Helper flag for conditional rules (so we can use required_unless)
@@ -212,6 +202,17 @@ class PaymentController extends Controller
         $validator = Validator::make($request->all(), $rules);
 
         $validator->after(function ($validator) use ($request, $invoice, $isCourse23) {
+            $paymentProofs = $this->proofsFromRequest($request);
+            $transactionIds = PaymentProofHelper::collectTransactionIds($paymentProofs);
+
+            foreach (PaymentProofHelper::findDuplicateWithinSubmission($transactionIds) as $duplicateId) {
+                $validator->errors()->add('payment_proofs', "Duplicate transaction ID in submission: {$duplicateId}");
+            }
+
+            foreach (PaymentProofHelper::findExistingTransactionIds($transactionIds) as $existingId) {
+                $validator->errors()->add('payment_proofs', "Transaction ID already exists: {$existingId}");
+            }
+
             if (!$isCourse23) {
                 return;
             }
@@ -244,21 +245,21 @@ class PaymentController extends Controller
                 $validator->errors()->add('payment_pg_amount', 'Total payment amount cannot exceed the remaining balance of ' . number_format($remainingBalance, 2) . '.');
             }
 
-            // Require at least one proof file for each head that has a paid amount
-            if ($pgPaid > 0 && $this->collectUploadedFiles($request, 'payment_pg_files', 'payment_pg_file') === []) {
-                $validator->errors()->add('payment_pg_files', 'PG payment proof file is required when PG paid amount is entered.');
+            // Require file upload for each head that has a paid amount
+            if ($pgPaid > 0 && !$request->hasFile('payment_pg_file')) {
+                $validator->errors()->add('payment_pg_file', 'PG payment proof file is required when PG paid amount is entered.');
             }
-            if ($ugPaid > 0 && $this->collectUploadedFiles($request, 'payment_ug_files', 'payment_ug_file') === []) {
-                $validator->errors()->add('payment_ug_files', 'UG payment proof file is required when UG paid amount is entered.');
+            if ($ugPaid > 0 && !$request->hasFile('payment_ug_file')) {
+                $validator->errors()->add('payment_ug_file', 'UG payment proof file is required when UG paid amount is entered.');
             }
-            if ($plustwoPaid > 0 && $this->collectUploadedFiles($request, 'payment_plustwo_files', 'payment_plustwo_file') === []) {
-                $validator->errors()->add('payment_plustwo_files', 'Plus Two payment proof file is required when Plus Two paid amount is entered.');
+            if ($plustwoPaid > 0 && !$request->hasFile('payment_plustwo_file')) {
+                $validator->errors()->add('payment_plustwo_file', 'Plus Two payment proof file is required when Plus Two paid amount is entered.');
             }
-            if ($sslcPaid > 0 && $this->collectUploadedFiles($request, 'payment_sslc_files', 'payment_sslc_file') === []) {
-                $validator->errors()->add('payment_sslc_files', 'SSLC payment proof file is required when SSLC paid amount is entered.');
+            if ($sslcPaid > 0 && !$request->hasFile('payment_sslc_file')) {
+                $validator->errors()->add('payment_sslc_file', 'SSLC payment proof file is required when SSLC paid amount is entered.');
             }
-            if ($invoice->hasNeedMobileAddon() && $mobilePaid > 0 && $this->collectUploadedFiles($request, 'payment_mobile_files', 'payment_mobile_file') === []) {
-                $validator->errors()->add('payment_mobile_files', 'Needed Mobile payment proof is required when mobile paid amount is entered.');
+            if ($invoice->hasNeedMobileAddon() && $mobilePaid > 0 && !$request->hasFile('payment_mobile_file')) {
+                $validator->errors()->add('payment_mobile_file', 'Needed Mobile payment proof is required when mobile paid amount is entered.');
             }
         });
 
@@ -306,32 +307,31 @@ class PaymentController extends Controller
                 ->sum('amount_paid');
 
             if ($isCourse23) {
+                $sharedProofs = $this->proofsFromRequest($request);
+                $sharedPrimaryTxn = null;
+                foreach ($sharedProofs as $sharedProof) {
+                    $sharedTxn = trim((string) ($sharedProof['transaction_id'] ?? ''));
+                    if ($sharedTxn !== '') {
+                        $sharedPrimaryTxn = $sharedTxn;
+                        break;
+                    }
+                }
+
                 $splitPayments = [
-                    'PG' => [
-                        'amount' => (float) ($request->input('payment_pg_amount') ?: 0),
-                        'files' => $this->collectUploadedFiles($request, 'payment_pg_files', 'payment_pg_file'),
-                    ],
-                    'UG' => [
-                        'amount' => (float) ($request->input('payment_ug_amount') ?: 0),
-                        'files' => $this->collectUploadedFiles($request, 'payment_ug_files', 'payment_ug_file'),
-                    ],
-                    'PLUS_TWO' => [
-                        'amount' => (float) ($request->input('payment_plustwo_amount') ?: 0),
-                        'files' => $this->collectUploadedFiles($request, 'payment_plustwo_files', 'payment_plustwo_file'),
-                    ],
-                    'SSLC' => [
-                        'amount' => (float) ($request->input('payment_sslc_amount') ?: 0),
-                        'files' => $this->collectUploadedFiles($request, 'payment_sslc_files', 'payment_sslc_file'),
-                    ],
+                    'PG' => ['amount' => (float) ($request->input('payment_pg_amount') ?: 0), 'file' => $request->file('payment_pg_file')],
+                    'UG' => ['amount' => (float) ($request->input('payment_ug_amount') ?: 0), 'file' => $request->file('payment_ug_file')],
+                    'PLUS_TWO' => ['amount' => (float) ($request->input('payment_plustwo_amount') ?: 0), 'file' => $request->file('payment_plustwo_file')],
+                    'SSLC' => ['amount' => (float) ($request->input('payment_sslc_amount') ?: 0), 'file' => $request->file('payment_sslc_file')],
                 ];
                 if ($invoice->hasNeedMobileAddon()) {
                     $splitPayments['MOBILE'] = [
                         'amount' => (float) ($request->input('payment_mobile_amount') ?: 0),
-                        'files' => $this->collectUploadedFiles($request, 'payment_mobile_files', 'payment_mobile_file'),
+                        'file' => $request->file('payment_mobile_file'),
                     ];
                 }
 
                 $createdCount = 0;
+                $attachSharedProofs = true;
                 foreach ($splitPayments as $feeHead => $payload) {
                     if (($payload['amount'] ?? 0) <= 0) {
                         continue;
@@ -343,7 +343,35 @@ class PaymentController extends Controller
                             ->withInput();
                     }
 
-                    $storedProofs = $this->storedProofRecords($payload['files'] ?? [], $request->transaction_id);
+                    $proofsForPayment = [];
+                    if ($attachSharedProofs) {
+                        $proofsForPayment = $sharedProofs;
+                        $attachSharedProofs = false;
+                    }
+
+                    if (!empty($payload['file'])) {
+                        $proofsForPayment[] = [
+                            'transaction_id' => $proofsForPayment === [] ? $sharedPrimaryTxn : null,
+                            'file' => $payload['file'],
+                        ];
+                    }
+
+                    $storedProofs = PaymentProofHelper::storeProofFiles($proofsForPayment);
+                    $primaryTxn = $sharedPrimaryTxn;
+                    foreach ($storedProofs as $storedProof) {
+                        $storedTxn = trim((string) ($storedProof['transaction_id'] ?? ''));
+                        if ($storedTxn !== '') {
+                            $primaryTxn = $storedTxn;
+                            break;
+                        }
+                    }
+                    $primaryFile = null;
+                    foreach ($storedProofs as $storedProof) {
+                        if (!empty($storedProof['file_upload'])) {
+                            $primaryFile = $storedProof['file_upload'];
+                            break;
+                        }
+                    }
 
                     $payment = Payment::create([
                         'invoice_id' => $invoiceId,
@@ -351,9 +379,9 @@ class PaymentController extends Controller
                         'fee_head' => $feeHead,
                         'previous_balance' => $previousBalance,
                         'payment_type' => $request->payment_type,
-                        'transaction_id' => $request->transaction_id,
+                        'transaction_id' => $primaryTxn,
                         'payment_date' => $request->payment_date ?? now()->toDateString(),
-                        'file_upload' => $storedProofs[0]['file_upload'] ?? null,
+                        'file_upload' => $primaryFile,
                         'status' => 'Pending Approval',
                         'created_by' => AuthHelper::getCurrentUserId(),
                         'collected_by' => AuthHelper::getCurrentUserId(),
@@ -386,8 +414,19 @@ class PaymentController extends Controller
                         ->withInput();
                 }
 
-                $receiptFiles = $this->collectUploadedFiles($request, 'receipt_files', 'file_upload');
-                $storedProofs = $this->storedProofRecords($receiptFiles, $request->transaction_id);
+                $paymentProofs = $this->proofsFromRequest($request);
+                $storedProofs = PaymentProofHelper::storeProofFiles($paymentProofs);
+                $primaryTxn = null;
+                $primaryFile = null;
+                foreach ($storedProofs as $storedProof) {
+                    $storedTxn = trim((string) ($storedProof['transaction_id'] ?? ''));
+                    if ($primaryTxn === null && $storedTxn !== '') {
+                        $primaryTxn = $storedTxn;
+                    }
+                    if ($primaryFile === null && !empty($storedProof['file_upload'])) {
+                        $primaryFile = $storedProof['file_upload'];
+                    }
+                }
 
                 $feeHead = null;
                 $payment = Payment::create([
@@ -396,9 +435,9 @@ class PaymentController extends Controller
                     'fee_head' => $feeHead,
                     'previous_balance' => $previousBalance,
                     'payment_type' => $request->payment_type,
-                    'transaction_id' => $request->transaction_id,
+                    'transaction_id' => $primaryTxn,
                     'payment_date' => $request->payment_date ?? now()->toDateString(),
-                    'file_upload' => $storedProofs[0]['file_upload'] ?? null,
+                    'file_upload' => $primaryFile,
                     'status' => 'Pending Approval',
                     'created_by' => AuthHelper::getCurrentUserId(),
                     'collected_by' => AuthHelper::getCurrentUserId(),
@@ -1261,55 +1300,28 @@ class PaymentController extends Controller
     }
 
     /**
-     * @return array<int, UploadedFile>
+     * Proof rows in the convert-API shape, with the older single-file fields as a fallback.
+     *
+     * @return array<int, array{transaction_id: ?string, file: ?UploadedFile}>
      */
-    private function collectUploadedFiles(Request $request, string $arrayKey, ?string $legacyKey = null): array
+    private function proofsFromRequest(Request $request): array
     {
-        $files = [];
-        $uploaded = $request->file($arrayKey);
-
-        if ($uploaded instanceof UploadedFile) {
-            $files[] = $uploaded;
-        } elseif (is_array($uploaded)) {
-            foreach ($uploaded as $file) {
-                if ($file instanceof UploadedFile) {
-                    $files[] = $file;
-                }
-            }
+        $proofs = PaymentProofHelper::normalizeFromRequest($request);
+        if ($proofs !== []) {
+            return $proofs;
         }
 
-        if ($legacyKey) {
-            $legacy = $request->file($legacyKey);
-            if ($legacy instanceof UploadedFile) {
-                $files[] = $legacy;
-            }
-        }
+        $legacyTxn = trim((string) $request->input('transaction_id', ''));
+        $legacyFile = $request->file('file_upload') ?: $request->file('payment_file');
 
-        return $files;
-    }
-
-    /**
-     * @param  array<int, UploadedFile>  $files
-     * @return array<int, array{transaction_id: ?string, file_upload: ?string}>
-     */
-    private function storedProofRecords(array $files, ?string $transactionId): array
-    {
-        if ($files === []) {
+        if ($legacyTxn === '' && !$legacyFile) {
             return [];
         }
 
-        $transactionId = trim((string) $transactionId);
-        $transactionId = $transactionId !== '' ? $transactionId : null;
-        $proofs = [];
-
-        foreach (array_values($files) as $index => $file) {
-            $proofs[] = [
-                'transaction_id' => $index === 0 ? $transactionId : null,
-                'file' => $file,
-            ];
-        }
-
-        return PaymentProofHelper::storeProofFiles($proofs);
+        return [[
+            'transaction_id' => $legacyTxn !== '' ? $legacyTxn : null,
+            'file' => $legacyFile,
+        ]];
     }
 
     /**

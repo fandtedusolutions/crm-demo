@@ -161,11 +161,13 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_pg_files" class="form-label">PG Payment Proof</label>
-                                        @include('admin.payments.partials.multi-proof-input', [
-                                            'inputName' => 'payment_pg_files',
-                                            'inputId' => 'payment_pg_files',
-                                        ])
+                                        <label for="payment_pg_file" class="form-label">PG Payment Proof</label>
+                                        <input type="file" class="form-control @error('payment_pg_file') is-invalid @enderror"
+                                               name="payment_pg_file" id="payment_pg_file" accept=".pdf,.jpg,.jpeg,.png">
+                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
+                                        @error('payment_pg_file')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -183,11 +185,13 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_ug_files" class="form-label">UG Payment Proof</label>
-                                        @include('admin.payments.partials.multi-proof-input', [
-                                            'inputName' => 'payment_ug_files',
-                                            'inputId' => 'payment_ug_files',
-                                        ])
+                                        <label for="payment_ug_file" class="form-label">UG Payment Proof</label>
+                                        <input type="file" class="form-control @error('payment_ug_file') is-invalid @enderror"
+                                               name="payment_ug_file" id="payment_ug_file" accept=".pdf,.jpg,.jpeg,.png">
+                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
+                                        @error('payment_ug_file')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -205,11 +209,13 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_plustwo_files" class="form-label">Plus Two Payment Proof</label>
-                                        @include('admin.payments.partials.multi-proof-input', [
-                                            'inputName' => 'payment_plustwo_files',
-                                            'inputId' => 'payment_plustwo_files',
-                                        ])
+                                        <label for="payment_plustwo_file" class="form-label">Plus Two Payment Proof</label>
+                                        <input type="file" class="form-control @error('payment_plustwo_file') is-invalid @enderror"
+                                               name="payment_plustwo_file" id="payment_plustwo_file" accept=".pdf,.jpg,.jpeg,.png">
+                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
+                                        @error('payment_plustwo_file')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -227,11 +233,13 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_sslc_files" class="form-label">SSLC Payment Proof</label>
-                                        @include('admin.payments.partials.multi-proof-input', [
-                                            'inputName' => 'payment_sslc_files',
-                                            'inputId' => 'payment_sslc_files',
-                                        ])
+                                        <label for="payment_sslc_file" class="form-label">SSLC Payment Proof</label>
+                                        <input type="file" class="form-control @error('payment_sslc_file') is-invalid @enderror"
+                                               name="payment_sslc_file" id="payment_sslc_file" accept=".pdf,.jpg,.jpeg,.png">
+                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
+                                        @error('payment_sslc_file')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -250,11 +258,13 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_mobile_files" class="form-label">Needed Mobile — Payment Proof</label>
-                                        @include('admin.payments.partials.multi-proof-input', [
-                                            'inputName' => 'payment_mobile_files',
-                                            'inputId' => 'payment_mobile_files',
-                                        ])
+                                        <label for="payment_mobile_file" class="form-label">Needed Mobile — Payment Proof</label>
+                                        <input type="file" class="form-control @error('payment_mobile_file') is-invalid @enderror"
+                                               name="payment_mobile_file" id="payment_mobile_file" accept=".pdf,.jpg,.jpeg,.png">
+                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
+                                        @error('payment_mobile_file')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                                 @endif
@@ -294,18 +304,6 @@
 
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="transaction_id" class="form-label">Transaction ID</label>
-                                    <input type="text" class="form-control @error('transaction_id') is-invalid @enderror" 
-                                           name="transaction_id" id="transaction_id" 
-                                           value="{{ old('transaction_id') }}" placeholder="Enter transaction ID">
-                                    @error('transaction_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="mb-3">
                                     <label for="payment_date" class="form-label">Payment Date</label>
                                     <input type="date" class="form-control @error('payment_date') is-invalid @enderror"
                                            name="payment_date" id="payment_date" value="{{ old('payment_date', date('Y-m-d')) }}">
@@ -315,17 +313,56 @@
                                 </div>
                             </div>
 
-                            @if(!$isCourse23)
+                            @php
+                                $oldProofs = old('payment_proofs');
+                                if (!is_array($oldProofs) || $oldProofs === []) {
+                                    $oldProofs = [['transaction_id' => old('transaction_id', '')]];
+                                }
+                            @endphp
                             <div class="col-12">
                                 <div class="mb-3">
-                                    <label for="receipt_files" class="form-label">Upload Receipt/Proof</label>
-                                    @include('admin.payments.partials.multi-proof-input', [
-                                        'inputName' => 'receipt_files',
-                                        'inputId' => 'receipt_files',
-                                    ])
+                                    <label class="form-label">Upload Receipt/Proof</label>
+                                    <div id="payment-proof-rows">
+                                        @foreach($oldProofs as $proofIndex => $oldProof)
+                                            <div class="row g-2 align-items-end payment-proof-row mb-2">
+                                                <div class="col-md-5">
+                                                    <label class="form-label" for="payment_proof_transaction_{{ $proofIndex }}">Transaction ID</label>
+                                                    <input type="text"
+                                                           class="form-control @error('payment_proofs.'.$proofIndex.'.transaction_id') is-invalid @enderror"
+                                                           name="payment_proofs[{{ $proofIndex }}][transaction_id]"
+                                                           id="payment_proof_transaction_{{ $proofIndex }}"
+                                                           value="{{ $oldProof['transaction_id'] ?? '' }}"
+                                                           placeholder="Enter transaction ID">
+                                                    @error('payment_proofs.'.$proofIndex.'.transaction_id')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                                <div class="col-md-5">
+                                                    <label class="form-label" for="payment_proof_file_{{ $proofIndex }}">Receipt/Proof</label>
+                                                    <input type="file"
+                                                           class="form-control @error('payment_proofs.'.$proofIndex.'.file') is-invalid @enderror"
+                                                           name="payment_proofs[{{ $proofIndex }}][file]"
+                                                           id="payment_proof_file_{{ $proofIndex }}"
+                                                           accept=".pdf,.jpg,.jpeg,.png">
+                                                    @error('payment_proofs.'.$proofIndex.'.file')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button type="button" class="btn btn-outline-danger w-100 remove-payment-proof">Remove</button>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-payment-proof">
+                                        <i class="fas fa-plus"></i> Add another receipt/proof
+                                    </button>
+                                    <div class="form-text">Add one row per receipt, the same as the app convert flow. Each row has its own transaction ID and file. PDF, JPG, JPEG, PNG (Max: 2MB each, up to 10).</div>
+                                    @foreach($errors->get('payment_proofs') as $message)
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @endforeach
                                 </div>
                             </div>
-                            @endif
 
                             <div class="col-12">
                                 <button type="submit" class="btn btn-success">
@@ -359,95 +396,78 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const maxProofFiles = 10;
-    const maxProofBytes = 2 * 1024 * 1024;
-    const allowedProofExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+    const proofRows = document.getElementById('payment-proof-rows');
+    const addProofButton = document.getElementById('add-payment-proof');
+    const maxProofRows = 10;
 
-    document.querySelectorAll('.js-multi-proof').forEach(function(widget) {
-        const input = widget.querySelector('.js-multi-proof-input');
-        const list = widget.querySelector('.js-multi-proof-list');
-        const errorBox = widget.querySelector('.js-multi-proof-error');
-        if (!input || !list) {
+    function refreshProofRows() {
+        if (!proofRows) {
             return;
         }
 
-        let selectedFiles = [];
-        let syncing = false;
+        const rows = proofRows.querySelectorAll('.payment-proof-row');
+        rows.forEach(function(row, index) {
+            const transactionInput = row.querySelector('input[type="text"]');
+            const fileInput = row.querySelector('input[type="file"]');
+            const transactionLabel = row.querySelector('label[for^="payment_proof_transaction_"]');
+            const fileLabel = row.querySelector('label[for^="payment_proof_file_"]');
+            const removeButton = row.querySelector('.remove-payment-proof');
 
-        function fileKey(file) {
-            return [file.name, file.size, file.lastModified].join('|');
+            if (transactionInput) {
+                transactionInput.name = 'payment_proofs[' + index + '][transaction_id]';
+                transactionInput.id = 'payment_proof_transaction_' + index;
+            }
+            if (fileInput) {
+                fileInput.name = 'payment_proofs[' + index + '][file]';
+                fileInput.id = 'payment_proof_file_' + index;
+            }
+            if (transactionLabel && transactionInput) {
+                transactionLabel.setAttribute('for', transactionInput.id);
+            }
+            if (fileLabel && fileInput) {
+                fileLabel.setAttribute('for', fileInput.id);
+            }
+            if (removeButton) {
+                removeButton.disabled = rows.length === 1;
+            }
+        });
+
+        if (addProofButton) {
+            addProofButton.disabled = rows.length >= maxProofRows;
         }
+    }
 
-        function renderFiles() {
-            const transfer = new DataTransfer();
-            list.innerHTML = '';
-
-            selectedFiles.forEach(function(file, index) {
-                transfer.items.add(file);
-
-                const item = document.createElement('li');
-                item.className = 'd-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1';
-
-                const name = document.createElement('span');
-                name.className = 'text-truncate me-2';
-                name.innerHTML = '<i class="fas fa-file me-1"></i>';
-                name.appendChild(document.createTextNode(file.name));
-
-                const removeButton = document.createElement('button');
-                removeButton.type = 'button';
-                removeButton.className = 'btn btn-sm btn-outline-danger';
-                removeButton.textContent = 'Remove';
-                removeButton.addEventListener('click', function() {
-                    selectedFiles.splice(index, 1);
-                    renderFiles();
-                });
-
-                item.appendChild(name);
-                item.appendChild(removeButton);
-                list.appendChild(item);
-            });
-
-            syncing = true;
-            input.files = transfer.files;
-            syncing = false;
-        }
-
-        input.addEventListener('change', function() {
-            if (syncing) {
+    if (proofRows && addProofButton) {
+        addProofButton.addEventListener('click', function() {
+            const rows = proofRows.querySelectorAll('.payment-proof-row');
+            if (rows.length >= maxProofRows) {
                 return;
             }
 
-            const errors = [];
-            const knownKeys = new Set(selectedFiles.map(fileKey));
-
-            Array.from(input.files || []).forEach(function(file) {
-                const extension = (file.name.split('.').pop() || '').toLowerCase();
-                if (!allowedProofExtensions.includes(extension)) {
-                    errors.push(file.name + ' is not an accepted format.');
-                    return;
-                }
-                if (file.size > maxProofBytes) {
-                    errors.push(file.name + ' exceeds 2MB.');
-                    return;
-                }
-                if (knownKeys.has(fileKey(file))) {
-                    return;
-                }
-                if (selectedFiles.length >= maxProofFiles) {
-                    errors.push('You can upload up to ' + maxProofFiles + ' files.');
-                    return;
-                }
-                selectedFiles.push(file);
-                knownKeys.add(fileKey(file));
+            const clone = rows[rows.length - 1].cloneNode(true);
+            clone.querySelectorAll('input').forEach(function(input) {
+                input.value = '';
+                input.classList.remove('is-invalid');
             });
+            clone.querySelectorAll('.invalid-feedback').forEach(function(error) {
+                error.remove();
+            });
+            proofRows.appendChild(clone);
+            refreshProofRows();
+        });
 
-            if (errorBox) {
-                errorBox.textContent = errors.join(' ');
+        proofRows.addEventListener('click', function(event) {
+            const removeButton = event.target.closest('.remove-payment-proof');
+            if (!removeButton || proofRows.querySelectorAll('.payment-proof-row').length <= 1) {
+                return;
             }
 
-            renderFiles();
+            removeButton.closest('.payment-proof-row').remove();
+            refreshProofRows();
         });
-    });
+
+        refreshProofRows();
+    }
 });
 </script>
 @endsection
