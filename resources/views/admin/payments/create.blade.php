@@ -117,7 +117,7 @@
                             @if($isCourse23)
                                 <div class="col-12">
                                     <div class="alert alert-info mb-0">
-                                        Enter the paid amount for each category and upload the corresponding payment proof.
+                                        Enter the paid amount for each category and upload the corresponding payment proofs.
                                     </div>
                                 </div>
 
@@ -161,13 +161,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_pg_file" class="form-label">PG Payment Proof</label>
-                                        <input type="file" class="form-control @error('payment_pg_file') is-invalid @enderror"
-                                               name="payment_pg_file" id="payment_pg_file" accept=".pdf,.jpg,.jpeg,.png">
-                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
-                                        @error('payment_pg_file')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <label for="payment_pg_files" class="form-label">PG Payment Proof</label>
+                                        @include('admin.payments.partials.multi-proof-input', [
+                                            'inputName' => 'payment_pg_files',
+                                            'inputId' => 'payment_pg_files',
+                                        ])
                                     </div>
                                 </div>
 
@@ -185,13 +183,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_ug_file" class="form-label">UG Payment Proof</label>
-                                        <input type="file" class="form-control @error('payment_ug_file') is-invalid @enderror"
-                                               name="payment_ug_file" id="payment_ug_file" accept=".pdf,.jpg,.jpeg,.png">
-                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
-                                        @error('payment_ug_file')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <label for="payment_ug_files" class="form-label">UG Payment Proof</label>
+                                        @include('admin.payments.partials.multi-proof-input', [
+                                            'inputName' => 'payment_ug_files',
+                                            'inputId' => 'payment_ug_files',
+                                        ])
                                     </div>
                                 </div>
 
@@ -209,13 +205,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_plustwo_file" class="form-label">Plus Two Payment Proof</label>
-                                        <input type="file" class="form-control @error('payment_plustwo_file') is-invalid @enderror"
-                                               name="payment_plustwo_file" id="payment_plustwo_file" accept=".pdf,.jpg,.jpeg,.png">
-                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
-                                        @error('payment_plustwo_file')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <label for="payment_plustwo_files" class="form-label">Plus Two Payment Proof</label>
+                                        @include('admin.payments.partials.multi-proof-input', [
+                                            'inputName' => 'payment_plustwo_files',
+                                            'inputId' => 'payment_plustwo_files',
+                                        ])
                                     </div>
                                 </div>
 
@@ -233,13 +227,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_sslc_file" class="form-label">SSLC Payment Proof</label>
-                                        <input type="file" class="form-control @error('payment_sslc_file') is-invalid @enderror"
-                                               name="payment_sslc_file" id="payment_sslc_file" accept=".pdf,.jpg,.jpeg,.png">
-                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
-                                        @error('payment_sslc_file')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <label for="payment_sslc_files" class="form-label">SSLC Payment Proof</label>
+                                        @include('admin.payments.partials.multi-proof-input', [
+                                            'inputName' => 'payment_sslc_files',
+                                            'inputId' => 'payment_sslc_files',
+                                        ])
                                     </div>
                                 </div>
 
@@ -258,13 +250,11 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="payment_mobile_file" class="form-label">Needed Mobile — Payment Proof</label>
-                                        <input type="file" class="form-control @error('payment_mobile_file') is-invalid @enderror"
-                                               name="payment_mobile_file" id="payment_mobile_file" accept=".pdf,.jpg,.jpeg,.png">
-                                        <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
-                                        @error('payment_mobile_file')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <label for="payment_mobile_files" class="form-label">Needed Mobile — Payment Proof</label>
+                                        @include('admin.payments.partials.multi-proof-input', [
+                                            'inputName' => 'payment_mobile_files',
+                                            'inputId' => 'payment_mobile_files',
+                                        ])
                                     </div>
                                 </div>
                                 @endif
@@ -326,15 +316,13 @@
                             </div>
 
                             @if(!$isCourse23)
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <div class="mb-3">
-                                    <label for="file_upload" class="form-label">Upload Receipt/Proof</label>
-                                    <input type="file" class="form-control @error('file_upload') is-invalid @enderror" 
-                                           name="file_upload" id="file_upload" accept=".pdf,.jpg,.jpeg,.png">
-                                    <div class="form-text">Accepted formats: PDF, JPG, JPEG, PNG (Max: 2MB)</div>
-                                    @error('file_upload')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    <label for="receipt_files" class="form-label">Upload Receipt/Proof</label>
+                                    @include('admin.payments.partials.multi-proof-input', [
+                                        'inputName' => 'receipt_files',
+                                        'inputId' => 'receipt_files',
+                                    ])
                                 </div>
                             </div>
                             @endif
@@ -370,6 +358,96 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const maxProofFiles = 10;
+    const maxProofBytes = 2 * 1024 * 1024;
+    const allowedProofExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+
+    document.querySelectorAll('.js-multi-proof').forEach(function(widget) {
+        const input = widget.querySelector('.js-multi-proof-input');
+        const list = widget.querySelector('.js-multi-proof-list');
+        const errorBox = widget.querySelector('.js-multi-proof-error');
+        if (!input || !list) {
+            return;
+        }
+
+        let selectedFiles = [];
+        let syncing = false;
+
+        function fileKey(file) {
+            return [file.name, file.size, file.lastModified].join('|');
+        }
+
+        function renderFiles() {
+            const transfer = new DataTransfer();
+            list.innerHTML = '';
+
+            selectedFiles.forEach(function(file, index) {
+                transfer.items.add(file);
+
+                const item = document.createElement('li');
+                item.className = 'd-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1';
+
+                const name = document.createElement('span');
+                name.className = 'text-truncate me-2';
+                name.innerHTML = '<i class="fas fa-file me-1"></i>';
+                name.appendChild(document.createTextNode(file.name));
+
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.className = 'btn btn-sm btn-outline-danger';
+                removeButton.textContent = 'Remove';
+                removeButton.addEventListener('click', function() {
+                    selectedFiles.splice(index, 1);
+                    renderFiles();
+                });
+
+                item.appendChild(name);
+                item.appendChild(removeButton);
+                list.appendChild(item);
+            });
+
+            syncing = true;
+            input.files = transfer.files;
+            syncing = false;
+        }
+
+        input.addEventListener('change', function() {
+            if (syncing) {
+                return;
+            }
+
+            const errors = [];
+            const knownKeys = new Set(selectedFiles.map(fileKey));
+
+            Array.from(input.files || []).forEach(function(file) {
+                const extension = (file.name.split('.').pop() || '').toLowerCase();
+                if (!allowedProofExtensions.includes(extension)) {
+                    errors.push(file.name + ' is not an accepted format.');
+                    return;
+                }
+                if (file.size > maxProofBytes) {
+                    errors.push(file.name + ' exceeds 2MB.');
+                    return;
+                }
+                if (knownKeys.has(fileKey(file))) {
+                    return;
+                }
+                if (selectedFiles.length >= maxProofFiles) {
+                    errors.push('You can upload up to ' + maxProofFiles + ' files.');
+                    return;
+                }
+                selectedFiles.push(file);
+                knownKeys.add(fileKey(file));
+            });
+
+            if (errorBox) {
+                errorBox.textContent = errors.join(' ');
+            }
+
+            renderFiles();
+        });
+    });
 });
 </script>
 @endsection
