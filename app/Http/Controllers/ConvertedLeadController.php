@@ -4196,7 +4196,7 @@ class ConvertedLeadController extends Controller
             'enroll_no' => 'nullable|string|max:255',
             'id_card' => 'nullable|string|in:processing,download,not downloaded',
             'tma' => 'nullable|string|in:Uploaded,Not Upload',
-            're_mode' => 'nullable|string|in:Normal,TOC',
+            're_mode' => 'nullable|string|in:' . implode(',', \App\Models\LeadDetail::RE_MODES),
             'registration_number' => 'nullable|string|max:255',
             'enrollment_number' => 'nullable|string|max:255',
             'registration_link_id' => 'nullable|exists:registration_links,id',

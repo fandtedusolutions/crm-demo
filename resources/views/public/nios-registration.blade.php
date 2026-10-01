@@ -532,8 +532,9 @@
                                 <label class="form-label">Re-Mode <span class="required">*</span></label>
                                 <select class="form-control" name="re_mode" required>
                                     <option value="">Select Re-Mode</option>
-                                    <option value="Normal">Normal</option>
-                                    <option value="TOC">TOC</option>
+                                    @foreach(\App\Models\LeadDetail::RE_MODES as $reMode)
+                                        <option value="{{ $reMode }}" {{ old('re_mode') === $reMode ? 'selected' : '' }}>{{ $reMode }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>

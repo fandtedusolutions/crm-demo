@@ -163,8 +163,9 @@
                             <label for="re_mode" class="form-label">Re-Mode</label>
                             <select class="form-select" id="re_mode" name="re_mode">
                                 <option value="">All</option>
-                                <option value="Normal" {{ request('re_mode')==='Normal' ? 'selected' : '' }}>Normal</option>
-                                <option value="TOC" {{ request('re_mode')==='TOC' ? 'selected' : '' }}>TOC</option>
+                                @foreach(\App\Models\LeadDetail::RE_MODES as $reMode)
+                                    <option value="{{ $reMode }}" {{ request('re_mode') === $reMode ? 'selected' : '' }}>{{ $reMode }}</option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -1037,8 +1038,9 @@ $niosConvertedLeadsColumns = array_merge($niosConvertedLeadsColumns, [
                     break;
                 case 're_mode':
                     options = '<option value="">Select Re-Mode</option>';
-                    options += `<option value="Normal" ${selectedValue === 'Normal' ? 'selected' : ''}>Normal</option>`;
-                    options += `<option value="TOC" ${selectedValue === 'TOC' ? 'selected' : ''}>TOC</option>`;
+                    ['Normal', 'TOC', 'Say', 'Re-Registration'].forEach(function(reMode) {
+                        options += `<option value="${reMode}" ${selectedValue === reMode ? 'selected' : ''}>${reMode}</option>`;
+                    });
                     break;
             }
 

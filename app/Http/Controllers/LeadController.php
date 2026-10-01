@@ -5244,7 +5244,7 @@ class LeadController extends Controller
                     ->exists();
             }
 
-            $hasAddonCourses = $lead->is_old && $studentDetail->course_id
+            $hasAddonCourses = $studentDetail->course_id
                 ? \App\Support\AddonCourseSupport::forCourse((int) $studentDetail->course_id)->isNotEmpty()
                 : false;
             
@@ -5954,10 +5954,10 @@ class LeadController extends Controller
                 ]);
             } elseif ($field === 're_mode') {
                 if ($value) {
-                    if (!in_array($value, ['Normal', 'TOC'])) {
+                    if (!in_array($value, LeadDetail::RE_MODES, true)) {
                         return response()->json([
                             'success' => false,
-                            'message' => 'Invalid Re-Mode. Must be Normal or TOC.'
+                            'message' => 'Invalid Re-Mode. Must be Normal, TOC, Say, or Re-Registration.'
                         ], 400);
                     }
                 } else {

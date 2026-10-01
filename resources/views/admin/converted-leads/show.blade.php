@@ -521,7 +521,7 @@
                                 'label' => 'Re-Mode',
                                 'field' => 're_mode',
                                 'type' => 'select',
-                                'options' => ['' => 'Select Re-Mode', 'Normal' => 'Normal', 'TOC' => 'TOC'],
+                                'options' => ['' => 'Select Re-Mode'] + array_combine(\App\Models\LeadDetail::RE_MODES, \App\Models\LeadDetail::RE_MODES),
                                 'displayValue' => $convertedLead->studentDetails?->re_mode ?? ($leadDetail?->re_mode ?? 'N/A'),
                                 'rawValue' => $convertedLead->studentDetails?->re_mode ?? ($leadDetail?->re_mode ?? ''),
                                 'canEdit' => $canInlineEditPersonal,

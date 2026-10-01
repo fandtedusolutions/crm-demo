@@ -59,7 +59,7 @@ class ConvertedLeadRegistrationController extends Controller
             'batch_id' => 'required|exists:batches,id',
             'class' => 'required|in:sslc,plustwo',
             'second_language' => 'required|in:malayalam,hindi,arabic,tamil',
-            're_mode' => 'nullable|in:Normal,TOC',
+            're_mode' => 'nullable|in:' . implode(',', \App\Models\LeadDetail::RE_MODES),
             'street' => 'required|string',
             'locality' => 'required|string|max:255',
             'post_office' => 'required|string|max:255',

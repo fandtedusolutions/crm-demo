@@ -88,7 +88,7 @@
     }
 
     if (field === "re_mode") {
-      return { "": "Select Re-Mode", Normal: "Normal", TOC: "TOC" };
+      return { "": "Select Re-Mode", Normal: "Normal", TOC: "TOC", Say: "Say", "Re-Registration": "Re-Registration" };
     }
 
     var raw = container.attr("data-options-json");

@@ -602,7 +602,7 @@
                                         <p class="info-value" data-field="re_mode" data-lead-detail-id="{{ $studentDetail->id }}" data-value="{{ $studentDetail->re_mode ?? '' }}">
                                             {{ $studentDetail->re_mode ?? 'N/A' }}
                                             @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_telecaller() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_general_manager())
-                                            <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="re_mode" data-lead-detail-id="{{ $studentDetail->id }}" data-field-type="select" data-options='{"Normal":"Normal","TOC":"TOC"}' title="Edit">
+                                            <button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="re_mode" data-lead-detail-id="{{ $studentDetail->id }}" data-field-type="select" data-options='@json(array_combine(\App\Models\LeadDetail::RE_MODES, \App\Models\LeadDetail::RE_MODES))' title="Edit">
                                                 <i class="ti ti-edit"></i>
                                             </button>
                                             @endif
@@ -2904,7 +2904,7 @@
                             } else if (fieldName === 'second_language') {
                                 optionsAttr = `data-options='{"malayalam":"Malayalam","hindi":"Hindi","arabic":"Arabic","tamil":"Tamil"}'`;
                             } else if (fieldName === 're_mode') {
-                                optionsAttr = `data-options='{"Normal":"Normal","TOC":"TOC"}'`;
+                                optionsAttr = `data-options='@json(array_combine(\App\Models\LeadDetail::RE_MODES, \App\Models\LeadDetail::RE_MODES))'`;
                             }
                             editButton = `<button class="btn btn-sm btn-outline-primary ms-2 edit-field" data-field="${fieldName}" data-lead-detail-id="${leadDetailIdValue}" data-field-type="select" ${optionsAttr} title="Edit"><i class="ti ti-edit"></i></button>`;
                             if (infoValue.dataset) {

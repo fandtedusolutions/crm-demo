@@ -11,6 +11,8 @@ class LeadDetail extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const RE_MODES = ['Normal', 'TOC', 'Say', 'Re-Registration'];
+
     protected $table = 'leads_details';
 
     protected $fillable = [
