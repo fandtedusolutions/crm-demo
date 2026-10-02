@@ -169,6 +169,7 @@ class PaymentProofHelper
         }
 
         $paymentQuery = Payment::query()
+            ->where('status', '!=', 'Rejected')
             ->where(function ($query) use ($transactionId) {
                 $query->where('transaction_id', $transactionId)
                     ->orWhere('transaction_id', 'like', $transactionId . ' (%');
@@ -183,14 +184,16 @@ class PaymentProofHelper
         }
 
         $proofQuery = PaymentProof::query()
+            ->whereHas('payment', function ($query) use ($excludePaymentId) {
+                $query->where('status', '!=', 'Rejected');
+                if ($excludePaymentId) {
+                    $query->where('id', '!=', $excludePaymentId);
+                }
+            })
             ->where(function ($query) use ($transactionId) {
                 $query->where('transaction_id', $transactionId)
                     ->orWhere('transaction_id', 'like', $transactionId . ' (%');
             });
-
-        if ($excludePaymentId) {
-            $proofQuery->where('payment_id', '!=', $excludePaymentId);
-        }
 
         return $proofQuery->exists();
     }
