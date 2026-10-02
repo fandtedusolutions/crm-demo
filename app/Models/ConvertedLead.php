@@ -564,10 +564,10 @@ class ConvertedLead extends Model
                 return $this->attributes['addon_admission_batch_id'] ?? null;
             }
             if ($key === 'batch') {
-                return $this->addonBatch;
+                return $this->listingRelation('addonBatch');
             }
             if ($key === 'admissionBatch') {
-                return $this->addonAdmissionBatch;
+                return $this->listingRelation('addonAdmissionBatch');
             }
         }
 
@@ -606,12 +606,40 @@ class ConvertedLead extends Model
 
         $this->resolvingListingBatch = true;
         try {
-            $detail = $this->leadDetail;
+            $detail = $this->listingLeadDetail();
         } finally {
             $this->resolvingListingBatch = false;
         }
 
-        return (int) ($detail->addon_course_id ?? 0) === $courseId;
+        return (int) ($detail?->addon_course_id ?? 0) === $courseId;
+    }
+
+    /**
+     * Load the registration detail without reading $this->leadDetail.
+     * Property access recurses while getAttribute('leadDetail') is already running.
+     */
+    protected function listingLeadDetail()
+    {
+        if ($this->relationLoaded('leadDetail')) {
+            return $this->getRelation('leadDetail');
+        }
+
+        $detail = $this->leadDetail()->first();
+        $this->setRelation('leadDetail', $detail);
+
+        return $detail;
+    }
+
+    protected function listingRelation(string $relation)
+    {
+        if ($this->relationLoaded($relation)) {
+            return $this->getRelation($relation);
+        }
+
+        $related = $this->{$relation}()->first();
+        $this->setRelation($relation, $related);
+
+        return $related;
     }
 
     public function mentorScopeAdmissionBatchId()
@@ -642,7 +670,7 @@ class ConvertedLead extends Model
             return false;
         }
 
-        $addonCourseId = (int) ($this->leadDetail->addon_course_id ?? 0);
+        $addonCourseId = (int) ($this->listingLeadDetail()?->addon_course_id ?? 0);
         if ($addonCourseId <= 0 || $addonCourseId === (int) ($this->attributes['course_id'] ?? 0)) {
             return false;
         }
@@ -703,7 +731,7 @@ class ConvertedLead extends Model
             return null;
         }
 
-        $addonCourseId = (int) ($this->leadDetail->addon_course_id ?? 0);
+        $addonCourseId = (int) ($this->listingLeadDetail()?->addon_course_id ?? 0);
         if ($field === 'batch_id') {
             $batch = Batch::find($value);
             if (! $batch || (int) $batch->course_id !== $addonCourseId) {
