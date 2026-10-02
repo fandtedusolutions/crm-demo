@@ -6,6 +6,8 @@
     $code = $code ?? '';
     $codeField = $codeField ?? '';
     $courseId = $courseId ?? '';
+    $batchId = $batchId ?? '';
+    $editClass = $editClass ?? '';
     $currentId = $currentId ?? '';
     $canEdit = $canEdit ?? false;
     $options = $options ?? [];
@@ -20,7 +22,7 @@
     <label class="form-label text-muted">{{ $label }}</label>
     @if($canEdit)
         <div
-            class="inline-edit-show-cl"
+            class="inline-edit-show-cl {{ $editClass }}"
             data-field="{{ $field }}"
             data-id="{{ $convertedLeadId }}"
             data-type="{{ $type }}"
@@ -28,6 +30,7 @@
             @if($optionsJson) data-options-json="{{ $optionsJson }}" @endif
             @if($codeField) data-code-field="{{ $codeField }}" data-current-code="{{ e($code) }}" @endif
             @if($courseId) data-course-id="{{ $courseId }}" @endif
+            @if($batchId !== '' && $batchId !== null) data-batch-id="{{ $batchId }}" @endif
             @if($currentId !== '' && $currentId !== null) data-current-id="{{ $currentId }}" @endif
         >
             <div class="fw-bold mb-0 d-flex align-items-center gap-1 flex-wrap">

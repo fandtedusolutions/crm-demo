@@ -4108,6 +4108,8 @@ class ConvertedLeadController extends Controller
 
         $value = $request->input('value');
         $storedListingBatchId = false;
+        $addonBatchCleared = false;
+        $addonAdmissionBatchCleared = false;
 
         // If mentor, check if field is allowed (check this first before restricted fields check)
         if ($isMentor && !in_array($field, $mentorAllowedFields)) {
@@ -4275,6 +4277,8 @@ class ConvertedLeadController extends Controller
             'degree_back_year' => 'nullable|integer|min:2018|max:' . date('Y'),
             'edumaster_course_name' => 'nullable|string|max:255',
             'addon_course_id' => 'nullable|exists:courses,id',
+            'addon_batch_id' => 'nullable|exists:batches,id',
+            'addon_admission_batch_id' => 'nullable|exists:admission_batches,id',
         ];
 
         if (!array_key_exists($field, $allowedFields)) {
@@ -4302,6 +4306,40 @@ class ConvertedLeadController extends Controller
                     return response()->json([
                         'error' => 'Select a valid addon course for this student\'s course.',
                     ], 422);
+                }
+            }
+        }
+
+        if (in_array($field, ['addon_batch_id', 'addon_admission_batch_id'], true)) {
+            if (! RoleHelper::is_admin_or_super_admin()
+                && ! RoleHelper::is_admission_counsellor()
+                && ! RoleHelper::is_academic_assistant()) {
+                return response()->json(['error' => 'You do not have permission to edit the addon batch.'], 403);
+            }
+
+            $convertedLead->loadMissing('leadDetail');
+            $addonCourseId = (int) ($convertedLead->leadDetail->addon_course_id ?? 0);
+            if ($addonCourseId <= 0) {
+                return response()->json(['error' => 'Select an addon course before choosing its batch.'], 422);
+            }
+
+            if ($value === '' || $value === null) {
+                $value = null;
+            } elseif ($field === 'addon_batch_id') {
+                $addonBatch = \App\Models\Batch::find($value);
+                if (! $addonBatch || (int) $addonBatch->course_id !== $addonCourseId) {
+                    return response()->json(['error' => 'Select a batch for this addon course.'], 422);
+                }
+            } else {
+                $addonBatchId = (int) ($convertedLead->addon_batch_id ?? 0);
+                if ($addonBatchId <= 0) {
+                    return response()->json(['error' => 'Select an addon batch before choosing its admission batch.'], 422);
+                }
+
+                $addonAdmissionBatch = \App\Models\AdmissionBatch::with('batch')->find($value);
+                $batchCourseId = (int) ($addonAdmissionBatch->batch->course_id ?? 0);
+                if (! $addonAdmissionBatch || (int) $addonAdmissionBatch->batch_id !== $addonBatchId || $batchCourseId !== $addonCourseId) {
+                    return response()->json(['error' => 'Select an admission batch for this addon batch.'], 422);
                 }
             }
         }
@@ -4469,6 +4507,18 @@ class ConvertedLeadController extends Controller
             $leadDetail->save();
             $leadDetail->load('addonCourse:id,title');
             $convertedLead->setRelation('leadDetail', $leadDetail);
+
+            if ($field === 'addon_course_id') {
+                $addonBatch = $convertedLead->addon_batch_id
+                    ? \App\Models\Batch::find($convertedLead->addon_batch_id)
+                    : null;
+                if (! $value || ! $addonBatch || (int) $addonBatch->course_id !== (int) $value) {
+                    $convertedLead->addon_batch_id = null;
+                    $convertedLead->addon_admission_batch_id = null;
+                    $convertedLead->save();
+                    $addonBatchCleared = true;
+                }
+            }
             
             // Also update converted_lead dob if field is dob
             if ($field === 'dob') {
@@ -4518,6 +4568,16 @@ class ConvertedLeadController extends Controller
                     : null;
 
                 $convertedLead->{$field} = $value;
+                if ($field === 'addon_batch_id' && $convertedLead->addon_admission_batch_id) {
+                    $stillMatches = \App\Models\AdmissionBatch::query()
+                        ->where('id', $convertedLead->addon_admission_batch_id)
+                        ->where('batch_id', $value ?: null)
+                        ->exists();
+                    if (! $stillMatches) {
+                        $convertedLead->addon_admission_batch_id = null;
+                        $addonAdmissionBatchCleared = true;
+                    }
+                }
                 $convertedLead->updated_by = AuthHelper::getCurrentUserId();
                 if ($field === 'name') {
                     $convertedLead->name_updated_by = AuthHelper::getCurrentUserId();
@@ -4713,14 +4773,27 @@ class ConvertedLeadController extends Controller
             $updatedValue = '-';
         } elseif ($field === 'addon_course_id') {
             $updatedValue = $convertedLead->leadDetail?->addonCourse?->title ?: 'Not assigned';
+        } elseif ($field === 'addon_batch_id') {
+            $addonBatch = $updatedValue ? \App\Models\Batch::find($updatedValue) : null;
+            $updatedValue = $addonBatch?->title ?: 'N/A';
+        } elseif ($field === 'addon_admission_batch_id') {
+            $addonAdmissionBatch = $updatedValue ? \App\Models\AdmissionBatch::find($updatedValue) : null;
+            $updatedValue = $addonAdmissionBatch?->title ?: 'N/A';
         }
+
+        $successMessage = match ($field) {
+            'addon_course_id' => 'Addon course updated successfully.',
+            'addon_batch_id' => 'Addon batch updated successfully.',
+            'addon_admission_batch_id' => 'Addon admission batch updated successfully.',
+            default => ucfirst(str_replace('_', ' ', $field)) . ' updated successfully.',
+        };
 
         return response()->json([
             'success' => true,
-            'message' => $field === 'addon_course_id'
-                ? 'Addon course updated successfully.'
-                : ucfirst(str_replace('_', ' ', $field)) . ' updated successfully.',
-            'value' => $updatedValue
+            'message' => $successMessage,
+            'value' => $updatedValue,
+            'addon_batch_cleared' => $addonBatchCleared,
+            'addon_admission_batch_cleared' => $addonAdmissionBatchCleared,
         ]);
     }
 

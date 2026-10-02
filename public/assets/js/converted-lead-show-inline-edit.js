@@ -211,6 +211,39 @@
       });
   }
 
+  function loadAdmissionBatches(batchId, select, currentId) {
+    if (!batchId) {
+      select.html('<option value="">Select a batch first</option>');
+      return;
+    }
+
+    $.get("/api/admission-batches/by-batch/" + batchId)
+      .done(function (list) {
+        var options = '<option value="">Select Admission Batch</option>';
+        if (list && list.length) {
+          list.forEach(function (item) {
+            var isSelected =
+              currentId && String(currentId) === String(item.id)
+                ? "selected"
+                : "";
+            options +=
+              '<option value="' +
+              item.id +
+              '" ' +
+              isSelected +
+              ">" +
+              escapeHtml(item.title) +
+              "</option>";
+          });
+        }
+        select.html(options);
+        select.focus();
+      })
+      .fail(function () {
+        select.html('<option value="">Error loading admission batches</option>');
+      });
+  }
+
   function init() {
     if (typeof window.jQuery === "undefined") return;
     var $ = window.jQuery;
@@ -245,10 +278,10 @@
           var codeField = container.attr("data-code-field") || "code";
           var currentCode = container.attr("data-current-code") || "";
           html = createPhoneForm(codeField, currentCode, current);
-        } else if (type === "select" && field !== "lead_detail_batch_id") {
-          html = createSelectForm(container, field, current);
-        } else if (field === "lead_detail_batch_id") {
+        } else if (field === "lead_detail_batch_id" || field === "addon_batch_id" || field === "addon_admission_batch_id") {
           html = createBatchForm();
+        } else if (type === "select") {
+          html = createSelectForm(container, field, current);
         } else {
           html = createTextForm(type, current);
         }
@@ -256,10 +289,20 @@
         container.addClass("editing");
         container.append(html);
 
-        if (field === "lead_detail_batch_id") {
+        if (field === "lead_detail_batch_id" || field === "addon_batch_id") {
           var courseId = container.attr("data-course-id");
           var currentId = container.attr("data-current-id") || "";
-          loadBatches(courseId, container.find("select"), currentId);
+          if (field === "addon_batch_id" && !courseId) {
+            container.find("select").html('<option value="">Select an addon course first</option>');
+          } else {
+            loadBatches(courseId, container.find("select"), currentId);
+          }
+        } else if (field === "addon_admission_batch_id") {
+          loadAdmissionBatches(
+            container.attr("data-batch-id"),
+            container.find("select"),
+            container.attr("data-current-id") || ""
+          );
         } else {
           container.find("input, select, textarea").first().focus();
         }
@@ -317,13 +360,38 @@
                   "data-current-code",
                   payload[container.attr("data-code-field") || "code"] || ""
                 );
-              } else if (field === "lead_detail_batch_id") {
+              } else if (field === "lead_detail_batch_id" || field === "addon_batch_id" || field === "addon_admission_batch_id") {
                 container.attr("data-current-id", payload.value || "");
                 container.attr("data-current", payload.value || "");
               } else if (type === "date") {
                 container.attr("data-current", payload.value || "");
               } else {
                 container.attr("data-current", payload.value || "");
+              }
+
+              if (field === "addon_course_id") {
+                $(".js-addon-batch").attr("data-course-id", payload.value || "");
+                if (res.addon_batch_cleared) {
+                  $(".js-addon-batch, .js-addon-admission-batch")
+                    .find(".display-value")
+                    .text("N/A");
+                  $(".js-addon-batch, .js-addon-admission-batch")
+                    .attr("data-current-id", "")
+                    .attr("data-current", "");
+                  $(".js-addon-admission-batch").attr("data-batch-id", "");
+                }
+              }
+
+              if (field === "addon_batch_id") {
+                $(".js-addon-admission-batch").attr("data-batch-id", payload.value || "");
+                if (res.addon_admission_batch_cleared) {
+                  $(".js-addon-admission-batch")
+                    .find(".display-value")
+                    .text("N/A");
+                  $(".js-addon-admission-batch")
+                    .attr("data-current-id", "")
+                    .attr("data-current", "");
+                }
               }
 
               if (field === "name") {

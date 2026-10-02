@@ -239,6 +239,9 @@
                                 <label class="form-label text-muted">Course</label>
                                 <p class="fw-bold mb-0">{{ $convertedLead->course ? $convertedLead->course->title : 'N/A' }}</p>
                             </div>
+                            <div class="col-12">
+                                <div class="cl-addon-panel">
+                                    <div class="row g-2">
                             @include('admin.converted-leads.partials.show-inline-field', [
                                 'label' => 'Addon Course',
                                 'field' => 'addon_course_id',
@@ -249,8 +252,36 @@
                                 'canEdit' => $canInlineEditPersonal,
                                 'convertedLeadId' => $convertedLead->id,
                                 'col' => 12,
-                                'wrapperClass' => 'cl-addon-panel',
                             ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Batch',
+                                'field' => 'addon_batch_id',
+                                'type' => 'select',
+                                'displayValue' => $convertedLead->addonBatch?->title ?? 'N/A',
+                                'rawValue' => $convertedLead->addon_batch_id ?? '',
+                                'currentId' => $convertedLead->addon_batch_id ?? '',
+                                'courseId' => $currentAddonId ?? '',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 12,
+                                'editClass' => 'js-addon-batch',
+                            ])
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Admission Batch',
+                                'field' => 'addon_admission_batch_id',
+                                'type' => 'select',
+                                'displayValue' => $convertedLead->addonAdmissionBatch?->title ?? 'N/A',
+                                'rawValue' => $convertedLead->addon_admission_batch_id ?? '',
+                                'currentId' => $convertedLead->addon_admission_batch_id ?? '',
+                                'batchId' => $convertedLead->addon_batch_id ?? '',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 12,
+                                'editClass' => 'js-addon-admission-batch',
+                            ])
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-12">
                                 <label class="form-label text-muted">Batch</label>
                                 <p class="fw-bold">{{ $convertedLead->batch ? $convertedLead->batch->title : 'N/A' }}</p>
