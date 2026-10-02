@@ -204,7 +204,7 @@
                                     <td>{{ $convertedLead->is_b2b == 1 && $convertedLead->lead && $convertedLead->lead->team ? $convertedLead->lead->team->name : ($convertedLead->is_b2b == 1 ? 'B2B' : 'In House') }}</td>
                                     <td>
                                         <div class="inline-edit"
-                                             data-field="batch_id"
+                                             data-field="batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}"
                                              data-id="{{ $convertedLead->id }}"
                                              data-course-id="{{ $convertedLead->course_id }}"
                                              data-current-id="{{ $convertedLead->batch_id }}">
@@ -229,7 +229,7 @@
                                     </td>
                                     <td>
                                         <div class="inline-edit"
-                                             data-field="admission_batch_id"
+                                             data-field="admission_batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}"
                                              data-id="{{ $convertedLead->id }}"
                                              data-batch-id="{{ $convertedLead->batch_id }}"
                                              data-current-id="{{ $convertedLead->admission_batch_id }}">

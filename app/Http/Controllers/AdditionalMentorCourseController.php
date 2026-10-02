@@ -79,7 +79,7 @@ class AdditionalMentorCourseController extends Controller
                     ->toArray();
 
                 if (!empty($mentorAdmissionBatchIds)) {
-                    $query->whereIn('admission_batch_id', $mentorAdmissionBatchIds);
+                    $query->forMentorAdmissionBatches($mentorAdmissionBatchIds);
                 } else {
                     $query->whereRaw('1 = 0');
                 }

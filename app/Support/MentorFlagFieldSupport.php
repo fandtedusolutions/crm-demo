@@ -31,12 +31,13 @@ class MentorFlagFieldSupport
             return true;
         }
 
-        if (empty($convertedLead->admission_batch_id)) {
+        $admissionBatchId = $convertedLead->mentorScopeAdmissionBatchId();
+        if (empty($admissionBatchId)) {
             return false;
         }
 
         return AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())
-            ->where('id', $convertedLead->admission_batch_id)
+            ->where('id', $admissionBatchId)
             ->exists();
     }
 

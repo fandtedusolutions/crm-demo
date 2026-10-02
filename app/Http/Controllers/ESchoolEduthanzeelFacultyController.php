@@ -141,11 +141,11 @@ class ESchoolEduthanzeelFacultyController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('sub_course_id')) {

@@ -116,7 +116,7 @@ class PostSalesConvertedLeadController extends Controller
             }
 
             if ($request->filled('batch_id')) {
-                $query->where('batch_id', $request->batch_id);
+                $query->whereListingBatch($request->batch_id);
             }
 
             // recordsTotal: count user can see (role filter only)
@@ -1071,7 +1071,7 @@ class PostSalesConvertedLeadController extends Controller
             ->whereDate('created_at', '<=', $request->date_to);
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
         if ($request->has('post_sales_user_id') && $request->post_sales_user_id !== '' && $request->post_sales_user_id !== null) {
             if ((string) $request->post_sales_user_id === '0') {

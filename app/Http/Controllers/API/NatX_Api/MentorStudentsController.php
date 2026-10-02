@@ -56,10 +56,14 @@ class MentorStudentsController extends Controller
         $query = ConvertedLead::with([
             'batch:id,title',
             'course:id,title',
-            'leadDetail:id,lead_id,whatsapp_number,whatsapp_code',
+            'leadDetail:id,lead_id,whatsapp_number,whatsapp_code,addon_course_id',
+            'addonBatch:id,title',
         ])
             ->where('is_support_verified', 1)
-            ->whereIn('admission_batch_id', $mentorAdmissionBatchIds);
+            ->where(function ($mentorQuery) use ($mentorAdmissionBatchIds) {
+                $mentorQuery->whereIn('admission_batch_id', $mentorAdmissionBatchIds)
+                    ->orWhereIn('addon_admission_batch_id', $mentorAdmissionBatchIds);
+            });
 
         if ($request->filled('from_date')) {
             $query->whereDate('created_at', '>=', $request->from_date);
@@ -70,11 +74,11 @@ class MentorStudentsController extends Controller
         }
 
         if ($request->filled('course')) {
-            $query->where('course_id', $request->course);
+            $query->forCourseListing($request->course);
         }
 
         if ($request->filled('batch')) {
-            $query->where('batch_id', $request->batch);
+            $query->whereListingBatch($request->batch);
         }
 
         $students = $query->orderBy('created_at', 'desc')

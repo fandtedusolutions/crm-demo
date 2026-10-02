@@ -41,7 +41,7 @@ class ConvertedLeadsController extends Controller
             'createdBy:id,name',
             'subject:id,title',
             'studentDetails',
-            'leadDetail:lead_id,reviewed_at',
+            'leadDetail:lead_id,reviewed_at,addon_course_id',
             'batch:id,title',
             'admissionBatch:id,title',
             'invoices.payments', // For checking pending payments
@@ -66,11 +66,11 @@ class ConvertedLeadsController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('status')) {

@@ -264,7 +264,7 @@
                                 </td>
                                 <td>
                                     @if($canEdit)
-                                    <div class="inline-edit" data-field="admission_batch_id" data-id="{{ $lead->id }}" data-batch-id="{{ $lead->batch_id }}" data-current-id="{{ $lead->admission_batch_id }}">
+                                    <div class="inline-edit" data-field="admission_batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}" data-id="{{ $lead->id }}" data-batch-id="{{ $lead->batch_id }}" data-current-id="{{ $lead->admission_batch_id }}">
                                         <span class="display-value">{{ $lead->admissionBatch ? $lead->admissionBatch->title : 'N/A' }}</span>
                                         <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit"><i class="ti ti-edit"></i></button>
                                     </div>
@@ -274,7 +274,7 @@
                                 </td>
                                 <td>
                                     @if($canEdit)
-                                    <div class="inline-edit" data-field="batch_id" data-id="{{ $lead->id }}" data-course-id="34" data-current-id="{{ $lead->batch_id }}">
+                                    <div class="inline-edit" data-field="batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}" data-id="{{ $lead->id }}" data-course-id="34" data-current-id="{{ $lead->batch_id }}">
                                         <span class="display-value">{{ $lead->batch ? $lead->batch->title : 'N/A' }}</span>
                                         <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit"><i class="ti ti-edit"></i></button>
                                     </div>

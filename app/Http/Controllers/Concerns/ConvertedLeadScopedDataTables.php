@@ -155,7 +155,7 @@ trait ConvertedLeadScopedDataTables
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($courseId !== $this->aiPythonStyleCourseId() && $request->filled('programme_type')) {
@@ -165,7 +165,7 @@ trait ConvertedLeadScopedDataTables
         }
 
         if ($this->programmeCourseUsesAdmissionBatchFilter($courseId) && $request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         \App\Support\CourseFlagFieldSupport::applyListingFilter($query, $request);

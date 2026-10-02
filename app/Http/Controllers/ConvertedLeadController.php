@@ -283,11 +283,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('status')) {
@@ -594,11 +594,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('status')) {
@@ -802,11 +802,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('status')) {
@@ -1014,11 +1014,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('status')) {
@@ -1185,11 +1185,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('date_from')) {
@@ -1512,10 +1512,10 @@ class ConvertedLeadController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
    
 
@@ -1669,10 +1669,10 @@ class ConvertedLeadController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
    
 
@@ -1744,7 +1744,7 @@ class ConvertedLeadController extends Controller
                     ->pluck('id')
                     ->toArray();
                 if (!empty($mentorAdmissionBatchIds)) {
-                    $query->whereIn('admission_batch_id', $mentorAdmissionBatchIds);
+                    $query->forMentorAdmissionBatches($mentorAdmissionBatchIds);
                 } else {
                     // If no admission batches assigned, return empty result
                     $query->whereRaw('1 = 0');
@@ -1788,11 +1788,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('status')) {
@@ -1891,11 +1891,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('status')) {
@@ -2027,7 +2027,7 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         // Get all results for DataTable
@@ -2163,10 +2163,10 @@ class ConvertedLeadController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
         if ($request->filled('call_status')) {
             $query->whereHas('studentDetails', function ($q) use ($request) {
@@ -2349,11 +2349,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('date_from')) {
@@ -2546,11 +2546,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         // Get all results for DataTable
@@ -2632,11 +2632,11 @@ class ConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('sub_course_id')) {
@@ -4107,6 +4107,7 @@ class ConvertedLeadController extends Controller
         }
 
         $value = $request->input('value');
+        $storedListingBatchId = false;
 
         // If mentor, check if field is allowed (check this first before restricted fields check)
         if ($isMentor && !in_array($field, $mentorAllowedFields)) {
@@ -4502,27 +4503,38 @@ class ConvertedLeadController extends Controller
             $mentorDetail->save();
         } else {
             // Update in ConvertedLead
-            $oldAdmissionBatchId = $field === 'admission_batch_id'
-                ? $convertedLead->admission_batch_id
-                : null;
-
-            $convertedLead->{$field} = $value;
-            $convertedLead->updated_by = AuthHelper::getCurrentUserId();
-            if ($field === 'name') {
-                $convertedLead->name_updated_by = AuthHelper::getCurrentUserId();
-                $convertedLead->name_updated_at = now();
+            $listingBatchUpdate = $convertedLead->applyListingBatchUpdate($field, $value, (int) $request->input('listing_course_id'));
+            if ($listingBatchUpdate['error']) {
+                return response()->json(['error' => $listingBatchUpdate['error']], 422);
             }
 
-            if ($field === 'register_number') {
-                $convertedLead->reg_updated_by = AuthHelper::getCurrentUserId();
-                $convertedLead->reg_updated_at = now();
-            }
+            if ($listingBatchUpdate['handled']) {
+                $convertedLead->updated_by = AuthHelper::getCurrentUserId();
+                $convertedLead->save();
+                $storedListingBatchId = $listingBatchUpdate['value'];
+            } else {
+                $oldAdmissionBatchId = $field === 'admission_batch_id'
+                    ? $convertedLead->getRawOriginal('admission_batch_id')
+                    : null;
 
-            if ($field === 'admission_batch_id' && (string) $oldAdmissionBatchId !== (string) $value) {
-                $convertedLead->admission_batch_assigned_at = $value ? now() : null;
-            }
+                $convertedLead->{$field} = $value;
+                $convertedLead->updated_by = AuthHelper::getCurrentUserId();
+                if ($field === 'name') {
+                    $convertedLead->name_updated_by = AuthHelper::getCurrentUserId();
+                    $convertedLead->name_updated_at = now();
+                }
 
-            $convertedLead->save();
+                if ($field === 'register_number') {
+                    $convertedLead->reg_updated_by = AuthHelper::getCurrentUserId();
+                    $convertedLead->reg_updated_at = now();
+                }
+
+                if ($field === 'admission_batch_id' && (string) $oldAdmissionBatchId !== (string) $value) {
+                    $convertedLead->admission_batch_assigned_at = $value ? now() : null;
+                }
+
+                $convertedLead->save();
+            }
         }
 
         // Get the updated value for response
@@ -4567,7 +4579,7 @@ class ConvertedLeadController extends Controller
             $convertedLead->load('mentorDetails');
             $updatedValue = $convertedLead->mentorDetails ? $convertedLead->mentorDetails->$field : $value;
         } else {
-            $updatedValue = $convertedLead->$field;
+            $updatedValue = $storedListingBatchId !== false ? $storedListingBatchId : $convertedLead->$field;
         }
         
         // Special handling for display values

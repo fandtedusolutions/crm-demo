@@ -816,7 +816,7 @@ $digitalMarketingConvertedLeadsColumns = array_merge($digitalMarketingConvertedL
                         // If batch_id changed, update admission_batch_id field's data-batch-id
                         if (field === 'batch_id') {
                             const row = container.closest('tr');
-                            const admissionBatchContainer = row.find('[data-field="admission_batch_id"]');
+                            const admissionBatchContainer = row.find('[data-field="admission_batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}"]');
                             if (admissionBatchContainer.length) {
                                 admissionBatchContainer.data('batch-id', value);
                                 // Also clear admission batch value since batch changed

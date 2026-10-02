@@ -104,11 +104,11 @@ abstract class BaseGraphicDesigningStyleFacultyController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
@@ -200,7 +200,13 @@ abstract class BaseGraphicDesigningStyleFacultyController extends Controller
                         $convertedLead->code = $request->code;
                     }
                 } else {
-                    $convertedLead->$field = $value;
+                    $listingBatchUpdate = $convertedLead->applyListingBatchUpdate($field, $value, (int) request()->input('listing_course_id'));
+                    if ($listingBatchUpdate['error']) {
+                        return response()->json(['success' => false, 'error' => $listingBatchUpdate['error']], 422);
+                    }
+                    if (! $listingBatchUpdate['handled']) {
+                        $convertedLead->$field = $value;
+                    }
                 }
                 $convertedLead->save();
                 $responseValue = $this->formatResponseValue($field, $value, $convertedLead);

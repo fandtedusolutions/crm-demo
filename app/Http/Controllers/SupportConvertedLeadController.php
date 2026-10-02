@@ -86,11 +86,11 @@ class SupportConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('subject_id')) {
@@ -479,11 +479,11 @@ class SupportConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('subject_id')) {
@@ -589,11 +589,11 @@ class SupportConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('university_id')) {
@@ -694,11 +694,11 @@ class SupportConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('university_id')) {
@@ -764,6 +764,20 @@ class SupportConvertedLeadController extends Controller
                 }
             }
 
+            $listingBatchUpdate = $convertedLead->applyListingBatchUpdate($field, $value, (int) $request->input('listing_course_id'));
+            if ($listingBatchUpdate['error']) {
+                return response()->json(['success' => false, 'error' => $listingBatchUpdate['error']], 422);
+            }
+            if ($listingBatchUpdate['handled']) {
+                $convertedLead->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Updated successfully',
+                    'value' => $this->formatSupportResponseValue($field, $listingBatchUpdate['value'], $convertedLead),
+                ]);
+            }
+
             $courseId = (int) $convertedLead->course_id;
             $convertedLeadFields = ['register_number', 'name', 'phone', 'batch_id', 'admission_batch_id'];
             $leadDetailFields = ['whatsapp_number', 'whatsapp_code', 'class_time_id', 'parents_number', 'parents_code'];
@@ -779,7 +793,13 @@ class SupportConvertedLeadController extends Controller
                         $convertedLead->code = $request->code;
                     }
                 } else {
-                    $convertedLead->$field = $value;
+                    $listingBatchUpdate = $convertedLead->applyListingBatchUpdate($field, $value, (int) request()->input('listing_course_id'));
+                    if ($listingBatchUpdate['error']) {
+                        return response()->json(['success' => false, 'error' => $listingBatchUpdate['error']], 422);
+                    }
+                    if (! $listingBatchUpdate['handled']) {
+                        $convertedLead->$field = $value;
+                    }
                 }
 
                 if ($field === 'admission_batch_id' && (string) $oldAdmissionBatchId !== (string) $value) {
@@ -1245,11 +1265,11 @@ class SupportConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('subject_id')) {

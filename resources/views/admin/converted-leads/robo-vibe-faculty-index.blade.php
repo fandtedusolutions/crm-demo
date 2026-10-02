@@ -232,7 +232,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
                                 <td>{{ $lead->is_b2b == 1 && $lead->lead && $lead->lead->team ? $lead->lead->team->name : ($lead->is_b2b == 1 ? 'B2B' : 'In House') }}</td>
                                 <td>
                                     @if($canEdit)
-                                    <div class="inline-edit" data-field="batch_id" data-id="{{ $lead->id }}" data-course-id="{{ $lead->course_id }}" data-current-id="{{ $lead->batch_id }}">
+                                    <div class="inline-edit" data-field="batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}" data-id="{{ $lead->id }}" data-course-id="{{ $lead->listingEditCourseId() }}" data-current-id="{{ $lead->batch_id }}">
                                         <span class="display-value">{{ $lead->batch ? $lead->batch->title : 'N/A' }}</span>
                                         <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit"><i class="ti ti-edit"></i></button>
                                     </div>

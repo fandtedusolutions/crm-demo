@@ -275,7 +275,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="inline-edit" data-field="batch_id" data-id="{{ $convertedLead->id }}" data-course-id="{{ $convertedLead->course_id }}" data-current-id="{{ $convertedLead->batch_id }}">
+                                        <div class="inline-edit" data-field="batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}" data-id="{{ $convertedLead->id }}" data-course-id="{{ $convertedLead->listingEditCourseId() }}" data-current-id="{{ $convertedLead->batch_id }}">
                                             <span class="display-value">{{ $convertedLead->batch?->title ?: '-' }}</span>
                                             @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
                                             <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit">
@@ -285,7 +285,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="inline-edit" data-field="admission_batch_id" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->admission_batch_id }}" data-batch-id="{{ $convertedLead->batch_id }}">
+                                        <div class="inline-edit" data-field="admission_batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->admission_batch_id }}" data-batch-id="{{ $convertedLead->batch_id }}">
                                             <span class="display-value">{{ $convertedLead->admissionBatch?->title ?: '-' }}</span>
                                             @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
                                             <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit">

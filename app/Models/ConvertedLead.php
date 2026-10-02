@@ -10,6 +10,14 @@ class ConvertedLead extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * Course id of the listing currently being queried. Listing pages set this
+     * so addon enrollments reuse the Batch and Admission Batch columns.
+     */
+    public static ?int $listingCourseId = null;
+
+    protected bool $resolvingListingBatch = false;
+
     protected $fillable = [
         'lead_id',
         'name',
@@ -43,12 +51,14 @@ class ConvertedLead extends Model
         'university_id',
         'academic_assistant_id',
         'batch_id',
+        'addon_batch_id',
         'board_id',
         'subject_id',
         'flag_id',
         'support_flag_id',
         'course_flag_id',
         'admission_batch_id',
+        'addon_admission_batch_id',
         'admission_batch_assigned_at',
         'finance_approval',
         'faculty_id',
@@ -111,12 +121,100 @@ class ConvertedLead extends Model
     public function scopeForCourseListing($query, $courseId)
     {
         $courseId = (int) $courseId;
+        static::$listingCourseId = $courseId > 0 ? $courseId : null;
+
+        $query->with([
+            'addonBatch:id,title',
+            'addonAdmissionBatch:id,title',
+        ]);
 
         return $query->where(function ($q) use ($courseId) {
             $q->where($this->qualifyColumn('course_id'), $courseId)
                 ->orWhereHas('leadDetail', function ($detailQuery) use ($courseId) {
                     $detailQuery->where('addon_course_id', $courseId);
                 });
+        });
+    }
+
+    public function scopeWhereListingBatch($query, $batchId)
+    {
+        $batchId = (int) $batchId;
+        $courseId = (int) static::$listingCourseId;
+        if ($courseId <= 0) {
+            return $query->where($this->qualifyColumn('batch_id'), $batchId);
+        }
+
+        $courseColumn = $this->qualifyColumn('course_id');
+        $batchColumn = $this->qualifyColumn('batch_id');
+        $addonBatchColumn = $this->qualifyColumn('addon_batch_id');
+
+        return $query->where(function ($outer) use ($courseId, $batchId, $courseColumn, $batchColumn, $addonBatchColumn) {
+            $outer->where(function ($primary) use ($courseId, $batchId, $courseColumn, $batchColumn) {
+                $primary->where($courseColumn, $courseId)
+                    ->where($batchColumn, $batchId);
+            })->orWhere(function ($addon) use ($courseId, $batchId, $courseColumn, $addonBatchColumn) {
+                $addon->where($courseColumn, '!=', $courseId)
+                    ->where($addonBatchColumn, $batchId)
+                    ->whereHas('leadDetail', function ($detailQuery) use ($courseId) {
+                        $detailQuery->where('addon_course_id', $courseId);
+                    });
+            });
+        });
+    }
+
+    public function scopeWhereListingAdmissionBatch($query, $admissionBatchId)
+    {
+        $admissionBatchId = (int) $admissionBatchId;
+        $courseId = (int) static::$listingCourseId;
+        if ($courseId <= 0) {
+            return $query->where($this->qualifyColumn('admission_batch_id'), $admissionBatchId);
+        }
+
+        $courseColumn = $this->qualifyColumn('course_id');
+        $admissionColumn = $this->qualifyColumn('admission_batch_id');
+        $addonAdmissionColumn = $this->qualifyColumn('addon_admission_batch_id');
+
+        return $query->where(function ($outer) use ($courseId, $admissionBatchId, $courseColumn, $admissionColumn, $addonAdmissionColumn) {
+            $outer->where(function ($primary) use ($courseId, $admissionBatchId, $courseColumn, $admissionColumn) {
+                $primary->where($courseColumn, $courseId)
+                    ->where($admissionColumn, $admissionBatchId);
+            })->orWhere(function ($addon) use ($courseId, $admissionBatchId, $courseColumn, $addonAdmissionColumn) {
+                $addon->where($courseColumn, '!=', $courseId)
+                    ->where($addonAdmissionColumn, $admissionBatchId)
+                    ->whereHas('leadDetail', function ($detailQuery) use ($courseId) {
+                        $detailQuery->where('addon_course_id', $courseId);
+                    });
+            });
+        });
+    }
+
+    public function scopeForMentorAdmissionBatches($query, array $admissionBatchIds)
+    {
+        $admissionBatchIds = array_values(array_filter(array_map('intval', $admissionBatchIds)));
+        if ($admissionBatchIds === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        $courseId = (int) static::$listingCourseId;
+        if ($courseId <= 0) {
+            return $query->whereIn($this->qualifyColumn('admission_batch_id'), $admissionBatchIds);
+        }
+
+        $courseColumn = $this->qualifyColumn('course_id');
+        $admissionColumn = $this->qualifyColumn('admission_batch_id');
+        $addonAdmissionColumn = $this->qualifyColumn('addon_admission_batch_id');
+
+        return $query->where(function ($outer) use ($courseId, $admissionBatchIds, $courseColumn, $admissionColumn, $addonAdmissionColumn) {
+            $outer->where(function ($primary) use ($courseId, $admissionBatchIds, $courseColumn, $admissionColumn) {
+                $primary->where($courseColumn, $courseId)
+                    ->whereIn($admissionColumn, $admissionBatchIds);
+            })->orWhere(function ($addon) use ($courseId, $admissionBatchIds, $courseColumn, $addonAdmissionColumn) {
+                $addon->where($courseColumn, '!=', $courseId)
+                    ->whereIn($addonAdmissionColumn, $admissionBatchIds)
+                    ->whereHas('leadDetail', function ($detailQuery) use ($courseId) {
+                        $detailQuery->where('addon_course_id', $courseId);
+                    });
+            });
         });
     }
 
@@ -157,6 +255,11 @@ class ConvertedLead extends Model
     public function batch()
     {
         return $this->belongsTo(Batch::class);
+    }
+
+    public function addonBatch()
+    {
+        return $this->belongsTo(Batch::class, 'addon_batch_id');
     }
 
     public function board()
@@ -240,6 +343,11 @@ class ConvertedLead extends Model
     public function admissionBatch()
     {
         return $this->belongsTo(AdmissionBatch::class);
+    }
+
+    public function addonAdmissionBatch()
+    {
+        return $this->belongsTo(AdmissionBatch::class, 'addon_admission_batch_id');
     }
 
 
@@ -444,5 +552,178 @@ class ConvertedLead extends Model
         if ($this->studentDetails) {
             $this->studentDetails->update(['re_mode' => $value]);
         }
+    }
+
+    public function getAttribute($key)
+    {
+        if ($this->listingUsesAddonFields()) {
+            if ($key === 'batch_id') {
+                return $this->attributes['addon_batch_id'] ?? null;
+            }
+            if ($key === 'admission_batch_id') {
+                return $this->attributes['addon_admission_batch_id'] ?? null;
+            }
+            if ($key === 'batch') {
+                return $this->addonBatch;
+            }
+            if ($key === 'admissionBatch') {
+                return $this->addonAdmissionBatch;
+            }
+        }
+
+        return parent::getAttribute($key);
+    }
+
+    public static function currentListingCourseId(): string
+    {
+        return static::$listingCourseId ? (string) static::$listingCourseId : '';
+    }
+
+    public function listingEditCourseId(): int
+    {
+        if ($this->listingUsesAddonFields()) {
+            return (int) static::$listingCourseId;
+        }
+
+        return (int) ($this->attributes['course_id'] ?? 0);
+    }
+
+    public function listingUsesAddonFields(): bool
+    {
+        $courseId = (int) static::$listingCourseId;
+
+        return $courseId > 0 && $this->isAddonEnrollmentFor($courseId);
+    }
+
+    public function isAddonEnrollmentFor(int $courseId): bool
+    {
+        if ($courseId <= 0 || $this->resolvingListingBatch) {
+            return false;
+        }
+        if ((int) ($this->attributes['course_id'] ?? 0) === $courseId) {
+            return false;
+        }
+
+        $this->resolvingListingBatch = true;
+        try {
+            $detail = $this->leadDetail;
+        } finally {
+            $this->resolvingListingBatch = false;
+        }
+
+        return (int) ($detail->addon_course_id ?? 0) === $courseId;
+    }
+
+    public function mentorScopeAdmissionBatchId()
+    {
+        $requestedCourseId = (int) request()->input('listing_course_id');
+        if ($requestedCourseId > 0 && $this->isAddonEnrollmentFor($requestedCourseId)) {
+            return $this->attributes['addon_admission_batch_id'] ?? null;
+        }
+
+        if ($this->listingUsesAddonFields()) {
+            return $this->attributes['addon_admission_batch_id'] ?? null;
+        }
+
+        return $this->attributes['admission_batch_id'] ?? null;
+    }
+
+    public function shouldStoreListingBatchAsAddon(string $field, $value, int $listingCourseId): bool
+    {
+        if (! in_array($field, ['batch_id', 'admission_batch_id'], true)) {
+            return false;
+        }
+
+        if ($listingCourseId > 0 && $this->isAddonEnrollmentFor($listingCourseId)) {
+            return true;
+        }
+
+        if ($value === null || $value === '') {
+            return false;
+        }
+
+        $addonCourseId = (int) ($this->leadDetail->addon_course_id ?? 0);
+        if ($addonCourseId <= 0 || $addonCourseId === (int) ($this->attributes['course_id'] ?? 0)) {
+            return false;
+        }
+
+        if ($field === 'batch_id') {
+            $batch = Batch::find($value);
+
+            return $batch && (int) $batch->course_id === $addonCourseId;
+        }
+
+        $admissionBatch = AdmissionBatch::with('batch')->find($value);
+        $batchCourseId = (int) ($admissionBatch->batch->course_id ?? 0);
+
+        return $admissionBatch && $batchCourseId === $addonCourseId;
+    }
+
+    /**
+     * Write batch edits for an addon enrollment onto the addon columns.
+     *
+     * @return array{handled: bool, error: ?string, value: mixed}
+     */
+    public function applyListingBatchUpdate(string $field, $value, int $listingCourseId): array
+    {
+        if (! $this->shouldStoreListingBatchAsAddon($field, $value, $listingCourseId)) {
+            return ['handled' => false, 'error' => null, 'value' => $value];
+        }
+
+        $error = $this->listingBatchUpdateError($field, $value, $listingCourseId);
+        if ($error) {
+            return ['handled' => true, 'error' => $error, 'value' => $value];
+        }
+
+        $storedValue = ($value === '' || $value === null) ? null : $value;
+        if ($field === 'batch_id') {
+            $this->addon_batch_id = $storedValue;
+            if ($this->addon_admission_batch_id) {
+                $stillMatches = AdmissionBatch::query()
+                    ->where('id', $this->addon_admission_batch_id)
+                    ->where('batch_id', $storedValue)
+                    ->exists();
+                if (! $stillMatches) {
+                    $this->addon_admission_batch_id = null;
+                }
+            }
+        } else {
+            $this->addon_admission_batch_id = $storedValue;
+        }
+
+        return ['handled' => true, 'error' => null, 'value' => $storedValue];
+    }
+
+    public function listingBatchUpdateError(string $field, $value, int $listingCourseId): ?string
+    {
+        if (! $this->shouldStoreListingBatchAsAddon($field, $value, $listingCourseId)) {
+            return null;
+        }
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        $addonCourseId = (int) ($this->leadDetail->addon_course_id ?? 0);
+        if ($field === 'batch_id') {
+            $batch = Batch::find($value);
+            if (! $batch || (int) $batch->course_id !== $addonCourseId) {
+                return 'Select a batch for this addon course.';
+            }
+
+            return null;
+        }
+
+        $admissionBatch = AdmissionBatch::with('batch')->find($value);
+        $batchCourseId = (int) ($admissionBatch->batch->course_id ?? 0);
+        if (! $admissionBatch || $batchCourseId !== $addonCourseId) {
+            return 'Select an admission batch for this addon course.';
+        }
+
+        $addonBatchId = (int) ($this->attributes['addon_batch_id'] ?? 0);
+        if ($addonBatchId > 0 && (int) $admissionBatch->batch_id !== $addonBatchId) {
+            return 'Select an admission batch for the addon batch.';
+        }
+
+        return null;
     }
 }

@@ -117,6 +117,31 @@
     }
 
     $(document).ready(function() {
+        $.ajaxPrefilter(function (options) {
+            var listingCourseId = $('.inline-edit.editing').attr('data-listing-course-id');
+            if (!listingCourseId) {
+                return;
+            }
+            if (typeof options.data === 'string') {
+                if (options.data.indexOf('field=batch_id') === -1 && options.data.indexOf('field=admission_batch_id') === -1) {
+                    return;
+                }
+                if (options.data.indexOf('listing_course_id=') !== -1) {
+                    return;
+                }
+                options.data += (options.data.length ? '&' : '') + 'listing_course_id=' + encodeURIComponent(listingCourseId);
+                return;
+            }
+            if ($.isPlainObject(options.data)) {
+                if (options.data.field !== 'batch_id' && options.data.field !== 'admission_batch_id') {
+                    return;
+                }
+                if (!options.data.listing_course_id) {
+                    options.data.listing_course_id = listingCourseId;
+                }
+            }
+        });
+
         // Initialize any custom functionality here
         // console.log('CRM Dashboard loaded successfully');
         

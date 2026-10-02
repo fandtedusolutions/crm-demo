@@ -57,7 +57,7 @@ class HospitalAdministrationMentorController extends Controller
             } elseif (RoleHelper::is_mentor()) {
                 $mentorAdmissionBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())->pluck('id')->toArray();
                 if (! empty($mentorAdmissionBatchIds)) {
-                    $query->whereIn('admission_batch_id', $mentorAdmissionBatchIds);
+                    $query->forMentorAdmissionBatches($mentorAdmissionBatchIds);
                 } else {
                     $query->whereRaw('1 = 0');
                 }
@@ -90,10 +90,10 @@ class HospitalAdministrationMentorController extends Controller
             });
         }
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
         \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
         if ($request->filled('date_from')) {

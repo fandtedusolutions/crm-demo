@@ -222,7 +222,7 @@ class ConvertedLeadsExportController extends Controller
         if (RoleHelper::is_mentor()) {
             $mentorBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())->pluck('id')->toArray();
             if (! empty($mentorBatchIds)) {
-                $query->whereIn('admission_batch_id', $mentorBatchIds);
+                $query->forMentorAdmissionBatches($mentorBatchIds);
             } else {
                 $query->whereRaw('1 = 0');
             }
@@ -366,10 +366,10 @@ class ConvertedLeadsExportController extends Controller
             $query->forCourseListing($request->course_id);
         }
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
         if ($request->filled('status')) {
             $query->where('status', $request->status);

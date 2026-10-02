@@ -717,7 +717,7 @@
                 $batchSelect.on('change', function() {
                     const newBatchId = $(this).val();
                     const $row = container.closest('tr');
-                    const $admissionContainer = $row.find('[data-field="admission_batch_id"]');
+                    const $admissionContainer = $row.find('[data-field="admission_batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}"]');
                     if ($admissionContainer.length && $admissionContainer.hasClass('editing')) {
                         const $admissionSelect = $admissionContainer.find('.admission-batch-select');
                         loadAdmissionBatchesForEdit($admissionSelect, newBatchId, '');
@@ -809,7 +809,7 @@
                             container.data('batch-id', value);
                             container.data('current-id', value);
                             const $row = container.closest('tr');
-                            const $admissionContainer = $row.find('[data-field="admission_batch_id"]');
+                            const $admissionContainer = $row.find('[data-field="admission_batch_id" data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() }}"]');
                             if ($admissionContainer.length) {
                                 $admissionContainer.data('batch-id', value);
                                 // Clear admission batch if batch changed

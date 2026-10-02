@@ -66,7 +66,7 @@ class NiosMentorConvertedLeadController extends Controller
                     ->toArray();
                 
                 if (!empty($mentorAdmissionBatchIds)) {
-                    $query->whereIn('admission_batch_id', $mentorAdmissionBatchIds);
+                    $query->forMentorAdmissionBatches($mentorAdmissionBatchIds);
                 } else {
                     // If mentor has no admission batches, return empty result
                     $query->whereRaw('1 = 0');
@@ -129,11 +129,11 @@ class NiosMentorConvertedLeadController extends Controller
         }
 
         if ($request->filled('batch_id')) {
-            $query->where('batch_id', $request->batch_id);
+            $query->whereListingBatch($request->batch_id);
         }
 
         if ($request->filled('admission_batch_id')) {
-            $query->where('admission_batch_id', $request->admission_batch_id);
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
         }
 
         if ($request->filled('subject_id')) {
