@@ -16,7 +16,7 @@
         $rawValue = strtolower((string) $rawValue);
     }
 @endphp
-<div class="col-md-{{ $col }}">
+<div class="col-md-{{ $col }} {{ $wrapperClass ?? '' }}">
     <label class="form-label text-muted">{{ $label }}</label>
     @if($canEdit)
         <div

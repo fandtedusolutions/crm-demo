@@ -62,7 +62,7 @@ class SupportAjaxController extends Controller
 
         // 3. Apply Filters
         if ($request->filled('course_id')) {
-            $query->where('converted_leads.course_id', $request->course_id);
+            $query->forCourseListing($request->course_id);
         }
         if ($request->filled('batch_id')) {
             $query->where('converted_leads.batch_id', $request->batch_id);

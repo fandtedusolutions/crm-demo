@@ -137,6 +137,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin()
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <h6 class="mb-0">{{ $lead->name }}</h6>
+                                @include('admin.converted-leads.partials.addon-course-listing-badge', ['convertedLead' => $lead])
                                 @if($lead->is_cancelled)<span class="badge bg-danger">Cancelled</span>@endif
                             </div>
                             <div class="row g-2 mb-2 small">

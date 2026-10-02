@@ -109,7 +109,10 @@
                                 <td>{{ $convertedLead->created_at ? $convertedLead->created_at->format('d-m-Y') : '-' }}</td>
                                 @include('admin.converted-leads.partials.inline-mentor-flag-cell', ['convertedLead' => $convertedLead])
                                     @include('admin.converted-leads.partials.inline-call-time-cell', ['convertedLead' => $convertedLead])
-                                <td>{{ $convertedLead->name }}</td>
+                                <td>
+                                    {{ $convertedLead->name }}
+                                    @include('admin.converted-leads.partials.addon-course-listing-badge', ['convertedLead' => $convertedLead])
+                                </td>
                                 <td>{{ $convertedLead->dob ? \Carbon\Carbon::parse($convertedLead->dob)->format('d-m-Y') : '-' }}</td>
                                 <td>{{ $convertedLead->is_b2b ? 'B2B' : 'In House' }}</td>
                                 <td>{{ \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone) }}</td>

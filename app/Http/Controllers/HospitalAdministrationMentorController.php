@@ -36,6 +36,7 @@ class HospitalAdministrationMentorController extends Controller
         $query = ConvertedLead::with([
             'flag',
             'lead.team',
+            'leadDetail.addonCourse',
             'leadDetail.classTime',
             'course',
             'cancelledBy',

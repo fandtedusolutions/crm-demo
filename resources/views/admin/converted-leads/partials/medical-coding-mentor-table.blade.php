@@ -46,7 +46,10 @@
         <td>{{ $conversationDate }}</td>
         <td>{{ $teamLabel }}</td>
         <td>{{ $lead->register_number ?: '-' }}</td>
-        <td>{{ $lead->name }}</td>
+        <td>
+            {{ $lead->name }}
+            @include('admin.converted-leads.partials.addon-course-listing-badge', ['convertedLead' => $lead])
+        </td>
         <td>{{ $age !== null ? $age : '-' }}</td>
         <td>{{ \App\Helpers\PhoneNumberHelper::display($lead->code, $lead->phone) }}</td>
         <td>

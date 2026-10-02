@@ -1189,6 +1189,7 @@ class SupportConvertedLeadController extends Controller
             'lead.team',
             'lead.team.detail',
             'lead.juniorVloggerStudentDetails.classTime',
+            'leadDetail.addonCourse',
             'leadDetail',
             'course',
             'academicAssistant',

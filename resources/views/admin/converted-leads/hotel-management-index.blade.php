@@ -275,6 +275,7 @@
                                 </td>
                                 <td>
                                     {{ $convertedLead->name }}
+                                    @include('admin.converted-leads.partials.addon-course-listing-badge', ['convertedLead' => $convertedLead])
                                     @if($convertedLead->is_cancelled)
                                     <div>
                                         <span class="badge bg-danger ms-2">Cancelled</span>
@@ -1246,3 +1247,4 @@
         </div>
     </div>
 </div>
+

@@ -125,6 +125,7 @@ class ConvertedLeadController extends Controller
                 'course',
                 'cancelledBy',
                 'studentDetails',
+                'leadDetail.addonCourse',
                 'leadDetail',
                 'invoices.payments',
                 'batch',
@@ -2740,6 +2741,7 @@ class ConvertedLeadController extends Controller
                     'signatureVerifiedBy:id,name',
                     'birthCertificateVerifiedBy:id,name',
                     'otherDocumentVerifiedBy:id,name',
+                    'addonCourse:id,title',
                 ]);
             },
             'cancelledBy:id,name',
@@ -4271,10 +4273,36 @@ class ConvertedLeadController extends Controller
             'plustwo_back_year' => 'nullable|integer|min:2018|max:' . date('Y'),
             'degree_back_year' => 'nullable|integer|min:2018|max:' . date('Y'),
             'edumaster_course_name' => 'nullable|string|max:255',
+            'addon_course_id' => 'nullable|exists:courses,id',
         ];
 
         if (!array_key_exists($field, $allowedFields)) {
             return response()->json(['error' => 'Invalid field.'], 400);
+        }
+
+        if ($field === 'addon_course_id') {
+            if (! RoleHelper::is_admin_or_super_admin()
+                && ! RoleHelper::is_admission_counsellor()
+                && ! RoleHelper::is_academic_assistant()) {
+                return response()->json(['error' => 'You do not have permission to edit the addon course.'], 403);
+            }
+
+            if ($value === '' || $value === null) {
+                $value = null;
+            } elseif (! \App\Support\AddonCourseSupport::isValid((int) $convertedLead->course_id, $value)) {
+                $existingAddonId = LeadDetail::query()
+                    ->where('lead_id', $convertedLead->lead_id)
+                    ->when($convertedLead->course_id, function ($query) use ($convertedLead) {
+                        $query->where('course_id', $convertedLead->course_id);
+                    })
+                    ->value('addon_course_id');
+
+                if ((string) $existingAddonId !== (string) $value) {
+                    return response()->json([
+                        'error' => 'Select a valid addon course for this student\'s course.',
+                    ], 422);
+                }
+            }
         }
 
         if ($field === 'subject_area_ids') {
@@ -4378,6 +4406,7 @@ class ConvertedLeadController extends Controller
             'selected_courses', 'sslc_back_year', 'plustwo_back_year', 'degree_back_year',
             'edumaster_course_name', 'class', 'father_name', 'mother_name', 'second_language',
             'personal_number', 'personal_code', 'parents_number', 'parents_code', 'lead_detail_batch_id',
+            'addon_course_id',
         ];
 
         // Handle fields that are now in ConvertedStudentDetail
@@ -4437,6 +4466,8 @@ class ConvertedLeadController extends Controller
                 $leadDetail->{$field} = $value;
             }
             $leadDetail->save();
+            $leadDetail->load('addonCourse:id,title');
+            $convertedLead->setRelation('leadDetail', $leadDetail);
             
             // Also update converted_lead dob if field is dob
             if ($field === 'dob') {
@@ -4497,7 +4528,9 @@ class ConvertedLeadController extends Controller
         // Get the updated value for response
         if (in_array($field, $leadDetailFields)) {
             // For lead detail fields, get the value from the relationship
-            $convertedLead->load('leadDetail');
+            if (! $convertedLead->relationLoaded('leadDetail')) {
+                $convertedLead->load('leadDetail.addonCourse');
+            }
             if ($field === 'dob') {
                 if ($convertedLead->leadDetail && $convertedLead->leadDetail->date_of_birth) {
                     $dob = $convertedLead->leadDetail->date_of_birth;
@@ -4666,11 +4699,15 @@ class ConvertedLeadController extends Controller
             }
         } elseif ($field === 'class_time_id' && !$updatedValue) {
             $updatedValue = '-';
+        } elseif ($field === 'addon_course_id') {
+            $updatedValue = $convertedLead->leadDetail?->addonCourse?->title ?: 'Not assigned';
         }
 
         return response()->json([
             'success' => true,
-            'message' => ucfirst(str_replace('_', ' ', $field)) . ' updated successfully.',
+            'message' => $field === 'addon_course_id'
+                ? 'Addon course updated successfully.'
+                : ucfirst(str_replace('_', ' ', $field)) . ' updated successfully.',
             'value' => $updatedValue
         ]);
     }

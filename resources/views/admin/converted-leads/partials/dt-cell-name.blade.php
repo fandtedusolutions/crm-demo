@@ -21,6 +21,7 @@
             @endif
         </div>
         <small class="text-muted">ID: {{ $convertedLead->lead_id }}</small>
+        @include('admin.converted-leads.partials.addon-course-listing-badge', ['convertedLead' => $convertedLead])
         @if($convertedLead->is_cancelled)
         <div>
             <span class="badge bg-danger mt-1">Cancelled</span>

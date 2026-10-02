@@ -53,6 +53,7 @@ class AdditionalFacultyCourseController extends Controller
 
         $query = ConvertedLead::with([
             'lead',
+            'leadDetail.addonCourse',
             'leadDetail',
             'course',
             'flag', 'courseFlag',

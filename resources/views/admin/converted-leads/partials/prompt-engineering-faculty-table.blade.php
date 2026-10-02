@@ -84,6 +84,7 @@
             @else
             {{ $lead->name }}
             @endif
+            @include('admin.converted-leads.partials.addon-course-listing-badge', ['convertedLead' => $lead])
         </td>
         <td>{{ $age !== null ? $age : '-' }}</td>
         <td>

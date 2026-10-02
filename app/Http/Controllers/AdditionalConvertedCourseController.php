@@ -57,6 +57,7 @@ class AdditionalConvertedCourseController extends Controller
         $query = ConvertedLead::with([
             'lead',
             'lead.telecaller',
+            'leadDetail.addonCourse',
             'leadDetail',
             'course',
             'cancelledBy',

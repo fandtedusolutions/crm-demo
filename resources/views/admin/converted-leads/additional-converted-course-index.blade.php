@@ -127,7 +127,10 @@
                                 </td>
                                 <td>{{ $convertedLead->created_at ? $convertedLead->created_at->format('d-m-Y') : '-' }}</td>
                                 <td>{{ $convertedLead->register_number ?: '-' }}</td>
-                                <td>{{ $convertedLead->name }}</td>
+                                <td>
+                                    {{ $convertedLead->name }}
+                                    @include('admin.converted-leads.partials.addon-course-listing-badge', ['convertedLead' => $convertedLead])
+                                </td>
                                 <td>{{ \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone) }}</td>
                                 <td>{{ $convertedLead->batch?->title ?: '-' }}</td>
                                 <td>{{ $convertedLead->admissionBatch?->title ?: '-' }}</td>

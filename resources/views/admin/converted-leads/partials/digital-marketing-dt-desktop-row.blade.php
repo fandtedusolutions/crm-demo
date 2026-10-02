@@ -24,6 +24,7 @@
     @include('admin.converted-leads.partials.inline-course-flag-cell', ['convertedLead' => $convertedLead])
     <td>
         {{ $convertedLead->name }}
+        @include('admin.converted-leads.partials.addon-course-listing-badge', ['convertedLead' => $convertedLead])
         @if($convertedLead->is_cancelled)
             <span class="badge bg-danger ms-2">Cancelled</span>
         @endif
@@ -80,4 +81,5 @@
         </div>
     </td>
 </tr>
+
 

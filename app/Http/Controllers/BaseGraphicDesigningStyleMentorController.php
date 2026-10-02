@@ -40,6 +40,7 @@ abstract class BaseGraphicDesigningStyleMentorController extends Controller
             'mentorDetails',
             'batch',
             'admissionBatch',
+            'leadDetail.addonCourse',
             'leadDetail',
         ])->forCourseListing($courseId)
           ->where('is_support_verified', 1);

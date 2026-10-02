@@ -12,6 +12,32 @@
     $canInlineEditFinance = \App\Helpers\RoleHelper::is_admin_or_super_admin()
         || \App\Helpers\RoleHelper::is_finance();
     $leadDetail = $convertedLead->leadDetail;
+    $registrationDetail = $leadDetail;
+    if ($convertedLead->lead_id && $convertedLead->course_id) {
+        $matchedRegistrationDetail = \App\Models\LeadDetail::with('addonCourse:id,title')
+            ->where('lead_id', $convertedLead->lead_id)
+            ->where('course_id', $convertedLead->course_id)
+            ->first();
+        if ($matchedRegistrationDetail) {
+            $registrationDetail = $matchedRegistrationDetail;
+        }
+    }
+    $addonCourseOptions = \App\Support\AddonCourseSupport::forCourse(
+        $convertedLead->course_id ? (int) $convertedLead->course_id : null
+    );
+    $addonSelectOptions = ['' => 'None'];
+    foreach ($addonCourseOptions as $addonRow) {
+        if ($addonRow->addonCourse) {
+            $addonSelectOptions[(string) $addonRow->addon_course_id] = $addonRow->addonCourse->title;
+        }
+    }
+    $currentAddonId = $registrationDetail?->addon_course_id;
+    if ($currentAddonId && ! isset($addonSelectOptions[(string) $currentAddonId])) {
+        $currentAddonId = '';
+    }
+    $addonDisplay = ($registrationDetail?->addon_course_id && isset($addonSelectOptions[(string) $registrationDetail->addon_course_id]))
+        ? $addonSelectOptions[(string) $registrationDetail->addon_course_id]
+        : 'Not assigned';
     $personalDobRaw = $convertedLead->dob
         ? (strtotime($convertedLead->dob) ? date('Y-m-d', strtotime($convertedLead->dob)) : $convertedLead->dob)
         : '';
@@ -40,7 +66,8 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Converted Lead Details</h5>
+                    <h5 class="m-b-10">{{ $convertedLead->name }}</h5>
+                    <p class="mb-0 text-muted">Converted lead details</p>
                 </div>
             </div>
             <div class="col-md-6">
@@ -64,9 +91,9 @@
 <!-- [ breadcrumb ] end -->
 
 <!-- [ Main Content ] start -->
-<div class="row">
+<div class="row cl-show-page">
     <div class="col-12">
-        <div class="card {{ $convertedLead->is_cancelled ? 'cancelled-card' : '' }}">
+        <div class="card cl-show-card {{ $convertedLead->is_cancelled ? 'cancelled-card' : '' }}">
             <div class="card-header d-flex align-items-center justify-content-between">
                 <h5 class="mb-0 d-flex align-items-center gap-2"><i class="ti ti-user-check text-primary"></i> Converted Lead Information</h5>
                 <div class="d-flex align-items-center gap-2">
@@ -107,7 +134,13 @@
                                         @else
                                             <h4 class="mb-1 js-cl-show-name-heading">{{ $convertedLead->name }}</h4>
                                         @endif
-                                        <p class="text-muted mb-0">Converted Lead</p>
+                                        <p class="text-muted mb-2">Converted Lead</p>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="badge cl-chip">{{ $convertedLead->course ? $convertedLead->course->title : 'No course' }}</span>
+                                            @if($convertedLead->batch)
+                                                <span class="badge cl-chip">{{ $convertedLead->batch->title }}</span>
+                                            @endif
+                                        </div>
                                         @if($convertedLead->is_cancelled)
                                             <div>
                                                 <span class="badge bg-danger mt-1">Cancelled</span>
@@ -194,8 +227,20 @@
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label text-muted">Course</label>
-                                <p class="fw-bold">{{ $convertedLead->course ? $convertedLead->course->title : 'N/A' }}</p>
+                                <p class="fw-bold mb-0">{{ $convertedLead->course ? $convertedLead->course->title : 'N/A' }}</p>
                             </div>
+                            @include('admin.converted-leads.partials.show-inline-field', [
+                                'label' => 'Addon Course',
+                                'field' => 'addon_course_id',
+                                'type' => 'select',
+                                'options' => $addonSelectOptions,
+                                'displayValue' => $addonDisplay,
+                                'rawValue' => $currentAddonId ?? '',
+                                'canEdit' => $canInlineEditPersonal,
+                                'convertedLeadId' => $convertedLead->id,
+                                'col' => 12,
+                                'wrapperClass' => 'cl-addon-panel',
+                            ])
                             <div class="col-12">
                                 <label class="form-label text-muted">Batch</label>
                                 <p class="fw-bold">{{ $convertedLead->batch ? $convertedLead->batch->title : 'N/A' }}</p>
@@ -1174,6 +1219,46 @@
 
 @push('styles')
 <style>
+.cl-show-page .cl-show-card {
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+.cl-show-page .card-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+    border-bottom: 1px solid #e8eefc;
+    padding: 1rem 1.25rem;
+}
+.cl-show-page h6.text-primary {
+    font-size: 0.95rem;
+    padding-bottom: 0.45rem;
+    border-bottom: 1px solid #eef2f7;
+}
+.cl-show-page .form-label.text-muted {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+}
+.cl-chip {
+    background: #eef2ff;
+    color: #3730a3;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.4rem 0.7rem;
+}
+.cl-addon-panel {
+    background: linear-gradient(135deg, #f0fdfa 0%, #f8fafc 100%);
+    border: 1px solid #ccfbf1;
+    border-radius: 14px;
+    padding: 0.85rem 1rem 0.35rem;
+}
+.cl-addon-badge {
+    background: #ecfeff;
+    color: #0f766e;
+    font-weight: 600;
+}
 .cancelled-card {
     border: 1px solid #f5c2c7;
     background-color: #fff5f5;

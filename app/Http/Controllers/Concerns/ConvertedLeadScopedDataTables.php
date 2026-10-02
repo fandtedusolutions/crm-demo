@@ -212,6 +212,8 @@ trait ConvertedLeadScopedDataTables
             'cancelledBy',
             'studentDetails',
             'leadDetail.classTime',
+            'leadDetail.addonCourse',
+            'course',
             'batch',
             'admissionBatch',
             'faculty',
