@@ -157,6 +157,7 @@
                             </select>
                         </div>
                         @include('admin.converted-leads.partials.mentor-flag-filter-field')
+                        @include('admin.converted-leads.partials.mentor-fee-filter-fields')
                         
                         <div class="col-12 col-sm-6 col-md-2">
                             <label for="date_from" class="form-label">Date From</label>
@@ -1303,4 +1304,5 @@
 @include('admin.converted-leads.partials.converted-lead-subject-area-scripts')
 @include('admin.converted-leads.partials.mentor-flag-inline-scripts')
 @endpush
+
 

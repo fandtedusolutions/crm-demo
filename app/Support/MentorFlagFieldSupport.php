@@ -89,10 +89,43 @@ class MentorFlagFieldSupport
         return Flag::orderBy('title')->get(['id', 'title']);
     }
 
+    public static function regFeeFilterOptions(): array
+    {
+        return [
+            'Paid',
+            'Received',
+            'Admission cancel',
+            'Active',
+            'Inactive',
+        ];
+    }
+
+    public static function examFeeFilterOptions(): array
+    {
+        return ['Pending', 'Not Paid', 'Paid'];
+    }
+
     public static function applyListingFilter(Builder $query, Request $request): void
     {
         if ($request->filled('flag_id')) {
             $query->where('flag_id', $request->flag_id);
+        }
+
+        self::applyFeeListingFilter($query, $request);
+    }
+
+    public static function applyFeeListingFilter(Builder $query, Request $request): void
+    {
+        $regFee = $request->input('reg_fee');
+        if (is_string($regFee) && in_array($regFee, self::regFeeFilterOptions(), true)) {
+            $query->where($query->getModel()->getTable() . '.status', $regFee);
+        }
+
+        $examFee = $request->input('exam_fee');
+        if (is_string($examFee) && in_array($examFee, self::examFeeFilterOptions(), true)) {
+            $query->whereHas('studentDetails', function ($studentQuery) use ($examFee) {
+                $studentQuery->where('exam_fee', $examFee);
+            });
         }
     }
 

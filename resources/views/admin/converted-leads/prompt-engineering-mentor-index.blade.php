@@ -115,6 +115,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
                             </select>
                         </div>
                         @include('admin.converted-leads.partials.mentor-flag-filter-field')
+                        @include('admin.converted-leads.partials.mentor-fee-filter-fields')
                         
                         <div class="col-12 col-sm-6 col-md-2">
                             <label for="date_from" class="form-label">From Date</label>
@@ -368,3 +369,4 @@ $(document).ready(function() {
 </script>
 @include('admin.converted-leads.partials.mentor-flag-inline-scripts')
 @endpush
+

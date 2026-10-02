@@ -100,6 +100,7 @@
                             </select>
                         </div>
                         @include('admin.converted-leads.partials.mentor-flag-filter-field')
+                        @include('admin.converted-leads.partials.mentor-fee-filter-fields')
                         
 
                         <div class="col-12 col-sm-6 col-md-2">
@@ -878,5 +879,6 @@
 @include('admin.converted-leads.partials.mentor-flag-inline-scripts')
 @endpush
 @endsection
+
 
 
