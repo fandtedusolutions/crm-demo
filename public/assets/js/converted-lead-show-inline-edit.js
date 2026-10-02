@@ -97,7 +97,12 @@
     try {
       return JSON.parse(raw);
     } catch (e) {
-      return {};
+      var decoded = $("<textarea/>").html(raw).text();
+      try {
+        return JSON.parse(decoded);
+      } catch (e2) {
+        return {};
+      }
     }
   }
 

@@ -10,7 +10,7 @@
     $canEdit = $canEdit ?? false;
     $options = $options ?? [];
     $optionsJson = !empty($options)
-        ? htmlspecialchars(json_encode($options, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8')
+        ? json_encode($options, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)
         : '';
     if ($field === 'second_language' && $rawValue) {
         $rawValue = strtolower((string) $rawValue);
@@ -25,7 +25,7 @@
             data-id="{{ $convertedLeadId }}"
             data-type="{{ $type }}"
             data-current="{{ e($rawValue) }}"
-            @if($optionsJson) data-options-json='{{ $optionsJson }}' @endif
+            @if($optionsJson) data-options-json="{{ $optionsJson }}" @endif
             @if($codeField) data-code-field="{{ $codeField }}" data-current-code="{{ e($code) }}" @endif
             @if($courseId) data-course-id="{{ $courseId }}" @endif
             @if($currentId !== '' && $currentId !== null) data-current-id="{{ $currentId }}" @endif
