@@ -61,29 +61,21 @@
     };
 @endphp
 <!-- [ breadcrumb ] start -->
-<div class="page-header">
+<div class="page-header cl-page-header">
     <div class="page-block">
-        <div class="row align-items-center">
-            <div class="col-md-6">
-                <div class="page-header-title">
-                    <h5 class="m-b-10">{{ $convertedLead->name }}</h5>
-                    <p class="mb-0 text-muted">Converted lead details</p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="d-flex justify-content-end align-items-center gap-3">
-                    <ul class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ $listRoute }}">Converted Leads</a></li>
-                        <li class="breadcrumb-item">View</li>
-                    </ul>
-                    <a href="{{ $pdfRoute }}" target="_blank" class="btn btn-outline-primary">
-                        <i class="ti ti-file-type-pdf"></i> Download PDF
-                    </a>
-                    <a href="{{ $listRoute }}" class="btn btn-secondary">
-                        <i class="ti ti-arrow-left"></i> Back to List
-                    </a>
-                </div>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <ul class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ $listRoute }}">Converted Leads</a></li>
+                <li class="breadcrumb-item">{{ $convertedLead->name }}</li>
+            </ul>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ $pdfRoute }}" target="_blank" class="btn btn-outline-primary">
+                    <i class="ti ti-file-type-pdf"></i> Download PDF
+                </a>
+                <a href="{{ $listRoute }}" class="btn btn-light border">
+                    <i class="ti ti-arrow-left"></i> Back to List
+                </a>
             </div>
         </div>
     </div>
@@ -94,68 +86,83 @@
 <div class="row cl-show-page">
     <div class="col-12">
         <div class="card cl-show-card {{ $convertedLead->is_cancelled ? 'cancelled-card' : '' }}">
-            <div class="card-header d-flex align-items-center justify-content-between">
-                <h5 class="mb-0 d-flex align-items-center gap-2"><i class="ti ti-user-check text-primary"></i> Converted Lead Information</h5>
-                <div class="d-flex align-items-center gap-2">
-                    @if($convertedLead->is_cancelled)
-                        <div>
-                            <span class="badge bg-danger">Cancelled</span>
-                            @if($convertedLead->cancelledBy)
-                                <br><small class="text-muted">By: {{ $convertedLead->cancelledBy->name }}
-                                @if($convertedLead->cancelled_at)
-                                    ({{ $convertedLead->cancelled_at->format('d-m-Y h:i A') }})
-                                @endif
-                                </small>
+            <div class="cl-hero">
+                <div class="d-flex flex-wrap align-items-start gap-3">
+                    <div class="cl-avatar js-cl-show-name-initial" aria-hidden="true">{{ strtoupper(substr($convertedLead->name, 0, 1)) }}</div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                            @if($canInlineEditPersonal)
+                                <div class="inline-edit-show-cl d-inline-flex align-items-center gap-1" data-field="name" data-id="{{ $convertedLead->id }}" data-type="text" data-current="{{ e($convertedLead->name) }}">
+                                    <h2 class="cl-hero-name mb-0 js-cl-show-name-heading"><span class="display-value">{{ $convertedLead->name }}</span></h2>
+                                    <button type="button" class="btn btn-sm btn-link p-0 edit-btn-show-cl" title="Edit Name">
+                                        <i class="ti ti-pencil"></i>
+                                    </button>
+                                </div>
+                            @else
+                                <h2 class="cl-hero-name mb-0 js-cl-show-name-heading">{{ $convertedLead->name }}</h2>
+                            @endif
+                            <span class="badge bg-light-primary text-primary">ID #{{ $convertedLead->id }}</span>
+                            @if($convertedLead->is_cancelled)
+                                <span class="badge bg-danger">Cancelled</span>
                             @endif
                         </div>
-                    @endif
-                    <span class="badge bg-light-primary text-primary">ID #{{ $convertedLead->id }}</span>
+                        <p class="text-muted mb-2">
+                            {{ $convertedLead->course ? $convertedLead->course->title : 'No course' }}
+                            @if($convertedLead->batch)
+                                <span class="mx-1">·</span> {{ $convertedLead->batch->title }}
+                            @endif
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge cl-chip">{{ $convertedLead->is_b2b == 1 ? ('B2B' . ($convertedLead->lead?->team?->name ? ' · ' . $convertedLead->lead->team->name : '')) : 'In House' }}</span>
+                            <span class="badge cl-chip">{{ $convertedLead->status ?: 'No status' }}</span>
+                            @if($convertedLead->admissionBatch)
+                                <span class="badge cl-chip">{{ $convertedLead->admissionBatch->title }}</span>
+                            @endif
+                        </div>
+                        @if($convertedLead->is_cancelled && $convertedLead->cancelledBy)
+                            <small class="text-muted d-block mt-2">Cancelled by {{ $convertedLead->cancelledBy->name }}@if($convertedLead->cancelled_at) on {{ $convertedLead->cancelled_at->format('d M Y, h:i A') }}@endif</small>
+                        @endif
+                    </div>
                 </div>
+                <div class="cl-facts">
+                    <div class="cl-fact">
+                        <span>Phone</span>
+                        <strong>{{ \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone) }}</strong>
+                    </div>
+                    <div class="cl-fact">
+                        <span>Email</span>
+                        <strong>{{ $convertedLead->email ?: 'N/A' }}</strong>
+                    </div>
+                    <div class="cl-fact">
+                        <span>Register No.</span>
+                        <strong>{{ $convertedLead->register_number ?: 'N/A' }}</strong>
+                    </div>
+                    <div class="cl-fact">
+                        <span>Finance</span>
+                        <strong>{{ $convertedLead->finance_approval ?: 'Pending' }}</strong>
+                    </div>
+                    <div class="cl-fact">
+                        <span>Converted</span>
+                        <strong>{{ $convertedLead->created_at->format('d M Y') }}</strong>
+                    </div>
+                </div>
+                <nav class="cl-jump" aria-label="Page sections">
+                    <a href="#cl-personal">Personal</a>
+                    <a href="#cl-academic">Academic</a>
+                    <a href="#cl-account">Account</a>
+                    <a href="#cl-details">Details</a>
+                    <a href="#cl-documents">Documents</a>
+                    <a href="#cl-calls">Calls</a>
+                    <a href="#cl-activities">Activity</a>
+                    <a href="#cl-lead-activity">Lead history</a>
+                </nav>
             </div>
             <div class="card-body">
                 <div class="row">
                     <!-- Personal Information -->
                     <div class="col-md-6">
-                        <h6 class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-address-book"></i> Personal Information</h6>
+                        <h6 id="cl-personal" class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-address-book"></i> Personal Information</h6>
                         <div class="row g-3">
-                            <div class="col-12">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="avtar avtar-s rounded-circle bg-light-success me-2" style="width: 60px; height: 60px;">
-                                        <span class="text-info fw-bold js-cl-show-name-initial" style="font-size: 1.5rem;">{{ strtoupper(substr($convertedLead->name, 0, 1)) }}</span>
-                                    </div>
-                                    <div>
-                                        @if($canInlineEditPersonal)
-                                            <div class="inline-edit-show-cl d-inline-block" data-field="name" data-id="{{ $convertedLead->id }}" data-type="text" data-current="{{ e($convertedLead->name) }}">
-                                                <h4 class="mb-1 d-inline js-cl-show-name-heading"><span class="display-value">{{ $convertedLead->name }}</span></h4>
-                                                <button type="button" class="btn btn-sm btn-link p-0 ms-1 edit-btn-show-cl" title="Edit Name">
-                                                    <i class="ti ti-pencil"></i>
-                                                </button>
-                                            </div>
-                                        @else
-                                            <h4 class="mb-1 js-cl-show-name-heading">{{ $convertedLead->name }}</h4>
-                                        @endif
-                                        <p class="text-muted mb-2">Converted Lead</p>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            <span class="badge cl-chip">{{ $convertedLead->course ? $convertedLead->course->title : 'No course' }}</span>
-                                            @if($convertedLead->batch)
-                                                <span class="badge cl-chip">{{ $convertedLead->batch->title }}</span>
-                                            @endif
-                                        </div>
-                                        @if($convertedLead->is_cancelled)
-                                            <div>
-                                                <span class="badge bg-danger mt-1">Cancelled</span>
-                                                @if($convertedLead->cancelledBy)
-                                                    <br><small class="text-muted mt-1 d-block">By: {{ $convertedLead->cancelledBy->name }}
-                                                    @if($convertedLead->cancelled_at)
-                                                        <br>{{ $convertedLead->cancelled_at->format('d-m-Y h:i A') }}
-                                                    @endif
-                                                    </small>
-                                                @endif
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
                             @include('admin.converted-leads.partials.show-inline-field', [
                                 'label' => 'Phone',
                                 'field' => 'phone',
@@ -223,7 +230,7 @@
 
                     <!-- Academic Information -->
                     <div class="col-md-6">
-                        <h6 class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-school"></i> Academic Information</h6>
+                        <h6 id="cl-academic" class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-school"></i> Academic Information</h6>
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label text-muted">Course</label>
@@ -279,7 +286,7 @@
                     @if($convertedLead->mentorDetails && ($convertedLead->mentorDetails->is_placement_passed || $convertedLead->mentorDetails->placement_resume))
                     <div class="col-12">
                         <hr>
-                        <h6 class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-briefcase"></i> Placement</h6>
+                        <h6 id="cl-placement" class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-briefcase"></i> Placement</h6>
                         <div class="row g-3">
                             @if($convertedLead->mentorDetails->is_placement_passed)
                             <div class="col-md-4">
@@ -344,7 +351,7 @@
                     @if($convertedLead->lead)
                     <div class="col-12">
                         <hr>
-                        <h6 class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-user"></i> Original Lead Information</h6>
+                        <h6 id="cl-lead" class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-user"></i> Original Lead Information</h6>
                         <div class="row g-3">
                             <div class="col-md-3">
                                 <label class="form-label text-muted">Lead ID</label>
@@ -383,7 +390,7 @@
                     <!-- Conversion Information -->
                     <div class="col-12">
                         <hr>
-                        <h6 class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-clipboard-check"></i> Conversion & Account Information</h6>
+                        <h6 id="cl-account" class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-clipboard-check"></i> Conversion & Account Information</h6>
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label text-muted">Converted By</label>
@@ -459,7 +466,7 @@
                     @if($convertedLead->studentDetails)
                     <div class="col-12">
                         <hr>
-                        <h6 class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-school"></i> Course-Specific Information</h6>
+                        <h6 id="cl-course" class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-books"></i> Course-Specific Information</h6>
                         <div class="row g-3">
                             @if($convertedLead->course_id == 16) {{-- Grameen Mukt Vidhyalayi Shiksha Sansthan --}}
                                 <div class="col-md-3">
@@ -514,7 +521,7 @@
                     @if($leadDetail || $canInlineEditPersonal)
                     <div class="col-12 mt-4">
                         <hr>
-                        <h6 class="text-primary mb-3">Lead Details</h6>
+                        <h6 id="cl-details" class="text-primary mb-3 d-flex align-items-center gap-2"><i class="ti ti-id"></i> Lead Details</h6>
                         <div class="row g-3">
                             @include('admin.converted-leads.partials.show-inline-field', [
                                 'label' => "Father's Name",
@@ -633,7 +640,7 @@
 
                             @if($leadDetail)
                             <div class="col-12 d-flex justify-content-between align-items-center">
-                                <h6 class="text-primary mt-2 mb-0">Uploaded Documents</h6>
+                                <h6 id="cl-documents" class="text-primary mt-2 mb-0 d-flex align-items-center gap-2"><i class="ti ti-files"></i> Uploaded Documents</h6>
                                 @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor())
                                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editDocumentsModal">
                                         <i class="ti ti-edit me-1"></i> Edit Documents
@@ -900,10 +907,10 @@
 
     <!-- Call History -->
     @if(isset($callLogs))
-    <div class="col-12 mt-4">
-        <div class="card">
+    <div class="col-12 mt-4" id="cl-calls">
+        <div class="card cl-show-card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Call History</h5>
+                <h5 class="mb-0 d-flex align-items-center gap-2"><i class="ti ti-phone"></i> Call History</h5>
                 <span class="badge bg-light-primary text-primary">{{ $callLogs->count() }} record(s)</span>
             </div>
             <div class="card-body">
@@ -976,10 +983,10 @@
 
     <!-- Converted Student Activities History -->
     @if(isset($convertedStudentActivities) && $convertedStudentActivities->count() > 0)
-    <div class="col-12 mt-4">
-        <div class="card">
+    <div class="col-12 mt-4" id="cl-activities">
+        <div class="card cl-show-card">
             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h5 class="mb-0">Student Activities History
+                <h5 class="mb-0 d-flex align-items-center gap-2"><i class="ti ti-activity"></i> Student Activities History
                     @if(!empty($convertedStudentActivitiesTruncated))
                         <small class="text-muted fw-normal">(showing the {{ (int) ($convertedStudentActivitiesLimit ?? 150) }} most recent)</small>
                     @endif
@@ -1074,10 +1081,10 @@
     @endif
 
     <!-- Lead Activities History -->
-    <div class="col-12 mt-4">
-        <div class="card">
+    <div class="col-12 mt-4" id="cl-lead-activity">
+        <div class="card cl-show-card">
             <div class="card-header">
-                <h5 class="mb-0">Lead Activities History
+                <h5 class="mb-0 d-flex align-items-center gap-2"><i class="ti ti-history"></i> Lead Activities History
                     @if(!empty($leadActivitiesTruncated))
                         <small class="text-muted fw-normal">(showing the {{ (int) ($leadActivitiesLimit ?? 200) }} most recent)</small>
                     @endif
@@ -1219,21 +1226,125 @@
 
 @push('styles')
 <style>
+.cl-page-header {
+    margin-bottom: 0.75rem;
+}
 .cl-show-page .cl-show-card {
     border: 0;
     border-radius: 18px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
 }
 .cl-show-page .card-header {
-    background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
-    border-bottom: 1px solid #e8eefc;
+    background: #fff;
+    border-bottom: 1px solid #eef2f7;
     padding: 1rem 1.25rem;
+}
+.cl-hero {
+    padding: 1.35rem 1.4rem 0.85rem;
+    background:
+        radial-gradient(circle at top right, rgba(115, 102, 255, 0.16), transparent 28%),
+        linear-gradient(135deg, #f8fafc 0%, #eef2ff 55%, #f8fafc 100%);
+    border-bottom: 1px solid #e8eefc;
+}
+.cl-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(145deg, #7366ff, #4f46e5);
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+    flex-shrink: 0;
+}
+.cl-hero-name {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+.cl-facts {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1.1rem;
+}
+.cl-fact {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid #e8eefc;
+    border-radius: 14px;
+    padding: 0.7rem 0.85rem;
+    min-width: 0;
+}
+.cl-fact span {
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 0.15rem;
+}
+.cl-fact strong {
+    display: block;
+    color: #0f172a;
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+}
+.cl-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.95rem;
+}
+.cl-jump a {
+    text-decoration: none;
+    color: #4338ca;
+    background: #fff;
+    border: 1px solid #e0e7ff;
+    border-radius: 999px;
+    padding: 0.32rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.cl-jump a:hover {
+    background: #4338ca;
+    color: #fff;
 }
 .cl-show-page h6.text-primary {
     font-size: 0.95rem;
-    padding-bottom: 0.45rem;
-    border-bottom: 1px solid #eef2f7;
+    background: #fff;
+    border: 1px solid #e8eefc;
+    border-radius: 12px;
+    padding: 0.65rem 0.85rem;
+    margin-top: 0.35rem;
+    scroll-margin-top: 5.5rem;
+}
+.cl-show-page .card-body > .row > .col-md-6,
+.cl-show-page .card-body > .row > .col-12 {
+    margin-top: 0.4rem;
+}
+.cl-show-page hr {
+    border: 0;
+    border-top: 0;
+    margin: 1.25rem 0 0.8rem;
+    opacity: 1;
+    height: 0;
+}
+.cl-show-page .card-body .row.g-3 {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
+}
+.cl-show-page .card-body .row.g-3 > [class*="col-"] {
+    background: #f8fafc;
+    background-clip: content-box;
+    border-radius: 16px;
+}
+.cl-show-page .card-body .row.g-3 > [class*="col-"]:has(.card),
+.cl-show-page .card-body .row.g-3 > [class*="col-"]:has(h6) {
+    background: transparent;
 }
 .cl-show-page .form-label.text-muted {
     font-size: 0.72rem;
@@ -1241,16 +1352,21 @@
     text-transform: uppercase;
     margin-bottom: 0.2rem;
 }
+.cl-show-page .fw-bold,
+.cl-show-page p.fw-bold {
+    color: #0f172a;
+}
 .cl-chip {
-    background: #eef2ff;
+    background: #fff;
     color: #3730a3;
     font-weight: 600;
     border-radius: 999px;
     padding: 0.4rem 0.7rem;
+    border: 1px solid #e0e7ff;
 }
 .cl-addon-panel {
-    background: linear-gradient(135deg, #f0fdfa 0%, #f8fafc 100%);
-    border: 1px solid #ccfbf1;
+    background: linear-gradient(135deg, #f0fdfa 0%, #f8fafc 100%) !important;
+    border: 1px solid #ccfbf1 !important;
     border-radius: 14px;
     padding: 0.85rem 1rem 0.35rem;
 }
@@ -1258,6 +1374,36 @@
     background: #ecfeff;
     color: #0f766e;
     font-weight: 600;
+}
+.cl-show-page .card.p-2 {
+    border: 1px solid #e8eefc;
+    border-radius: 14px;
+    box-shadow: none;
+    height: 100%;
+}
+.cl-show-page .table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+.cl-show-page .table thead th {
+    background: #f8fafc;
+    font-size: 0.75rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #475569;
+}
+@media (max-width: 991.98px) {
+    .cl-facts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 575.98px) {
+    .cl-facts {
+        grid-template-columns: 1fr;
+    }
+    .cl-hero-name {
+        font-size: 1.3rem;
+    }
 }
 .cancelled-card {
     border: 1px solid #f5c2c7;
@@ -1306,6 +1452,10 @@
     display: none;
 }
 
+.inline-edit-show-cl.editing {
+    position: relative;
+    z-index: 6;
+}
 .inline-edit-show-cl.editing .display-value,
 .inline-edit-show-cl.editing .edit-btn-show-cl {
     display: none !important;
