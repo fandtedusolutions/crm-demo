@@ -3121,8 +3121,8 @@ class ConvertedLeadController extends Controller
     public function updateDocuments(Request $request, $id)
     {
         // Check permissions
-        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor()) {
-            return redirect()->back()->with('message_danger', 'Access denied. Only admins and admission counsellors can update documents.');
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor() && !RoleHelper::is_academic_assistant()) {
+            return redirect()->back()->with('message_danger', 'Access denied. Only admins, admission counsellors, and academic assistants can update documents.');
         }
 
         $convertedLead = ConvertedLead::with('leadDetail')->findOrFail($id);

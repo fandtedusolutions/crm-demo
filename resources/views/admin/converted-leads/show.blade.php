@@ -11,6 +11,9 @@
         || \App\Helpers\RoleHelper::is_academic_assistant();
     $canInlineEditFinance = \App\Helpers\RoleHelper::is_admin_or_super_admin()
         || \App\Helpers\RoleHelper::is_finance();
+    $canEditDocuments = \App\Helpers\RoleHelper::is_admin_or_super_admin()
+        || \App\Helpers\RoleHelper::is_admission_counsellor()
+        || \App\Helpers\RoleHelper::is_academic_assistant();
     $leadDetail = $convertedLead->leadDetail;
     $registrationDetail = $leadDetail;
     if ($convertedLead->lead_id && $convertedLead->course_id) {
@@ -641,7 +644,7 @@
                             @if($leadDetail)
                             <div class="col-12 d-flex justify-content-between align-items-center">
                                 <h6 id="cl-documents" class="text-primary mt-2 mb-0 d-flex align-items-center gap-2"><i class="ti ti-files"></i> Uploaded Documents</h6>
-                                @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor())
+                                @if($canEditDocuments)
                                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editDocumentsModal">
                                         <i class="ti ti-edit me-1"></i> Edit Documents
                                     </button>
@@ -1148,7 +1151,7 @@
 <!-- [ Main Content ] end -->
 
 <!-- Edit Documents Modal -->
-@if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor())
+@if($canEditDocuments)
 <div class="modal fade" id="editDocumentsModal" tabindex="-1" aria-labelledby="editDocumentsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
