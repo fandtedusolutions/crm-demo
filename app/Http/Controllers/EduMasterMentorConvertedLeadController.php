@@ -40,6 +40,8 @@ class EduMasterMentorConvertedLeadController extends Controller
           ->where('is_support_verified', 1);
 
         // Apply role-based filtering
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
             if (RoleHelper::is_admin_or_super_admin()) {

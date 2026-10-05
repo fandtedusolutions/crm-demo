@@ -1008,6 +1008,26 @@ class LeadReportController extends Controller
             return $query;
         }
 
+        // Logged-in post-sale telecaller: own leads, or the team when they are the team lead.
+        if (\App\Helpers\RoleHelper::is_postsale_telecaller() && ! \App\Helpers\RoleHelper::is_senior_manager()) {
+            if ($currentUser->is_team_lead == 1) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+                    $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                    $query->whereIn('leads.telecaller_id', $teamMemberIds);
+                } else {
+                    $query->where('leads.telecaller_id', AuthHelper::getCurrentUserId());
+                }
+            } else {
+                $query->where('leads.telecaller_id', AuthHelper::getCurrentUserId());
+            }
+
+            $query->where('leads.is_postsale', 1);
+
+            return $query;
+        }
+
         // Check team lead first (higher priority)
         if ($currentUser->is_team_lead == 1) {
             // Team Lead: Can see their own leads + their team members' leads
@@ -1026,6 +1046,8 @@ class LeadReportController extends Controller
             // Telecaller: Can only see their own leads
             $query->where('telecaller_id', AuthHelper::getCurrentUserId());
         }
+
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'leads.is_postsale');
 
         return $query;
     }

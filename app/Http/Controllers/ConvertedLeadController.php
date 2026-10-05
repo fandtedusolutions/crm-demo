@@ -200,9 +200,35 @@ class ConvertedLeadController extends Controller
 
     protected function applyConvertedLeadsRoleScope(Builder $query): void
     {
+        $currentUser = AuthHelper::getCurrentUser();
+
+        if ($currentUser && RoleHelper::is_postsale_telecaller() && ! RoleHelper::is_senior_manager()) {
+            if (RoleHelper::is_team_lead()) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = \App\Models\User::where('team_id', $teamId)->pluck('id')->toArray();
+                    $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                    $query->whereHas('lead', function ($q) use ($teamMemberIds) {
+                        $q->whereIn('telecaller_id', $teamMemberIds);
+                    });
+                } else {
+                    $query->whereHas('lead', function ($q) {
+                        $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                    });
+                }
+            } else {
+                $query->whereHas('lead', function ($q) {
+                    $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                });
+            }
+
+            $query->where('converted_leads.is_postsale', 1);
+
+            return;
+        }
+
         \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
 
-        $currentUser = AuthHelper::getCurrentUser();
         if (! $currentUser) {
             return;
         }
@@ -757,6 +783,8 @@ class ConvertedLeadController extends Controller
 
     protected function applyNiosConvertedLeadsRoleScope(Builder $query): void
     {
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if (! $currentUser) {
             return;
@@ -969,6 +997,8 @@ class ConvertedLeadController extends Controller
 
     protected function applyBosseConvertedLeadsRoleScope(Builder $query): void
     {
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if (! $currentUser) {
             return;
@@ -1126,6 +1156,8 @@ class ConvertedLeadController extends Controller
 
     protected function applyUgpgConvertedLeadsRoleScope(Builder $query): void
     {
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if (! $currentUser) {
             return;
@@ -1286,6 +1318,8 @@ class ConvertedLeadController extends Controller
 
     protected function applyEdumasterConvertedLeadsRoleScope(Builder $query): void
     {
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if (! $currentUser) {
             return;
@@ -1439,6 +1473,8 @@ class ConvertedLeadController extends Controller
 
     protected function applyHotelManagementConvertedLeadsRoleScope(Builder $query): void
     {
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if (! $currentUser) {
             return;
@@ -1606,6 +1642,8 @@ class ConvertedLeadController extends Controller
 
     protected function applyGmvssConvertedLeadsRoleScope(Builder $query): void
     {
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if (! $currentUser) {
             return;
@@ -1846,6 +1884,8 @@ class ConvertedLeadController extends Controller
     public function gmvssFacultyIndex(Request $request)
     {
         $query = ConvertedLead::with(['lead.studentDetails', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'batch', 'admissionBatch', 'subject', 'flag', 'courseFlag', 'studentDetails.registrationLink', 'mentorDetails'])->forCourseListing(16);
+
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
 
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {

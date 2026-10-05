@@ -47,6 +47,8 @@ class MedicalCodingMentorController extends Controller
         ])->forCourseListing(self::COURSE_ID)
             ->where('is_support_verified', 1);
 
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
             if (RoleHelper::is_hod()) {

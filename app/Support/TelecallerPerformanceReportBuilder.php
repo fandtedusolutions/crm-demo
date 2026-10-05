@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Helpers\AuthHelper;
+use App\Helpers\PostSaleLeadHelper;
 use App\Helpers\RoleHelper;
 use App\Models\CallAppLog;
 use App\Models\Lead;
@@ -75,6 +76,9 @@ class TelecallerPerformanceReportBuilder
         if ($telecallerId) {
             $telecaller = User::where('id', $telecallerId)
                 ->where('role_id', 3)
+                ->when(PostSaleLeadHelper::seesOnlyPostSaleRecords(), function ($query) {
+                    $query->where('is_postsale', 1);
+                })
                 ->select('id', 'name', 'phone', 'team_id')
                 ->first();
 
@@ -96,6 +100,9 @@ class TelecallerPerformanceReportBuilder
             if ($userTeamId) {
                 $telecallers = User::where('role_id', 3)
                     ->where('team_id', $userTeamId)
+                    ->when(PostSaleLeadHelper::seesOnlyPostSaleRecords(), function ($query) {
+                        $query->where('is_postsale', 1);
+                    })
                     ->select('id', 'name', 'phone', 'team_id')
                     ->get();
             } else {
@@ -105,6 +112,9 @@ class TelecallerPerformanceReportBuilder
             $telecallers = collect([$currentUser]);
         } else {
             $query = User::where('role_id', 3)->select('id', 'name', 'phone', 'team_id');
+            if (PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
+                $query->where('is_postsale', 1);
+            }
             if ($teamId) {
                 $query->where('team_id', $teamId);
             }
@@ -145,6 +155,9 @@ class TelecallerPerformanceReportBuilder
         }
 
         $extraQuery = User::whereIn('id', $missingIds)->select('id', 'name', 'phone', 'team_id');
+        if (PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
+            $extraQuery->where('is_postsale', 1);
+        }
         if ($teamId) {
             $extraQuery->where('team_id', $teamId);
         }
@@ -374,6 +387,25 @@ class TelecallerPerformanceReportBuilder
             return;
         }
 
+        if (RoleHelper::is_postsale_telecaller() && ! RoleHelper::is_senior_manager()) {
+            if ($currentUser->is_team_lead == 1) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+                    $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                    $query->whereIn('telecaller_id', $teamMemberIds);
+                } else {
+                    $query->where('telecaller_id', AuthHelper::getCurrentUserId());
+                }
+            } else {
+                $query->where('telecaller_id', AuthHelper::getCurrentUserId());
+            }
+
+            $query->where('leads.is_postsale', 1);
+
+            return;
+        }
+
         if ($currentUser->is_team_lead == 1) {
             $teamId = $currentUser->team_id;
             if ($teamId) {
@@ -383,13 +415,11 @@ class TelecallerPerformanceReportBuilder
             } else {
                 $query->where('telecaller_id', AuthHelper::getCurrentUserId());
             }
-
-            return;
-        }
-
-        if (AuthHelper::isTelecaller()) {
+        } elseif (AuthHelper::isTelecaller()) {
             $query->where('telecaller_id', AuthHelper::getCurrentUserId());
         }
+
+        PostSaleLeadHelper::apply($query, 'leads.is_postsale');
     }
 
     private static function applyRoleBasedCallFilter($query): void

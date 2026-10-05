@@ -43,6 +43,8 @@ class JuniorVloggerMentorController extends Controller
             'admissionBatch',
         ])->forCourseListing(self::COURSE_ID);
 
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
             if (RoleHelper::is_admin_or_super_admin() || RoleHelper::is_admission_counsellor() || RoleHelper::is_academic_assistant()) {
