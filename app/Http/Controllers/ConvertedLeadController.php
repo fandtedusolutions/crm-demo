@@ -200,6 +200,8 @@ class ConvertedLeadController extends Controller
 
     protected function applyConvertedLeadsRoleScope(Builder $query): void
     {
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         $currentUser = AuthHelper::getCurrentUser();
         if (! $currentUser) {
             return;
@@ -328,6 +330,8 @@ class ConvertedLeadController extends Controller
                 });
             }
         }
+
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale', $request);
 
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -538,6 +542,7 @@ class ConvertedLeadController extends Controller
         ]);
 
         // Apply role-based filtering (same as index method)
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
             if (RoleHelper::is_general_manager()) {
@@ -638,6 +643,8 @@ class ConvertedLeadController extends Controller
                 });
             }
         }
+
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale', $request);
 
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -853,6 +860,8 @@ class ConvertedLeadController extends Controller
                 });
             }
         }
+
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale', $request);
 
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
@@ -1721,6 +1730,7 @@ class ConvertedLeadController extends Controller
         $query = ConvertedLead::with(['lead.studentDetails', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'batch', 'admissionBatch', 'subject', 'flag', 'courseFlag', 'studentDetails.registrationLink', 'mentorDetails'])->forCourseListing(16);
 
         // Apply role-based filtering
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
             if (RoleHelper::is_team_lead()) {
@@ -1946,6 +1956,7 @@ class ConvertedLeadController extends Controller
         $query = ConvertedLead::with(['lead', 'lead.team', 'leadDetail', 'course', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject', 'studentDetails', 'courseFlag'])->forCourseListing(10);
 
         // Apply role-based filtering
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
             if (RoleHelper::is_senior_manager()) {
@@ -2299,6 +2310,7 @@ class ConvertedLeadController extends Controller
         ])->forCourseListing($courseId);
 
         // Apply role-based filtering
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
             if (RoleHelper::is_general_manager() || RoleHelper::is_senior_manager()) {
@@ -2489,6 +2501,7 @@ class ConvertedLeadController extends Controller
         $query = ConvertedLead::with(['lead', 'lead.team', 'leadDetail', 'course', 'subCourse', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject', 'studentDetails', 'teacher', 'courseFlag'])->forCourseListing(6);
 
         // Apply role-based filtering
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
             if (RoleHelper::is_senior_manager()) {
@@ -2575,6 +2588,7 @@ class ConvertedLeadController extends Controller
         $query = ConvertedLead::with(['lead', 'lead.team', 'leadDetail', 'course', 'subCourse', 'academicAssistant', 'createdBy', 'cancelledBy', 'subject', 'studentDetails', 'teacher', 'courseFlag'])->forCourseListing(5);
 
         // Apply role-based filtering
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
         $currentUser = AuthHelper::getCurrentUser();
         if ($currentUser) {
             if (RoleHelper::is_senior_manager()) {

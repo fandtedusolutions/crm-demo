@@ -180,6 +180,17 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-12">
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_postsale" id="is_postsale_edit_modal" value="1" {{ old('is_postsale', $lead->is_postsale) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="is_postsale_edit_modal">
+                            <i class="ti ti-headset me-1"></i>Post-sale Lead
+                        </label>
+                        <small class="form-text text-muted d-block">Only post-sale telecallers, post-sale team leads, and post-sale GMs can see this lead.</small>
+                    </div>
+                </div>
+            </div>
             @endif
 
             <div class="col-md-6">

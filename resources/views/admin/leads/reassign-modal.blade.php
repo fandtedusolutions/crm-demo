@@ -110,7 +110,7 @@
             $.ajax({
                 url: '{{ route("leads.telecallers-by-team") }}',
                 type: 'GET',
-                data: { team_id: teamId },
+                data: { team_id: teamId, is_postsale: {{ !empty($lockPostSale) ? 1 : 0 }} },
                 success: function(response) {
                     $telecallerSelect.html('<option value="">Select Telecaller</option>');
                     if (response.telecallers && response.telecallers.length > 0) {

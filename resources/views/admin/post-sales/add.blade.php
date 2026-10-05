@@ -58,6 +58,18 @@
             <div class="col-md-12">
                 <div class="mb-3">
                     <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_postsale_gm" id="is_postsale_gm" value="1" {{ old('is_postsale_gm') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="is_postsale_gm">
+                            <i class="ti ti-headset me-1"></i>Post-sale GM
+                        </label>
+                        <small class="form-text text-muted d-block">Can view, add, upload, and reassign only post-sale leads.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <div class="mb-3">
+                    <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}>
                         <label class="form-check-label" for="is_active">
                             <i class="ti ti-check me-1"></i>Is Active

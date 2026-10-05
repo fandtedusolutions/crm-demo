@@ -232,7 +232,7 @@ class LeadController extends Controller
             'course_id', 'telecaller_id', 'team_id', 'place', 'rating', 'interest_status', 
             'followup_date', 'remarks', 'is_converted', 'created_at', 'updated_at',
             'gender', 'age', 'whatsapp', 'whatsapp_code', 'qualification', 'country_id', 
-            'address', 'first_created_at', 'is_b2b' // is_b2b required for Type column (B2B / In House)
+            'address', 'first_created_at', 'is_b2b', 'is_postsale'
         ])
         ->where('is_converted', 0) // Direct condition instead of scope for better performance
         ->with([
@@ -356,6 +356,8 @@ class LeadController extends Controller
             }
         }
 
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'is_postsale', $request);
+
         return $query;
     }
 
@@ -368,6 +370,8 @@ class LeadController extends Controller
         if (!$currentUser) {
             return;
         }
+
+        \App\Helpers\PostSaleLeadHelper::apply($query);
 
         if (RoleHelper::is_senior_manager() || RoleHelper::is_general_manager() || RoleHelper::is_admin_or_super_admin()) {
             return;
@@ -683,6 +687,8 @@ class LeadController extends Controller
                 $query->where($column('telecaller_id'), AuthHelper::getCurrentUserId());
             }
         }
+
+        \App\Helpers\PostSaleLeadHelper::apply($query, $column('is_postsale'), $request);
     }
 
     /**
@@ -1881,10 +1887,10 @@ class LeadController extends Controller
                 'registration_link' => $this->getRegistrationLinkRoute($lead)
             ],
             'permissions' => [
-                'can_edit' => $isAdminOrSuperAdmin || RoleHelper::is_team_lead() || RoleHelper::is_general_manager(),
-                'can_delete' => $isAdminOrSuperAdmin || RoleHelper::is_general_manager(),
+                'can_edit' => $isAdminOrSuperAdmin || RoleHelper::is_team_lead() || RoleHelper::is_general_manager() || RoleHelper::is_postsale_gm(),
+                'can_delete' => $isAdminOrSuperAdmin || RoleHelper::is_general_manager() || RoleHelper::is_postsale_gm(),
                 'can_reassign' => !$lead->is_converted && (
-                    $isAdminOrSuperAdmin || RoleHelper::is_general_manager()
+                    $isAdminOrSuperAdmin || RoleHelper::is_general_manager() || RoleHelper::is_postsale_gm()
                 ),
                 'can_update_status' => $hasLeadActionPermission,
                 'can_convert' => !$lead->is_converted && $lead->studentDetails && (strtolower($lead->studentDetails->status ?? '') === 'approved'),
@@ -2085,7 +2091,8 @@ class LeadController extends Controller
         $canEditLead = RoleHelper::is_admin_or_super_admin() || 
                        RoleHelper::is_general_manager() || 
                        RoleHelper::is_team_lead() || 
-                       RoleHelper::is_senior_manager();
+                       RoleHelper::is_senior_manager() ||
+                       RoleHelper::is_postsale_gm();
         $hasLeadActionPermission = \App\Helpers\PermissionHelper::has_lead_action_permission();
         
         // Role-based lead filtering
@@ -2110,6 +2117,8 @@ class LeadController extends Controller
                 $query->where('telecaller_id', $request->telecaller_id);
             }
         }
+
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'is_postsale', $request);
 
         // Get all leads without pagination
         $leads = $query->orderBy('id', 'desc')->get();
@@ -2355,6 +2364,9 @@ class LeadController extends Controller
             } else {
                 $teams = collect(); // No teams if not assigned to any team
             }
+        } elseif (RoleHelper::is_postsale_gm()) {
+            $teams = Team::where('is_active', true)->nonMarketing()->where('is_postsale', 1)->get();
+            $telecallers = User::nonMarketingTelecallers()->where('is_active', true)->where('is_postsale', 1)->get();
         } elseif ($isSeniorManager || RoleHelper::is_admin_or_super_admin() || $isGeneralManager) {
             // Senior Manager/General Manager/Admin/Super Admin: Show all teams (excluding marketing teams)
             $teams = Team::where('is_active', true)->nonMarketing()->get();
@@ -2372,6 +2384,15 @@ class LeadController extends Controller
         }
         
         $country_codes = get_country_code();
+
+        if (\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
+            $telecallers = $telecallers->filter(function ($user) {
+                return (int) ($user->is_postsale ?? 0) === 1;
+            })->values();
+            $teams = $teams->filter(function ($team) {
+                return (int) ($team->is_postsale ?? 0) === 1;
+            })->values();
+        }
 
         return view('admin.leads.add', compact(
             'telecallers', 'leadStatuses', 'leadSources', 'countries', 'courses', 'teams', 'country_codes'
@@ -2457,6 +2478,15 @@ class LeadController extends Controller
                     $leadData['is_b2b'] = $telecaller && $telecaller->is_b2b ? 1 : 0;
                 } else {
                     $leadData['is_b2b'] = 0;
+                }
+
+                $isPostSale = \App\Helpers\PostSaleLeadHelper::resolveForLead(
+                    $request,
+                    $leadData['telecaller_id'] ?? null,
+                    true
+                );
+                if ($isPostSale !== null) {
+                    $leadData['is_postsale'] = $isPostSale;
                 }
 
                 $lead = Lead::create($leadData);
@@ -2556,6 +2586,15 @@ class LeadController extends Controller
             $data['is_b2b'] = $telecaller && $telecaller->is_b2b ? 1 : 0;
         } else {
             $data['is_b2b'] = 0;
+        }
+
+        $isPostSale = \App\Helpers\PostSaleLeadHelper::resolveForLead(
+            $request,
+            $data['telecaller_id'] ?? null,
+            true
+        );
+        if ($isPostSale !== null) {
+            $data['is_postsale'] = $isPostSale;
         }
 
         $lead = Lead::create($data);
@@ -2816,8 +2855,11 @@ class LeadController extends Controller
      */
     public function reassign(Lead $lead)
     {
+        \App\Helpers\PostSaleLeadHelper::denyUnlessVisible($lead);
+
         $canReassign = RoleHelper::is_admin_or_super_admin() ||
-            RoleHelper::is_general_manager();
+            RoleHelper::is_general_manager() ||
+            RoleHelper::is_postsale_gm();
 
         if (!$canReassign) {
             abort(403, 'You do not have permission to reassign leads.');
@@ -2832,9 +2874,14 @@ class LeadController extends Controller
 
         $lead->load(['telecaller.team', 'team']);
 
-        $teams = Team::where('is_active', true)->nonMarketing()->get();
+        $teamsQuery = Team::where('is_active', true)->nonMarketing();
+        $lockPostSale = (int) ($lead->is_postsale ?? 0) === 1 || \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords();
+        if ($lockPostSale) {
+            $teamsQuery->where('is_postsale', 1);
+        }
+        $teams = $teamsQuery->get();
 
-        return view('admin.leads.reassign-modal', compact('lead', 'teams'));
+        return view('admin.leads.reassign-modal', compact('lead', 'teams', 'lockPostSale'));
     }
 
     /**
@@ -2842,8 +2889,11 @@ class LeadController extends Controller
      */
     public function reassignSubmit(Request $request, Lead $lead)
     {
+        \App\Helpers\PostSaleLeadHelper::denyUnlessVisible($lead);
+
         $canReassign = RoleHelper::is_admin_or_super_admin() ||
-            RoleHelper::is_general_manager();
+            RoleHelper::is_general_manager() ||
+            RoleHelper::is_postsale_gm();
 
         if (!$canReassign) {
             return response()->json([
@@ -2900,6 +2950,14 @@ class LeadController extends Controller
             ], 422);
         }
 
+        $mustStayPostSale = (int) ($lead->is_postsale ?? 0) === 1 || \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords();
+        if ($mustStayPostSale && (int) ($telecaller->is_postsale ?? 0) !== 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Post-sale leads can only be reassigned to a post-sale telecaller.',
+            ], 422);
+        }
+
         try {
             $oldTelecallerId = $lead->telecaller_id;
             $fromTelecaller = $oldTelecallerId ? User::find($oldTelecallerId) : null;
@@ -2911,6 +2969,7 @@ class LeadController extends Controller
                 'team_id' => $request->team_id,
                 'lead_status_id' => 1,
                 'is_b2b' => $telecaller->is_b2b ? 1 : 0,
+                'is_postsale' => $telecaller->is_postsale ? 1 : ((int) ($lead->is_postsale ?? 0) === 1 ? 1 : 0),
                 'created_at' => now(),
                 'updated_by' => AuthHelper::getCurrentUserId(),
             ]);
@@ -2944,12 +3003,14 @@ class LeadController extends Controller
 
     public function edit(Lead $lead)
     {
+        \App\Helpers\PostSaleLeadHelper::denyUnlessVisible($lead);
         // Check edit permission: Admin/Super Admin, General Manager, Team Lead, or Senior Manager only
         // Regular telecallers (without team lead, senior manager, admin, or general manager roles) cannot edit
         $canEditLead = RoleHelper::is_admin_or_super_admin() || 
                        RoleHelper::is_general_manager() || 
                        RoleHelper::is_team_lead() || 
-                       RoleHelper::is_senior_manager();
+                       RoleHelper::is_senior_manager() ||
+                       RoleHelper::is_postsale_gm();
         
         if (!$canEditLead) {
             return redirect()->route('leads.index')
@@ -3010,6 +3071,15 @@ class LeadController extends Controller
         
         $country_codes = get_country_code();
 
+        if (\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
+            $telecallers = $telecallers->filter(function ($user) {
+                return (int) ($user->is_postsale ?? 0) === 1;
+            })->values();
+            $teams = $teams->filter(function ($team) {
+                return (int) ($team->is_postsale ?? 0) === 1;
+            })->values();
+        }
+
         return view('admin.leads.edit', compact(
             'lead', 'telecallers', 'leadStatuses', 'leadSources', 'countries', 'courses', 'teams', 'country_codes'
         ));
@@ -3017,12 +3087,15 @@ class LeadController extends Controller
 
     public function ajax_edit(Lead $lead)
     {
+        \App\Helpers\PostSaleLeadHelper::denyUnlessVisible($lead);
+
         // Check edit permission: Admin/Super Admin, General Manager, Team Lead, or Senior Manager only
         // Regular telecallers (without team lead, senior manager, admin, or general manager roles) cannot edit
         $canEditLead = RoleHelper::is_admin_or_super_admin() || 
                        RoleHelper::is_general_manager() || 
                        RoleHelper::is_team_lead() || 
-                       RoleHelper::is_senior_manager();
+                       RoleHelper::is_senior_manager() ||
+                       RoleHelper::is_postsale_gm();
         
         if (!$canEditLead) {
             return response()->json([
@@ -3074,6 +3147,15 @@ class LeadController extends Controller
         $courses = Course::all();
         $country_codes = get_country_code();
 
+        if (\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
+            $telecallers = $telecallers->filter(function ($user) {
+                return (int) ($user->is_postsale ?? 0) === 1;
+            })->values();
+            $teams = $teams->filter(function ($team) {
+                return (int) ($team->is_postsale ?? 0) === 1;
+            })->values();
+        }
+
         return view('admin.leads.edit-modal', compact(
             'lead', 'telecallers', 'leadStatuses', 'leadSources', 'countries', 'courses', 'teams', 'country_codes', 'isTelecaller', 'isTeamLead'
         ));
@@ -3081,6 +3163,8 @@ class LeadController extends Controller
 
     public function destroy(Lead $lead)
     {
+        \App\Helpers\PostSaleLeadHelper::denyUnlessVisible($lead);
+
         try {
             // Set deleted_by before deleting
             $lead->deleted_by = AuthHelper::getCurrentUserId();
@@ -3110,6 +3194,7 @@ class LeadController extends Controller
 
     public function update(Request $request, Lead $lead)
     {
+        \App\Helpers\PostSaleLeadHelper::denyUnlessVisible($lead);
         try {
             $validator = Validator::make($request->all(), [
                 'title' => 'nullable|string|max:255',
@@ -3187,6 +3272,15 @@ class LeadController extends Controller
                 // Auto-set is_b2b based on telecaller
                 $telecaller = User::find($data['telecaller_id']);
                 $data['is_b2b'] = $telecaller && $telecaller->is_b2b ? 1 : 0;
+            }
+
+            $isPostSale = \App\Helpers\PostSaleLeadHelper::resolveForLead(
+                $request,
+                $data['telecaller_id'] ?? null,
+                false
+            );
+            if ($isPostSale !== null) {
+                $data['is_postsale'] = $isPostSale;
             }
             
             // Check if telecaller_id is being changed (reassignment)
@@ -3291,6 +3385,12 @@ class LeadController extends Controller
                               ->where('team_id', $userTeamId)
                               ->where('is_active', true)
                               ->get();
+        } elseif (RoleHelper::is_postsale_gm()) {
+            $teams = Team::where('is_active', true)->nonMarketing()->where('is_postsale', 1)->get();
+            $telecallers = User::nonMarketingTelecallers()
+                              ->where('is_active', true)
+                              ->where('is_postsale', 1)
+                              ->get();
         } elseif ($isSeniorManager || RoleHelper::is_admin_or_super_admin() || RoleHelper::is_general_manager()) {
             // Senior Manager/General Manager/Admin/Super Admin: Show all teams and telecallers (excluding marketing teams)
             $teams = Team::where('is_active', true)->nonMarketing()->get();
@@ -3340,7 +3440,8 @@ class LeadController extends Controller
         $canBulkUpload = RoleHelper::is_admin_or_super_admin() || 
                         RoleHelper::is_general_manager() || 
                         RoleHelper::is_team_lead() || 
-                        RoleHelper::is_senior_manager();
+                        RoleHelper::is_senior_manager() ||
+                        RoleHelper::is_postsale_gm();
         
         if (!$canBulkUpload) {
             return response()->json([
@@ -3426,9 +3527,12 @@ class LeadController extends Controller
             if ($request->assign_to_all) {
                 // When assigning to all, get telecallers from the selected team or all teams
                 if ($request->team_id === 'all') {
-                    $telecallers = User::nonMarketingTelecallers()
-                        ->where('is_active', true)
-                        ->pluck('id')->toArray();
+                    $telecallerQuery = User::nonMarketingTelecallers()
+                        ->where('is_active', true);
+                    if (\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords() || $request->boolean('is_postsale')) {
+                        $telecallerQuery->where('is_postsale', 1);
+                    }
+                    $telecallers = $telecallerQuery->pluck('id')->toArray();
                 } else {
                     // Check if team is marketing team
                     $team = Team::find($request->team_id);
@@ -3439,10 +3543,13 @@ class LeadController extends Controller
                             'errors' => ['team_id' => ['Marketing teams cannot be assigned leads']]
                         ], 422);
                     }
-                    $telecallers = User::where('team_id', $request->team_id)
+                    $telecallerQuery = User::where('team_id', $request->team_id)
                         ->where('role_id', 3)
-                        ->where('is_active', true)
-                        ->pluck('id')->toArray();
+                        ->where('is_active', true);
+                    if (\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords() || $request->boolean('is_postsale')) {
+                        $telecallerQuery->where('is_postsale', 1);
+                    }
+                    $telecallers = $telecallerQuery->pluck('id')->toArray();
                 }
                     
                 // Check if team has telecallers
@@ -3467,6 +3574,19 @@ class LeadController extends Controller
                         'success' => false,
                         'message' => 'Please select at least one telecaller or choose "Assign to all telecallers in team".',
                         'errors' => ['telecallers' => ['Please select at least one telecaller']]
+                    ], 422);
+                }
+            }
+
+            $markPostSaleUpload = \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()
+                || (RoleHelper::is_admin_or_super_admin() && $request->boolean('is_postsale'));
+            if ($markPostSaleUpload) {
+                $postSaleTelecallerCount = User::whereIn('id', $telecallers)->where('is_postsale', 1)->count();
+                if ($postSaleTelecallerCount !== count($telecallers)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Post-sale leads can only be assigned to post-sale telecallers.',
+                        'errors' => ['telecallers' => ['Select post-sale telecallers only']],
                     ], 422);
                 }
             }
@@ -3547,6 +3667,7 @@ class LeadController extends Controller
                     'created_by' => AuthHelper::getCurrentUserId(),
                     'updated_by' => AuthHelper::getCurrentUserId(),
                     'is_converted' => false,
+                    'is_postsale' => (\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords() || (RoleHelper::is_admin_or_super_admin() && $request->boolean('is_postsale'))) ? 1 : 0,
                     'first_created_at' => now(),
                 ]);
 
@@ -3694,6 +3815,9 @@ class LeadController extends Controller
             if ($isB2B) {
                 $telecallers = $telecallers->where('is_b2b', 1)->values();
             }
+            if ($request->boolean('is_postsale') || \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
+                $telecallers = $telecallers->where('is_postsale', 1)->values();
+            }
         } elseif (! $teamId) {
             return response()->json(['telecallers' => []]);
         } else {
@@ -3707,6 +3831,9 @@ class LeadController extends Controller
             // Filter by is_b2b if requested
             if ($isB2B) {
                 $query->where('is_b2b', 1);
+            }
+            if ($request->boolean('is_postsale') || \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
+                $query->where('is_postsale', 1);
             }
             
             if ($isTeamLead && ! $canSeeAllTeamTelecallerOptions) {
@@ -3760,6 +3887,8 @@ class LeadController extends Controller
             } else {
                 $teams = collect();
             }
+        } elseif (RoleHelper::is_postsale_gm()) {
+            $teams = Team::where('is_active', true)->nonMarketing()->where('is_postsale', 1)->get();
         } elseif ($isSeniorManager || RoleHelper::is_admin_or_super_admin() || $isGeneralManager) {
             $teams = Team::where('is_active', true)->nonMarketing()->get();
         } elseif ($isTelecaller) {
@@ -3801,7 +3930,8 @@ class LeadController extends Controller
         $canBulkReassign = RoleHelper::is_admin_or_super_admin() || 
                           RoleHelper::is_general_manager() || 
                           RoleHelper::is_team_lead() || 
-                          RoleHelper::is_senior_manager();
+                          RoleHelper::is_senior_manager() ||
+                          RoleHelper::is_postsale_gm();
         
         if (!$canBulkReassign) {
             return redirect()->back()
@@ -3830,6 +3960,14 @@ class LeadController extends Controller
         $toTelecallerName = $toTelecaller ? $toTelecaller->name : 'Unknown';
         $fromTelecallerName = $fromTelecaller ? $fromTelecaller->name : 'Unknown';
         $toTeamId = $request->to_team_id ?: ($toTelecaller->team_id ?? null);
+        $reassignPostSale = \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()
+            || $request->input('is_postsale') === 'postsale';
+        if ($reassignPostSale && (int) ($toTelecaller->is_postsale ?? 0) !== 1) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Post-sale leads can only be reassigned to a post-sale telecaller.');
+        }
+        $markPostSale = ($reassignPostSale || (int) ($toTelecaller->is_postsale ?? 0) === 1) ? 1 : 0;
 
         $successCount = 0;
         foreach ($request->lead_id as $leadId) {
@@ -3846,6 +3984,8 @@ class LeadController extends Controller
             if ($toTeamId) {
                 $updateData['team_id'] = $toTeamId;
             }
+
+            $updateData['is_postsale'] = $markPostSale;
 
             $updated = Lead::where('id', $leadId)->update($updateData);
 
@@ -4652,6 +4792,7 @@ class LeadController extends Controller
                     'dob' => $dob,
                     'subject_id' => $subjectId,
                     'is_b2b' => $lead->is_b2b ?? 0,
+                    'is_postsale' => $lead->is_postsale ?? 0,
                     'remarks' => $request->remarks ?? 'Converted via bulk operation',
                     'created_by' => AuthHelper::getCurrentUserId(),
                 ]);
@@ -4710,10 +4851,20 @@ class LeadController extends Controller
         ->where('lead_status_id', $request->lead_status_id)
         ->where('is_converted', 0)
         ->where('created_at', '>=', $fromDate)
-        ->where('created_at', '<=', $toDate)
-        ->where(function ($q) {
-            $q->whereNull('is_b2b')->orWhere('is_b2b', 0);
-        });
+        ->where('created_at', '<=', $toDate);
+
+        $onlyPostSale = \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()
+            || $request->input('is_postsale') === 'postsale'
+            || $request->boolean('is_postsale');
+        if ($onlyPostSale) {
+            $query->where('is_postsale', 1);
+        } else {
+            $query->where(function ($q) {
+                $q->whereNull('is_b2b')->orWhere('is_b2b', 0);
+            })->where(function ($q) {
+                $q->whereNull('is_postsale')->orWhere('is_postsale', 0);
+            });
+        }
         
         // Optional course filter - only apply if course_id is provided
         if ($request->filled('course_id')) {
@@ -4736,6 +4887,8 @@ class LeadController extends Controller
      */
     public function convert(Lead $lead)
     {
+        \App\Helpers\PostSaleLeadHelper::denyUnlessVisible($lead);
+
         if ($this->leadIsAlreadyConverted($lead)) {
             if (request()->ajax() || request()->header('X-Requested-With') === 'XMLHttpRequest') {
                 return response()->view('admin.leads.convert-already-converted', compact('lead'));
@@ -4851,6 +5004,8 @@ class LeadController extends Controller
      */
     public function convertSubmit(Request $request, Lead $lead)
     {
+        \App\Helpers\PostSaleLeadHelper::denyUnlessVisible($lead);
+
         $rules = [
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:10',
@@ -5022,6 +5177,7 @@ class LeadController extends Controller
                 'board_id' => $request->board_id,
                 'subject_id' => $subjectId,
                 'is_b2b' => $lead->is_b2b ?? 0,
+                'is_postsale' => $lead->is_postsale ?? 0,
                 'candidate_status_id' => 1,
                 'remarks' => $request->remarks,
                 'need_mobile' => $request->boolean('need_mobile'),

@@ -23,6 +23,7 @@ class Team extends Model
         'deleted_by',
         'marketing_team',
         'is_b2b',
+        'is_postsale',
     ];
 
     /**

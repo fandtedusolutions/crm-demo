@@ -36,6 +36,8 @@ class User extends Authenticatable
         'team_id',
         'is_active',
         'is_b2b',
+        'is_postsale',
+        'is_postsale_gm',
         'joining_date',
         'department_id',
     ];
@@ -67,6 +69,8 @@ class User extends Authenticatable
             'is_senior_manager' => 'boolean',
             'is_active' => 'boolean',
             'is_b2b' => 'boolean',
+            'is_postsale' => 'boolean',
+            'is_postsale_gm' => 'boolean',
             'joining_date' => 'date',
         ];
     }

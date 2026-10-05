@@ -140,6 +140,17 @@
                         @endif
 
 
+                        @if(!\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords() && ($isAdminOrSuperAdmin || $isSeniorManager || $isGeneralManager))
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <label for="is_postsale" class="form-label">Post-sale</label>
+                            <select class="form-select form-select-sm" name="is_postsale" id="is_postsale">
+                                <option value="">All Leads</option>
+                                <option value="postsale" {{ request('is_postsale') == 'postsale' ? 'selected' : '' }}>Post-sale</option>
+                                <option value="normal" {{ request('is_postsale') == 'normal' ? 'selected' : '' }}>Not post-sale</option>
+                            </select>
+                        </div>
+                        @endif
+
                         <!-- B2B/In House Filter -->
                         <div class="col-6 col-md-4 col-lg-2">
                             <label for="is_b2b" class="form-label">Type (B2B/In House)</label>
@@ -186,7 +197,7 @@
                             title="Export to Excel">
                             <i class="ti ti-download"></i> Export Excel
                         </a>
-                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_team_lead() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager())
+                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_team_lead() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_postsale_gm())
                         <a href="javascript:void(0);" class="btn btn-primary btn-sm px-3"
                             onclick="show_ajax_modal('{{ route('leads.add') }}', 'Add New Lead')">
                             <i class="ti ti-plus"></i> Add Lead
@@ -206,12 +217,12 @@
                             <i class="ti ti-arrow-back-up"></i> Pullback Lead
                         </a>
                         @endif
-                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_team_lead())
+                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_team_lead() || \App\Helpers\RoleHelper::is_postsale_gm())
                         <a href="javascript:void(0);" class="btn btn-outline-warning btn-sm px-3"
                             onclick="show_large_modal('{{ route('admin.leads.followup') }}', 'Followup Leads')">
                             <i class="ti ti-calendar-event"></i> Followup Leads
                         </a>
-                        @if(empty($hasB2BLeadRestrictions))
+                        @if(empty($hasB2BLeadRestrictions) && !\App\Helpers\RoleHelper::is_postsale_gm())
                         <a href="javascript:void(0);" class="btn btn-outline-danger btn-sm px-3"
                             onclick="show_ajax_modal('{{ route('admin.leads.bulk-delete') }}', 'Bulk Delete Leads')">
                             <i class="ti ti-trash"></i> Bulk Delete
@@ -226,7 +237,7 @@
                 <div class="d-md-none">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="mb-0">All Leads</h5>
-                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_team_lead() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager())
+                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_team_lead() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_postsale_gm())
                         <a href="javascript:void(0);" class="btn btn-primary btn-sm"
                             onclick="show_ajax_modal('{{ route('leads.add') }}', 'Add New Lead')">
                             <i class="ti ti-plus"></i> Add
@@ -249,7 +260,7 @@
                         </div>
                     </div>
 
-                    @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_team_lead() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager())
+                    @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_team_lead() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_postsale_gm())
                     <div class="row g-2">
                         <div class="col-6">
                             @if(empty($hasB2BLeadRestrictions))
@@ -274,7 +285,7 @@
                             </a>
                         </div>
                         @endif
-                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_team_lead())
+                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_team_lead() || \App\Helpers\RoleHelper::is_postsale_gm())
                         <div class="col-6">
                             <a href="javascript:void(0);" class="btn btn-outline-warning btn-sm w-100"
                                 onclick="show_large_modal('{{ route('admin.leads.followup') }}', 'Followup Leads')">
@@ -282,7 +293,7 @@
                             </a>
                         </div>
                         <div class="col-6">
-                            @if(empty($hasB2BLeadRestrictions))
+                            @if(empty($hasB2BLeadRestrictions) && !\App\Helpers\RoleHelper::is_postsale_gm())
                             <a href="javascript:void(0);" class="btn btn-outline-danger btn-sm w-100"
                                 onclick="show_ajax_modal('{{ route('admin.leads.bulk-delete') }}', 'Bulk Delete Leads')">
                                 <i class="ti ti-trash me-1"></i> Delete
@@ -626,6 +637,10 @@ $columns = array_merge($columns, [
                 // Add is_b2b filter
                 if ($('#is_b2b').length > 0) {
                     params.is_b2b = $('#is_b2b').val() || '';
+                }
+
+                if ($('#is_postsale').length > 0) {
+                    params.is_postsale = $('#is_postsale').val() || '';
                 }
 
                 return params;

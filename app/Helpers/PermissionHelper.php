@@ -77,6 +77,8 @@ class PermissionHelper
             return false;
         } elseif (RoleHelper::is_finance()) {
             return false;
+        } elseif (RoleHelper::is_postsale_gm()) {
+            return true;
         } elseif (RoleHelper::is_post_sales()) {
             return false;
         } elseif (RoleHelper::is_telecaller()) {
@@ -280,6 +282,12 @@ class PermissionHelper
             'admin/call-analytics/index',
             'admin/payments/list',
         ];
+
+        if (RoleHelper::is_postsale_gm()) {
+            $permissions[] = 'leads/followup';
+            $permissions[] = 'leads/registration-form-submitted';
+            $permissions[] = 'admin/reports/leads';
+        }
 
         return in_array($permission, $permissions);
     }

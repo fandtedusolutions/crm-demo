@@ -47,6 +47,7 @@
                                 <th>Email</th>
                                 <th>Phone</th>
                                 <th>Is Head</th>
+                                <th>Post-sale GM</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -63,6 +64,13 @@
                                         <span class="badge bg-primary">Head</span>
                                     @else
                                         <span class="badge bg-secondary">Member</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($postSalesUser->is_postsale_gm)
+                                        <span class="badge bg-dark">Post-sale GM</span>
+                                    @else
+                                        <span class="badge bg-light text-dark">No</span>
                                     @endif
                                 </td>
                                 <td>

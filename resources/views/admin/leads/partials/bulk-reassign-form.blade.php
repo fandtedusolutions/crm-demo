@@ -122,6 +122,22 @@
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
+                    <div class="bulk-reassign-field">
+                        <label for="is_postsale"><i class="ti ti-headset me-1"></i>Post-sale</label>
+                        @if(\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords())
+                        <input type="hidden" name="is_postsale" id="is_postsale" value="postsale">
+                        <select class="form-control" id="is_postsale_display" disabled>
+                            <option value="postsale" selected>Post-sale leads only</option>
+                        </select>
+                        @else
+                        <select class="form-control bulk-reassign-filter-select" name="is_postsale" id="is_postsale">
+                            <option value="">Not post-sale</option>
+                            <option value="postsale" {{ old('is_postsale') === 'postsale' ? 'selected' : '' }}>Post-sale leads only</option>
+                        </select>
+                        @endif
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
                     <div class="row g-2">
                         <div class="col-6">
                             <div class="bulk-reassign-field">
@@ -263,7 +279,10 @@
             $.ajax({
                 url: '{{ route("leads.telecallers-by-team") }}',
                 type: 'GET',
-                data: { team_id: teamId },
+                data: {
+                    team_id: teamId,
+                    is_postsale: $('#is_postsale').val() === 'postsale' ? 1 : 0
+                },
                 success: function(response) {
                     $select.html('<option value="">Select Telecaller</option>');
 
@@ -365,7 +384,8 @@
                         from_date: leadFromDate,
                         to_date: leadToDate,
                         lead_status_id: leadStatusId,
-                        course_id: courseId || ''
+                        course_id: courseId || '',
+                        is_postsale: $('#is_postsale').val() || ''
                     },
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -411,6 +431,10 @@
 
         $fromTelecaller.on('change', loadBulkReassignLeads);
         $('#lead_source_id, #lead_from_date, #lead_to_date, #lead_status_id, #reassign_course_id').on('change', loadBulkReassignLeads);
+        $('#is_postsale').on('change', function() {
+            loadTeamTelecallers($toTeam.val(), $toTelecaller, '');
+            loadTeamTelecallers($fromTeam.val(), $fromTelecaller, '').done(loadBulkReassignLeads);
+        });
 
         $.when(
             oldToTeam ? loadTeamTelecallers(oldToTeam, $toTelecaller, oldToTelecaller) : $.Deferred().resolve(),

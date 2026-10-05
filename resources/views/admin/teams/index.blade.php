@@ -94,6 +94,9 @@
                                     @else
                                         <span class="badge bg-secondary text-white">In house</span>
                                     @endif
+                                    @if($team->is_postsale)
+                                        <span class="badge bg-dark">Post-sale</span>
+                                    @endif
                                 </td>
                                 <td>{{ $team->detail->b2b_partner_id ?? 'N/A' }}</td>
                                 <td>{{ $team->detail->b2b_code ?? 'N/A' }}</td>

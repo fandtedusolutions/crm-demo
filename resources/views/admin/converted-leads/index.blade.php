@@ -192,6 +192,17 @@
                             </select>
                         </div>
 
+                        @if(!\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords() && (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager()))
+                        <div class="col-12 col-sm-6 col-md-2">
+                            <label for="is_postsale" class="form-label">Post-sale</label>
+                            <select class="form-select" id="is_postsale" name="is_postsale">
+                                <option value="">All</option>
+                                <option value="postsale" {{ request('is_postsale') === 'postsale' ? 'selected' : '' }}>Post-sale</option>
+                                <option value="normal" {{ request('is_postsale') === 'normal' ? 'selected' : '' }}>Not post-sale</option>
+                            </select>
+                        </div>
+                        @endif
+
                         <div class="col-12 col-sm-6 col-md-2">
                             <label for="is_b2b" class="form-label">Type</label>
                             <select class="form-select" id="is_b2b" name="is_b2b">
@@ -589,7 +600,8 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
                 exam_fee: $('#exam_fee').val() || '',
                 id_card: $('#id_card').val() || '',
                 tma: $('#tma').val() || '',
-                is_b2b: $('#is_b2b').val() || ''
+                is_b2b: $('#is_b2b').val() || '',
+                is_postsale: $('#is_postsale').val() || ''
             };
 
             if (window.TeamTelecallerFilters) {
@@ -615,6 +627,7 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             if (f.id_card) params.append('id_card', f.id_card);
             if (f.tma) params.append('tma', f.tma);
             if (f.is_b2b) params.append('is_b2b', f.is_b2b);
+            if (f.is_postsale) params.append('is_postsale', f.is_postsale);
             if (window.TeamTelecallerFilters) {
                 window.TeamTelecallerFilters.appendParams(params);
             }
@@ -636,6 +649,7 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
             if (p.get('id_card')) $('#id_card').val(p.get('id_card'));
             if (p.get('tma')) $('#tma').val(p.get('tma'));
             if (p.get('is_b2b')) $('#is_b2b').val(p.get('is_b2b'));
+            if (p.get('is_postsale')) $('#is_postsale').val(p.get('is_postsale'));
             if (window.TeamTelecallerFilters) {
                 window.TeamTelecallerFilters.loadFromUrl(p);
             }

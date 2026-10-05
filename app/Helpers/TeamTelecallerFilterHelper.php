@@ -51,6 +51,10 @@ class TeamTelecallerFilterHelper
             ])
             ->orderBy('name');
 
+        if (PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
+            $query->where('is_postsale', 1);
+        }
+
         if (! self::canSeeAllTeamTelecallerFilterOptions()
             && ($isTeamLead || $isTelecaller)
             && $currentUser?->team_id) {
@@ -100,7 +104,7 @@ class TeamTelecallerFilterHelper
             ->where('role_id', 3)
             ->where('is_active', true)
             ->with('team:id,name')
-            ->select('id', 'name', 'email', 'team_id', 'is_b2b')
+            ->select('id', 'name', 'email', 'team_id', 'is_b2b', 'is_postsale')
             ->orderBy('name');
 
         if (! self::canSeeAllTeamTelecallerFilterOptions()) {
@@ -115,6 +119,10 @@ class TeamTelecallerFilterHelper
             }
         } else {
             $query->nonMarketingTelecallers();
+        }
+
+        if (PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
+            $query->where('is_postsale', 1);
         }
 
         if (! empty($teamIds)) {

@@ -104,6 +104,9 @@
                                     @if($telecaller->is_senior_manager)
                                         <span class="badge bg-info ms-1">Senior Manager</span>
                                     @endif
+                                    @if($telecaller->is_postsale)
+                                        <span class="badge bg-dark ms-1">Post-sale</span>
+                                    @endif
                                 </td>
                                 <td>{{ $telecaller->email }}</td>
                                 <td>{{ $telecaller->phone ?? '-' }}</td>

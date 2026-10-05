@@ -13,6 +13,7 @@ use App\Models\ConvertedLead;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Helpers\AuthHelper;
+use App\Helpers\PostSaleLeadHelper;
 use App\Helpers\RoleHelper;
 use Illuminate\Support\Facades\DB;
 
@@ -402,37 +403,60 @@ class DashboardController extends Controller
         if (!$currentUser) {
             return $query;
         }
-        
-        // Roles that can see all leads (same as admin)
-        if (RoleHelper::is_admin_or_super_admin() || 
-            RoleHelper::is_general_manager() ||
-            RoleHelper::is_senior_manager() ||
-            RoleHelper::is_admission_counsellor() || 
-            RoleHelper::is_finance() || 
-            RoleHelper::is_academic_assistant() || 
-            RoleHelper::is_post_sales()) {
-            // Can see all leads
+
+        // Logged-in post-sale telecaller: own leads, or the team when they are the team lead.
+        // Counts include is_postsale = 1 only.
+        if (RoleHelper::is_postsale_telecaller() && ! RoleHelper::is_senior_manager()) {
+            if (AuthHelper::isTeamLead()) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+                    $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                    $query->whereIn('leads.telecaller_id', $teamMemberIds);
+                } else {
+                    $query->where('leads.telecaller_id', AuthHelper::getCurrentUserId());
+                }
+            } else {
+                $query->where('leads.telecaller_id', AuthHelper::getCurrentUserId());
+            }
+
+            $query->where('leads.is_postsale', 1);
+
             return $query;
         }
         
-        if (AuthHelper::isTeamLead()) {
-            // Team Lead: Can see their own leads + their team members' leads
-            $teamId = $currentUser->team_id;
-            if ($teamId) {
-                $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
-                // Include current user's ID in the team member IDs
-                $teamMemberIds[] = AuthHelper::getCurrentUserId();
-                // Use qualified column name to work with joins
-                $query->whereIn('leads.telecaller_id', $teamMemberIds);
-            } else {
-                // If no team assigned, only show their own leads
+        // Roles that can see all leads (same as admin).
+        // A post-sale GM is not in this list: they see every post-sale lead only.
+        $seesAllLeads = RoleHelper::is_admin_or_super_admin()
+            || RoleHelper::is_general_manager()
+            || RoleHelper::is_senior_manager()
+            || RoleHelper::is_admission_counsellor()
+            || RoleHelper::is_finance()
+            || RoleHelper::is_academic_assistant()
+            || (RoleHelper::is_post_sales() && ! RoleHelper::is_postsale_gm());
+
+        if (! $seesAllLeads && ! RoleHelper::is_postsale_gm()) {
+            if (AuthHelper::isTeamLead()) {
+                // Team Lead: Can see their own leads + their team members' leads
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+                    // Include current user's ID in the team member IDs
+                    $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                    // Use qualified column name to work with joins
+                    $query->whereIn('leads.telecaller_id', $teamMemberIds);
+                } else {
+                    // If no team assigned, only show their own leads
+                    $query->where('leads.telecaller_id', AuthHelper::getCurrentUserId());
+                }
+            } elseif (AuthHelper::isTelecaller()) {
+                // Telecaller: Can only see their own leads
                 $query->where('leads.telecaller_id', AuthHelper::getCurrentUserId());
             }
-        } elseif (AuthHelper::isTelecaller()) {
-            // Telecaller: Can only see their own leads
-            $query->where('leads.telecaller_id', AuthHelper::getCurrentUserId());
         }
-        
+
+        PostSaleLeadHelper::apply($query, 'leads.is_postsale');
+
         return $query;
     }
 
@@ -447,42 +471,70 @@ class DashboardController extends Controller
         if (!$currentUser) {
             return $query;
         }
-        
-        // Roles that can see all converted leads (same as admin)
-        if (RoleHelper::is_admin_or_super_admin() || 
-            RoleHelper::is_general_manager() ||
-            RoleHelper::is_senior_manager() ||
-            RoleHelper::is_admission_counsellor() || 
-            RoleHelper::is_finance() || 
-            RoleHelper::is_academic_assistant() || 
-            RoleHelper::is_post_sales()) {
-            // Can see all converted leads
+
+        // Logged-in post-sale telecaller: own converted students, or the team when they are the team lead.
+        if (RoleHelper::is_postsale_telecaller() && ! RoleHelper::is_senior_manager()) {
+            if (AuthHelper::isTeamLead()) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+                    $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                    $query->whereHas('lead', function ($q) use ($teamMemberIds) {
+                        $q->whereIn('telecaller_id', $teamMemberIds);
+                    });
+                } else {
+                    $query->whereHas('lead', function ($q) {
+                        $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                    });
+                }
+            } else {
+                $query->whereHas('lead', function ($q) {
+                    $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                });
+            }
+
+            $query->where('converted_leads.is_postsale', 1);
+
             return $query;
         }
         
-        if (AuthHelper::isTeamLead()) {
-            // Team Lead: Can see converted leads from leads assigned to them or their team members
-            $teamId = $currentUser->team_id;
-            if ($teamId) {
-                $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
-                // Include current user's ID in the team member IDs
-                $teamMemberIds[] = AuthHelper::getCurrentUserId();
-                $query->whereHas('lead', function($q) use ($teamMemberIds) {
-                    $q->whereIn('telecaller_id', $teamMemberIds);
-                });
-            } else {
-                // If no team assigned, only show converted leads from their own leads
+        // Roles that can see all converted leads (same as admin).
+        // A post-sale GM sees every converted student marked post-sale.
+        $seesAllConverted = RoleHelper::is_admin_or_super_admin()
+            || RoleHelper::is_general_manager()
+            || RoleHelper::is_senior_manager()
+            || RoleHelper::is_admission_counsellor()
+            || RoleHelper::is_finance()
+            || RoleHelper::is_academic_assistant()
+            || (RoleHelper::is_post_sales() && ! RoleHelper::is_postsale_gm());
+
+        if (! $seesAllConverted && ! RoleHelper::is_postsale_gm()) {
+            if (AuthHelper::isTeamLead()) {
+                // Team Lead: Can see converted leads from leads assigned to them or their team members
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = AuthHelper::getTeamMemberIds($teamId);
+                    // Include current user's ID in the team member IDs
+                    $teamMemberIds[] = AuthHelper::getCurrentUserId();
+                    $query->whereHas('lead', function($q) use ($teamMemberIds) {
+                        $q->whereIn('telecaller_id', $teamMemberIds);
+                    });
+                } else {
+                    // If no team assigned, only show converted leads from their own leads
+                    $query->whereHas('lead', function($q) {
+                        $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                    });
+                }
+            } elseif (AuthHelper::isTelecaller()) {
+                // Telecaller: Can only see converted leads from leads assigned to them
                 $query->whereHas('lead', function($q) {
                     $q->where('telecaller_id', AuthHelper::getCurrentUserId());
                 });
             }
-        } elseif (AuthHelper::isTelecaller()) {
-            // Telecaller: Can only see converted leads from leads assigned to them
-            $query->whereHas('lead', function($q) {
-                $q->where('telecaller_id', AuthHelper::getCurrentUserId());
-            });
         }
-        
+
+        PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
         return $query;
     }
 

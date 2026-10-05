@@ -39,6 +39,7 @@ class TeamController extends Controller
             'description' => 'nullable|string',
             'marketing_team' => 'nullable|boolean',
             'is_b2b' => 'nullable|boolean',
+            'is_postsale' => 'nullable|boolean',
         ]);
 
         $team = Team::create([
@@ -46,6 +47,7 @@ class TeamController extends Controller
             'description' => $request->description,
             'marketing_team' => $request->has('marketing_team') ? (bool)$request->marketing_team : false,
             'is_b2b' => $request->has('is_b2b') ? (bool)$request->is_b2b : false,
+            'is_postsale' => $request->has('is_postsale') ? (bool)$request->is_postsale : false,
             'created_by' => AuthHelper::getCurrentUserId(),
         ]);
 
@@ -113,6 +115,7 @@ class TeamController extends Controller
             'description' => 'nullable|string',
             'marketing_team' => 'nullable|boolean',
             'is_b2b' => 'nullable|boolean',
+            'is_postsale' => 'nullable|boolean',
         ]);
 
         $team = Team::create([
@@ -120,6 +123,7 @@ class TeamController extends Controller
             'description' => $request->description,
             'marketing_team' => $request->has('marketing_team') ? (bool)$request->marketing_team : false,
             'is_b2b' => $request->has('is_b2b') ? (bool)$request->is_b2b : false,
+            'is_postsale' => $request->has('is_postsale') ? (bool)$request->is_postsale : false,
             'created_by' => AuthHelper::getCurrentUserId(),
         ]);
 
@@ -158,6 +162,7 @@ class TeamController extends Controller
             'description' => 'nullable|string',
             'marketing_team' => 'nullable|boolean',
             'is_b2b' => 'nullable|boolean',
+            'is_postsale' => 'nullable|boolean',
         ]);
 
         $team = Team::findOrFail($id);
@@ -166,6 +171,7 @@ class TeamController extends Controller
             'description' => $request->description,
             'marketing_team' => $request->has('marketing_team') ? (bool)$request->marketing_team : false,
             'is_b2b' => $request->has('is_b2b') ? (bool)$request->is_b2b : false,
+            'is_postsale' => $request->has('is_postsale') ? (bool)$request->is_postsale : false,
             'updated_by' => AuthHelper::getCurrentUserId(),
         ]);
 

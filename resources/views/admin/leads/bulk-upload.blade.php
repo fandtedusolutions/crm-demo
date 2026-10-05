@@ -111,6 +111,22 @@
             </div>
 
 
+            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin())
+            <div class="col-md-12">
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_postsale" name="is_postsale" value="1">
+                        <label class="form-check-label" for="is_postsale">
+                            <i class="ti ti-headset me-1"></i>Post-sale leads
+                        </label>
+                        <small class="form-text text-muted d-block">Uploaded leads are marked post-sale and can be assigned only to post-sale telecallers.</small>
+                    </div>
+                </div>
+            </div>
+            @elseif(\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords())
+            <input type="hidden" name="is_postsale" id="is_postsale" value="1">
+            @endif
+
             <div class="col-md-12">
                 <div class="mb-3">
                     <div class="form-check">
@@ -217,6 +233,10 @@
         // Start initialization
         tryInitializeSelect2();
 
+        $('#is_postsale').on('change', function() {
+            $('#team_id').trigger('change');
+        });
+
         // Handle team selection to load telecallers
         $('#team_id').on('change', function() {
             const teamId = $(this).val();
@@ -225,7 +245,8 @@
             if (teamId) {
                 // Load telecallers from specific team
                 $.get('{{ route("leads.telecallers-by-team") }}', {
-                        team_id: teamId
+                        team_id: teamId,
+                        is_postsale: $('#is_postsale').is(':checkbox') ? ($('#is_postsale').is(':checked') ? 1 : 0) : ($('#is_postsale').val() || 0)
                     })
                     .done(function(data) {
                         telecallerSelect.empty();
@@ -284,7 +305,8 @@
                 } else {
                     // Load telecallers for the team to show how many will be assigned
                     $.get('{{ route("leads.telecallers-by-team") }}', {
-                            team_id: teamId
+                            team_id: teamId,
+                            is_postsale: $('#is_postsale').is(':checkbox') ? ($('#is_postsale').is(':checked') ? 1 : 0) : ($('#is_postsale').val() || 0)
                         })
                         .done(function(data) {
                             if (data.telecallers && data.telecallers.length > 0) {
@@ -308,7 +330,8 @@
             if (assignToAll && teamId) {
                 // Load telecallers for the team to show how many will be assigned
                 $.get('{{ route("leads.telecallers-by-team") }}', {
-                        team_id: teamId
+                        team_id: teamId,
+                        is_postsale: $('#is_postsale').is(':checkbox') ? ($('#is_postsale').is(':checked') ? 1 : 0) : ($('#is_postsale').val() || 0)
                     })
                     .done(function(data) {
                         if (data.telecallers && data.telecallers.length > 0) {

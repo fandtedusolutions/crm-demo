@@ -112,6 +112,7 @@ class PostSalesController extends Controller
             'password' => 'required|string|min:6',
             'is_active' => 'nullable|boolean',
             'is_head' => 'nullable|boolean',
+            'is_postsale_gm' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -129,6 +130,7 @@ class PostSalesController extends Controller
             'role_id' => 7, // Static role for Post-sales
             'is_active' => $request->has('is_active') ? 1 : 0,
             'is_head' => $request->has('is_head') ? 1 : 0,
+            'is_postsale_gm' => $request->has('is_postsale_gm') ? 1 : 0,
         ]);
 
         return redirect()->route('admin.post-sales.index')->with('message_success', 'Post-sales user created successfully!');
@@ -162,6 +164,7 @@ class PostSalesController extends Controller
             'ext_no' => 'nullable|string|max:20',
             'is_active' => 'nullable|boolean',
             'is_head' => 'nullable|boolean',
+            'is_postsale_gm' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -177,6 +180,7 @@ class PostSalesController extends Controller
             'ext_no' => $request->ext_no,
             'is_active' => $request->has('is_active') ? 1 : 0,
             'is_head' => $request->has('is_head') ? 1 : 0,
+            'is_postsale_gm' => $request->has('is_postsale_gm') ? 1 : 0,
         ]);
 
         return redirect()->route('admin.post-sales.index')->with('message_success', 'Post-sales user updated successfully!');

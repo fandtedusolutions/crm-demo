@@ -29,6 +29,7 @@ class ConvertedLead extends Model
         'password',
         'status',
         'is_b2b',
+        'is_postsale',
         'postsale_status',
         'is_cancelled',
         'cancelled_by',
@@ -101,6 +102,7 @@ class ConvertedLead extends Model
         'is_cancelled' => 'boolean',
         'is_postpond_batch' => 'boolean',
         'is_b2b' => 'boolean',
+        'is_postsale' => 'boolean',
         'need_mobile' => 'boolean',
     ];
 

@@ -242,6 +242,40 @@ class RoleHelper
     }
 
     /**
+     * Post-sales user who manages the post-sale lead pool.
+     */
+    public static function is_postsale_gm()
+    {
+        if (!self::is_logged_in()) {
+            return false;
+        }
+
+        $user = AuthHelper::getCurrentUser();
+        if (!$user) {
+            return false;
+        }
+
+        return (int) $user->role_id === 7 && (int) ($user->is_postsale_gm ?? 0) === 1;
+    }
+
+    /**
+     * Telecaller, including team lead, flagged to work only post-sale leads.
+     */
+    public static function is_postsale_telecaller()
+    {
+        if (!self::is_logged_in()) {
+            return false;
+        }
+
+        $user = AuthHelper::getCurrentUser();
+        if (!$user) {
+            return false;
+        }
+
+        return (int) $user->role_id === 3 && (int) ($user->is_postsale ?? 0) === 1;
+    }
+
+    /**
      * Check if current user is Support Team
      */
     public static function is_support_team()
