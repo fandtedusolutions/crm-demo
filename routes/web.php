@@ -1274,6 +1274,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/payments/store/{invoiceId}', [App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
         Route::get('/payments/proofs/{proofId}/view', [App\Http\Controllers\PaymentController::class, 'viewProofFile'])->name('payments.proofs.view');
         Route::get('/payments/proofs/{proofId}/download', [App\Http\Controllers\PaymentController::class, 'downloadProofFile'])->name('payments.proofs.download');
+        Route::post('/payments/{id}/proof-file', [App\Http\Controllers\PaymentController::class, 'updateProofFile'])->name('payments.proofs.update');
         Route::get('/payments/{id}', [App\Http\Controllers\PaymentController::class, 'show'])->name('payments.show');
         Route::post('/payments/{id}/approve', [App\Http\Controllers\PaymentController::class, 'approve'])->name('payments.approve');
         Route::post('/payments/{id}/reject', [App\Http\Controllers\PaymentController::class, 'reject'])->name('payments.reject');

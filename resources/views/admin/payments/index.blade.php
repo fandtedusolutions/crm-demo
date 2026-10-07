@@ -5,6 +5,7 @@
 @section('content')
 @php
     $razorpayConfigured = config('razorpay.key_id') && config('razorpay.key_secret');
+    $canUpdateProofFile = \App\Helpers\RoleHelper::is_super_admin() || \App\Helpers\RoleHelper::is_finance();
 @endphp
 <div class="container-fluid">
     <div class="row">
@@ -327,6 +328,9 @@
                                     </thead>
                             <tbody>
                                 @foreach($payments as $index => $payment)
+                                @php
+                                    $canUpdateThisPayment = $canUpdateProofFile && in_array($payment->status, ['Pending Approval', 'Rejected'], true);
+                                @endphp
                                 <tr class="align-middle">
                                     <td class="fw-semibold">{{ $index + 1 }}</td>
                                     <td>
@@ -369,7 +373,10 @@
                                         </span>
                                     </td>
                                     <td>
-                                        @include('admin.payments.partials.transaction-ids-display', ['payment' => $payment])
+                                        @include('admin.payments.partials.transaction-ids-display', [
+                                            'payment' => $payment,
+                                            'canUpdateProof' => $canUpdateThisPayment,
+                                        ])
                                     </td>
                                     <td>
                                         @if($payment->status == 'Pending Approval')
@@ -437,7 +444,10 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @include('admin.payments.partials.proof-files-display', ['payment' => $payment])
+                                        @include('admin.payments.partials.proof-files-display', [
+                                            'payment' => $payment,
+                                            'canUpdateProof' => $canUpdateThisPayment,
+                                        ])
                                     </td>
                                     <td>
                                         <div class="d-flex flex-wrap gap-1 justify-content-start">
@@ -869,6 +879,8 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </div>
+
+@include('admin.payments.partials.update-proof-modal')
 
 <!-- Payment Rejection Modal -->
 <div class="modal fade" id="rejectPaymentModal" tabindex="-1" aria-labelledby="rejectPaymentModalLabel" aria-hidden="true">

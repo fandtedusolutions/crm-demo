@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Payment;
 use App\Models\Invoice;
 use App\Models\PaymentLink;
+use App\Models\PaymentProof;
 use App\Models\ConvertedLead;
 use App\Helpers\AuthHelper;
 use App\Helpers\PaymentProofHelper;
@@ -622,6 +623,185 @@ class PaymentController extends Controller
             storage_path('app/public/' . $proof->file_upload),
             basename($proof->file_upload)
         );
+    }
+
+    /**
+     * Replace a payment receipt/proof file. Super Admin and Finance only.
+     */
+    public function updateProofFile(Request $request, $id)
+    {
+        if (!RoleHelper::is_super_admin() && !RoleHelper::is_finance()) {
+            abort(403, 'Access denied.');
+        }
+
+        $payment = Payment::with(['invoice', 'proofs'])->findOrFail($id);
+        $this->checkInvoiceAccess($payment->invoice);
+
+        if (!in_array($payment->status, ['Pending Approval', 'Rejected'], true)) {
+            return redirect()->back()
+                ->with('message_danger', 'Approved payments cannot be updated.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'proof_id' => 'nullable|integer',
+            'transaction_id' => 'nullable|string|max:255',
+            'file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->with('message_danger', $validator->errors()->first());
+        }
+
+        $newTxn = trim((string) $request->input('transaction_id', ''));
+        $newTxn = $newTxn !== '' ? $newTxn : null;
+        $proofId = $request->input('proof_id');
+
+        if ($newTxn && PaymentProofHelper::transactionIdExists($newTxn, $payment->id)) {
+            return redirect()->back()
+                ->with('message_danger', 'Transaction ID already exists: ' . $newTxn);
+        }
+
+        if ($newTxn && $payment->proofs->contains(function ($item) use ($newTxn, $proofId) {
+            if ($proofId && (int) $item->id === (int) $proofId) {
+                return false;
+            }
+
+            return trim((string) $item->transaction_id) === $newTxn;
+        })) {
+            return redirect()->back()
+                ->with('message_danger', 'This payment already uses that transaction ID.');
+        }
+
+        $wasRejected = $payment->status === 'Rejected';
+        $uploaded = $request->file('file');
+        $filePath = null;
+        $oldPath = null;
+
+        if ($uploaded) {
+            $fileName = Str::uuid() . '_' . $uploaded->getClientOriginalName();
+            $filePath = $uploaded->storeAs('payments', $fileName, 'public');
+        }
+
+        if ($proofId) {
+            $proof = PaymentProof::where('payment_id', $payment->id)->findOrFail($proofId);
+            $oldTxn = $proof->transaction_id;
+            $proof->transaction_id = $newTxn;
+            if ($filePath) {
+                $oldPath = $proof->file_upload;
+                $proof->file_upload = $filePath;
+            }
+            $proof->save();
+            if ($filePath) {
+                $this->syncPrimaryProofFile($payment, $proof, $oldPath, $filePath);
+            }
+            $this->syncPrimaryTransactionId($payment, $proof, $oldTxn, $newTxn);
+        } else {
+            $proof = $payment->proofs->first(function ($item) {
+                return empty($item->file_upload);
+            });
+
+            if ($proof) {
+                $oldTxn = $proof->transaction_id;
+                $proof->transaction_id = $newTxn;
+                if ($filePath) {
+                    $oldPath = $proof->file_upload;
+                    $proof->file_upload = $filePath;
+                }
+                $proof->save();
+                if ($filePath) {
+                    $this->syncPrimaryProofFile($payment, $proof, $oldPath, $filePath);
+                }
+                $this->syncPrimaryTransactionId($payment, $proof, $oldTxn, $newTxn);
+            } elseif ($payment->proofs->isEmpty()) {
+                if ($filePath) {
+                    $oldPath = $payment->file_upload;
+                    $payment->file_upload = $filePath;
+                }
+                $payment->transaction_id = $newTxn;
+                $payment->updated_by = AuthHelper::getCurrentUserId();
+                $payment->save();
+            } elseif ($filePath) {
+                Storage::disk('public')->delete($filePath);
+
+                return redirect()->back()
+                    ->with('message_danger', 'Select the receipt you want to replace.');
+            } else {
+                $payment->transaction_id = $newTxn;
+                $payment->updated_by = AuthHelper::getCurrentUserId();
+                $payment->save();
+            }
+        }
+
+        if ($filePath) {
+            $this->deleteUnusedProofFile($oldPath);
+        }
+
+        if ($wasRejected) {
+            $payment->status = 'Pending Approval';
+            $payment->rejected_date = null;
+            $payment->rejected_by = null;
+            $payment->rejection_remarks = null;
+            $payment->updated_by = AuthHelper::getCurrentUserId();
+            $payment->save();
+        }
+
+        return redirect()->back()
+            ->with('message_success', $wasRejected
+                ? 'Payment updated and sent back for approval.'
+                : 'Payment updated.');
+    }
+
+    /**
+     * Keep the payment's primary file in step with the proof that owns it.
+     */
+    private function syncPrimaryProofFile(Payment $payment, PaymentProof $proof, ?string $oldPath, string $filePath): void
+    {
+        $isPrimary = ($oldPath && $payment->file_upload === $oldPath)
+            || (empty($payment->file_upload) && optional($payment->proofs->first())->id === $proof->id);
+
+        if ($isPrimary) {
+            $payment->file_upload = $filePath;
+        }
+
+        $payment->updated_by = AuthHelper::getCurrentUserId();
+        $payment->save();
+    }
+
+    /**
+     * Keep the payment's primary transaction ID in step with the proof that owns it.
+     */
+    private function syncPrimaryTransactionId(Payment $payment, PaymentProof $proof, ?string $oldTxn, ?string $newTxn): void
+    {
+        $oldTxn = trim((string) $oldTxn);
+        $current = trim((string) $payment->transaction_id);
+        $isPrimary = ($oldTxn !== '' && $current === $oldTxn)
+            || ($current === '' && optional($payment->proofs->first())->id === $proof->id);
+
+        if ($isPrimary) {
+            $payment->transaction_id = $newTxn;
+        }
+
+        $payment->updated_by = AuthHelper::getCurrentUserId();
+        $payment->save();
+    }
+
+    /**
+     * Remove a stored proof only when no payment still references it.
+     */
+    private function deleteUnusedProofFile(?string $path): void
+    {
+        if (!$path) {
+            return;
+        }
+
+        $stillUsed = PaymentProof::where('file_upload', $path)->exists()
+            || Payment::withTrashed()->where('file_upload', $path)->exists();
+
+        if (!$stillUsed && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
     }
 
     /**

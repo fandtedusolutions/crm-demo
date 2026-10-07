@@ -37,6 +37,10 @@
                     </div>
                 </div>
                 <div class="card-body">
+                    @php
+                        $canUpdateProof = (\App\Helpers\RoleHelper::is_super_admin() || \App\Helpers\RoleHelper::is_finance())
+                            && in_array($payment->status, ['Pending Approval', 'Rejected'], true);
+                    @endphp
                     <div class="row">
                         <div class="col-md-6">
                             <h6>Payment Information</h6>
@@ -60,7 +64,10 @@
                                 <tr>
                                     <td><strong>Transaction ID{{ $payment->getDisplayProofs()->count() > 1 ? 's' : '' }}:</strong></td>
                                     <td>
-                                        @include('admin.payments.partials.transaction-ids-display', ['payment' => $payment])
+                                        @include('admin.payments.partials.transaction-ids-display', [
+                                            'payment' => $payment,
+                                            'canUpdateProof' => $canUpdateProof,
+                                        ])
                                     </td>
                                 </tr>
                                 <tr>
@@ -205,13 +212,15 @@
                         </div>
                     </div>
 
-                    @php $displayProofFiles = $payment->getDisplayProofs()->filter(fn ($proof) => !empty($proof->file_upload)); @endphp
-                    @if($displayProofFiles->isNotEmpty())
+                    @php
+                        $displayProofFiles = $payment->getDisplayProofs()->filter(fn ($proof) => !empty($proof->file_upload));
+                    @endphp
+                    @if($displayProofFiles->isNotEmpty() || $canUpdateProof)
                     <div class="row mt-4">
                         <div class="col-12">
                             <h6>Uploaded File{{ $displayProofFiles->count() > 1 ? 's' : '' }}</h6>
                             <div class="row g-3">
-                                @foreach($displayProofFiles as $proof)
+                                @forelse($displayProofFiles as $proof)
                                 <div class="col-md-6 col-lg-4">
                                     <div class="card h-100">
                                         <div class="card-body text-center">
@@ -224,6 +233,8 @@
                                                 $downloadUrl = !empty($proof->id)
                                                     ? route('admin.payments.proofs.download', $proof->id)
                                                     : route('admin.payments.download', $payment->id);
+                                                $proofFileName = basename($proof->file_upload);
+                                                $proofTransactionId = $proof->transaction_id ?? '';
                                             @endphp
                                             <a href="{{ $downloadUrl }}" class="btn btn-primary">
                                                 <i class="fas fa-download"></i> Download File
@@ -231,10 +242,33 @@
                                             <a href="{{ $viewUrl }}" class="btn btn-primary me-2" target="_blank">
                                                 <i class="fas fa-file-alt"></i> Receipt/Proof
                                             </a>
+                                            @if($canUpdateProof)
+                                                <button type="button"
+                                                        class="btn btn-outline-secondary mt-2"
+                                                        onclick="showUpdateProofModal({{ $payment->id }}, {{ !empty($proof->id) ? (int) $proof->id : 'null' }}, @json($proofFileName), @json($proofTransactionId), {{ $payment->status === 'Rejected' ? 'true' : 'false' }})">
+                                                    <i class="fas fa-pen"></i> Update File
+                                                </button>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
-                                @endforeach
+                                @empty
+                                    @if($canUpdateProof)
+                                    <div class="col-md-6 col-lg-4">
+                                        <div class="card h-100">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-file-slash fa-3x text-muted mb-3"></i>
+                                                <p class="mb-3">No receipt uploaded</p>
+                                                <button type="button"
+                                                        class="btn btn-outline-primary"
+                                                        onclick="showUpdateProofModal({{ $payment->id }}, null, '', @json($payment->transaction_id ?? ''), {{ $payment->status === 'Rejected' ? 'true' : 'false' }})">
+                                                    <i class="fas fa-upload"></i> Upload File
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+                                @endforelse
                             </div>
                         </div>
                     </div>
@@ -343,6 +377,8 @@
         </div>
     </div>
 </div>
+
+@include('admin.payments.partials.update-proof-modal')
 
 <!-- Payment Rejection Modal -->
 <div class="modal fade" id="rejectPaymentModal" tabindex="-1" aria-labelledby="rejectPaymentModalLabel" aria-hidden="true">
