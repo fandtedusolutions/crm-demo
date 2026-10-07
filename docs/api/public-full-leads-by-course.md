@@ -1,6 +1,8 @@
 # Public Full Leads by Course API
 
-Export full lead → registration → student payloads for syncing into another CRM.
+Export full lead → registration → student → invoice payloads for syncing into another CRM.
+
+Only leads with `deleted_at` null are returned. Soft-deleted invoices and payments are omitted. Soft-deleted converted students are omitted, so a lead can still be returned without a `student` when that student was deleted.
 
 ## Endpoint
 
@@ -267,6 +269,55 @@ If `CRM_API_KEY` is empty or the header does not match, the API returns `401`.
         "remarks": null,
         "created_at": "2026-03-01 10:00:00",
         "updated_at": "2026-03-01 10:00:00"
+      },
+      "invoices": [
+        {
+          "id": 12,
+          "invoice_number": "INV2026030001",
+          "invoice_type": "course",
+          "total_amount": 10000,
+          "discount_amount": 500,
+          "net_amount": 9500,
+          "paid_amount": 5000,
+          "pending_amount": 4500,
+          "status": "Partially Paid",
+          "invoice_date": "2026-03-01",
+          "deleted_at": null,
+          "payments": [
+            {
+              "id": 40,
+              "amount_paid": 5000,
+              "payment_type": "Online",
+              "transaction_id": "TXN123",
+              "payment_date": "2026-03-02",
+              "status": "Approved",
+              "file_url": "https://crm.example/storage/payments/proof.pdf",
+              "deleted_at": null,
+              "proofs": [],
+              "receipt": {
+                "can_generate_receipt": true,
+                "receipt_number": "RCPT-40",
+                "amount_paid": 5000,
+                "payment_type": "Online",
+                "transaction_id": "TXN123",
+                "payment_date": "2026-03-02",
+                "approved_date": "2026-03-02 11:00:00",
+                "file_url": "https://crm.example/storage/payments/proof.pdf"
+              }
+            }
+          ],
+          "payment_links": [],
+          "first_approved_payment_id": 40,
+          "can_generate_tax_invoice": true
+        }
+      ],
+      "payment_summary": {
+        "invoice_count": 1,
+        "total_gross": 10000,
+        "total_discount": 500,
+        "total_net": 9500,
+        "total_paid": 5000,
+        "total_pending": 4500
       }
     }
   ],
@@ -291,6 +342,8 @@ If `CRM_API_KEY` is empty or the header does not match, the API returns `401`.
 | `student` | `converted_leads` → destination `students`. `registration_number` is `converted_student_details.registration_number`, or `converted_leads.register_number` when that detail is empty. `class_time` is the mentor class time, or the student-detail class time. |
 | `student_details` | Converted flags/ops → destination `student_details`, including `registration_number` and `class_time` |
 | `converted_lead` | Full source `converted_leads` row (extra source fields) |
+| `invoices` | Active `invoices` for the converted student (`deleted_at` null), each with active `payments`, payment proof file URLs, receipt data for approved payments, and `payment_links`. Empty array when the lead has no active student. |
+| `payment_summary` | Totals across `invoices` (gross, discount, net, paid, pending) |
 
 ### Documents notes
 
@@ -364,4 +417,6 @@ curl -X GET "https://crm-demo.test/api/v1/public/leads/by-course/5?only_with_reg
 2. Create `leads` from `data[].lead`.
 3. Create `lead_details` from `data[].registration` when present.
 4. Download files from `documents.*.url` (or `registration.documents.*_file`) into `storage/app/public/student-documents/` and store `storage/student-documents/...` paths.
-5. If `lead.is_converted` is true, create `students` + `student_details` from `student` / `student_details`.
+5. If `lead.is_converted` is true and `student.deleted_at` is null, create `students` + `student_details` from `student` / `student_details`.
+6. Skip any record whose `lead.deleted_at` is not null. This API already excludes those leads.
+7. For each item in `invoices`, create the destination invoice, then its `payments` (download `file_url` / `proofs[].file_url`), and `payment_links`. Approved payments are the payment receipts (`receipt.can_generate_receipt` is true, `receipt.receipt_number` is `RCPT-{payment id}`).

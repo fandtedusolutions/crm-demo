@@ -5,8 +5,12 @@ namespace App\Http\Controllers\API\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\ConvertedLead;
+use App\Models\Invoice;
 use App\Models\Lead;
 use App\Models\LeadDetail;
+use App\Models\Payment;
+use App\Models\PaymentLink;
+use App\Models\PaymentProof;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,8 +19,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 /**
- * Public export API for syncing full lead → registration → student payloads
- * into another CRM (shaped to that CRM's leads / lead_details / students tables).
+ * Public export API for syncing full lead → registration → student → invoice payloads
+ * into another CRM (shaped to that CRM's leads / lead_details / students / invoices tables).
+ * Only leads with deleted_at null are returned.
  *
  * GET /api/v1/public/leads/by-course/{course_id}
  * Auth: X-CRM-API-KEY header (config services.lms.api_key / CRM_API_KEY)
@@ -76,10 +81,27 @@ class FullLeadsByCourseController extends Controller
         $query = Lead::query()
             ->withoutGlobalScope('exclude_pullbacked')
             ->where('course_id', $courseId)
+            ->whereNull('deleted_at')
             ->with([
+                'studentDetails' => function ($query) {
+                    $query->whereNull('deleted_at');
+                },
                 'studentDetails.sslcCertificates',
+                'convertedLead' => function ($query) {
+                    $query->whereNull('deleted_at');
+                },
                 'convertedLead.studentDetails',
                 'convertedLead.mentorDetails',
+                'convertedLead.invoices' => function ($query) {
+                    $query->whereNull('deleted_at')->orderBy('id');
+                },
+                'convertedLead.invoices.course:id,title',
+                'convertedLead.invoices.batch:id,title',
+                'convertedLead.invoices.payments' => function ($query) {
+                    $query->whereNull('deleted_at')->orderBy('id');
+                },
+                'convertedLead.invoices.payments.proofs',
+                'convertedLead.invoices.paymentLinks',
                 'batch:id,title',
             ])
             ->orderBy('id');
@@ -143,6 +165,7 @@ class FullLeadsByCourseController extends Controller
     {
         $detail = $lead->studentDetails;
         $converted = $lead->convertedLead;
+        $invoices = $converted ? $this->formatInvoices($converted) : [];
 
         return [
             'source_lead_id' => $lead->id,
@@ -152,6 +175,8 @@ class FullLeadsByCourseController extends Controller
             'student' => $converted ? $this->formatStudent($converted) : null,
             'student_details' => $converted ? $this->formatStudentDetails($converted) : null,
             'converted_lead' => $converted ? $this->formatConvertedLeadRaw($converted) : null,
+            'invoices' => $invoices,
+            'payment_summary' => $this->summarizeInvoices($invoices),
         ];
     }
 
@@ -457,6 +482,190 @@ class FullLeadsByCourseController extends Controller
             'remarks' => $converted->remarks,
             'created_at' => $converted->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $converted->updated_at?->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    /**
+     * Active invoices for the converted student, including payments, receipts, and payment links.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function formatInvoices(ConvertedLead $converted): array
+    {
+        if (! $converted->relationLoaded('invoices')) {
+            return [];
+        }
+
+        return $converted->invoices
+            ->filter(fn (Invoice $invoice) => $invoice->deleted_at === null)
+            ->map(function (Invoice $invoice) {
+                $payments = $invoice->payments
+                    ->filter(fn (Payment $payment) => $payment->deleted_at === null)
+                    ->map(fn (Payment $payment) => $this->formatPayment($payment))
+                    ->values();
+
+                $firstApproved = $payments->first(fn (array $payment) => ($payment['status'] ?? null) === 'Approved');
+
+                return [
+                    'id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'invoice_type' => $invoice->invoice_type,
+                    'course_id' => $invoice->course_id,
+                    'batch_id' => $invoice->batch_id,
+                    'student_id' => $invoice->student_id,
+                    'total_amount' => (float) $invoice->total_amount,
+                    'discount_amount' => (float) ($invoice->discount_amount ?? 0),
+                    'net_amount' => (float) $invoice->net_amount,
+                    'paid_amount' => (float) $invoice->paid_amount,
+                    'pending_amount' => (float) $invoice->pending_amount,
+                    'previous_balance' => (float) ($invoice->previous_balance ?? 0),
+                    'status' => $invoice->status,
+                    'invoice_date' => $invoice->invoice_date?->format('Y-m-d'),
+                    'service_name' => $invoice->service_name,
+                    'service_amount' => $invoice->service_amount !== null ? (float) $invoice->service_amount : null,
+                    'fee_pg_amount' => $invoice->fee_pg_amount !== null ? (float) $invoice->fee_pg_amount : null,
+                    'fee_ug_amount' => $invoice->fee_ug_amount !== null ? (float) $invoice->fee_ug_amount : null,
+                    'fee_plustwo_amount' => $invoice->fee_plustwo_amount !== null ? (float) $invoice->fee_plustwo_amount : null,
+                    'fee_sslc_amount' => $invoice->fee_sslc_amount !== null ? (float) $invoice->fee_sslc_amount : null,
+                    'course' => $invoice->course ? [
+                        'id' => $invoice->course->id,
+                        'title' => $invoice->course->title,
+                    ] : null,
+                    'batch' => $invoice->batch ? [
+                        'id' => $invoice->batch->id,
+                        'title' => $invoice->batch->title,
+                    ] : null,
+                    'created_at' => $invoice->created_at?->format('Y-m-d H:i:s'),
+                    'updated_at' => $invoice->updated_at?->format('Y-m-d H:i:s'),
+                    'deleted_at' => null,
+                    'payments' => $payments->all(),
+                    'payment_links' => $invoice->paymentLinks
+                        ->map(fn (PaymentLink $link) => $this->formatPaymentLink($link))
+                        ->values()
+                        ->all(),
+                    'first_approved_payment_id' => $firstApproved['id'] ?? null,
+                    'can_generate_tax_invoice' => $invoice->invoice_type === 'course' && $firstApproved !== null,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function formatPayment(Payment $payment): array
+    {
+        $proofs = $payment->relationLoaded('proofs')
+            ? $payment->proofs
+            : $payment->proofs()->get();
+
+        $formattedProofs = $proofs->map(function (PaymentProof $proof) {
+            return [
+                'id' => $proof->id,
+                'transaction_id' => $proof->transaction_id,
+                'file_path' => $this->normalizeStoragePath($proof->file_upload),
+                'file_url' => $this->buildFileUrl($proof->file_upload),
+                'sort_order' => (int) ($proof->sort_order ?? 0),
+            ];
+        })->values()->all();
+
+        $approved = $payment->status === 'Approved';
+
+        return [
+            'id' => $payment->id,
+            'invoice_id' => $payment->invoice_id,
+            'amount_paid' => (float) $payment->amount_paid,
+            'fee_head' => $payment->fee_head,
+            'previous_balance' => (float) ($payment->previous_balance ?? 0),
+            'payment_type' => $payment->payment_type,
+            'transaction_id' => $payment->transaction_id,
+            'payment_date' => $payment->payment_date?->format('Y-m-d'),
+            'file_path' => $this->normalizeStoragePath($payment->file_upload),
+            'file_url' => $this->buildFileUrl($payment->file_upload),
+            'status' => $payment->status,
+            'approved_date' => $payment->approved_date?->format('Y-m-d H:i:s'),
+            'approved_by' => $payment->approved_by,
+            'rejected_date' => $payment->rejected_date?->format('Y-m-d H:i:s'),
+            'rejected_by' => $payment->rejected_by,
+            'rejection_remarks' => $payment->rejection_remarks,
+            'remark' => $payment->remark,
+            'collected_by' => $payment->collected_by,
+            'created_by' => $payment->created_by,
+            'updated_by' => $payment->updated_by,
+            'created_at' => $payment->created_at?->format('Y-m-d H:i:s'),
+            'updated_at' => $payment->updated_at?->format('Y-m-d H:i:s'),
+            'deleted_at' => null,
+            'proofs' => $formattedProofs,
+            'receipt' => [
+                'can_generate_receipt' => $approved,
+                'receipt_number' => $approved ? 'RCPT-'.$payment->id : null,
+                'amount_paid' => (float) $payment->amount_paid,
+                'payment_type' => $payment->payment_type,
+                'transaction_id' => $payment->transaction_id,
+                'payment_date' => $payment->payment_date?->format('Y-m-d'),
+                'approved_date' => $approved ? $payment->approved_date?->format('Y-m-d H:i:s') : null,
+                'file_url' => $this->buildFileUrl($payment->file_upload),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function formatPaymentLink(PaymentLink $link): array
+    {
+        return [
+            'id' => $link->id,
+            'invoice_id' => $link->invoice_id,
+            'amount' => (float) $link->amount,
+            'currency' => $link->currency ?: 'INR',
+            'status' => $link->status,
+            'reference_id' => $link->reference_id,
+            'razorpay_id' => $link->razorpay_id,
+            'razorpay_payment_id' => $link->razorpay_payment_id,
+            'short_url' => $link->short_url,
+            'token' => $link->token,
+            'description' => $link->description,
+            'customer_name' => $link->customer_name,
+            'customer_email' => $link->customer_email,
+            'customer_phone' => $link->customer_phone,
+            'paid_at' => $link->paid_at?->format('Y-m-d H:i:s'),
+            'expires_at' => $link->expires_at?->format('Y-m-d H:i:s'),
+            'meta' => $link->meta,
+            'created_by' => $link->created_by,
+            'created_at' => $link->created_at?->format('Y-m-d H:i:s'),
+            'updated_at' => $link->updated_at?->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $invoices
+     * @return array{invoice_count:int,total_gross:float,total_discount:float,total_net:float,total_paid:float,total_pending:float}
+     */
+    private function summarizeInvoices(array $invoices): array
+    {
+        $gross = 0.0;
+        $discount = 0.0;
+        $net = 0.0;
+        $paid = 0.0;
+        $pending = 0.0;
+
+        foreach ($invoices as $invoice) {
+            $gross += (float) ($invoice['total_amount'] ?? 0);
+            $discount += (float) ($invoice['discount_amount'] ?? 0);
+            $net += (float) ($invoice['net_amount'] ?? 0);
+            $paid += (float) ($invoice['paid_amount'] ?? 0);
+            $pending += (float) ($invoice['pending_amount'] ?? 0);
+        }
+
+        return [
+            'invoice_count' => count($invoices),
+            'total_gross' => round($gross, 2),
+            'total_discount' => round($discount, 2),
+            'total_net' => round($net, 2),
+            'total_paid' => round($paid, 2),
+            'total_pending' => round($pending, 2),
         ];
     }
 
