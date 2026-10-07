@@ -348,7 +348,8 @@ If `CRM_API_KEY` is empty or the header does not match, the API returns `401`.
 ### Documents notes
 
 - Paths are normalized as `storage/student-documents/{file}` for destination import.
-- `url` is an absolute public URL the importer can download.
+- `url` is an absolute public URL (`/storage/...`, with encoded filenames).
+- `download_url` is `GET /api/v1/public/files/{path}` with the same `X-CRM-API-KEY`. Use it when `/storage/...` returns 404. The route reads the file from the public disk, so a missing `public/storage` link does not matter.
 - Destination `document_proof` is mapped from the first available of: `other_document`, `adhar_front`, `adhar_back`, `birth_certificate`.
 - `registration` / `student` / `student_details` / `converted_lead` / `documents` are `null` when that data does not exist for the lead.
 

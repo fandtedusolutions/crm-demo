@@ -26,6 +26,7 @@ use App\Http\Controllers\API\NatX_Api\WorkStatusController as NatXApiWorkStatusC
 use App\Http\Controllers\API\AppVersionController as CrmAppVersionController;
 use App\Http\Controllers\API\Webhook\MetaWhatsAppLeadWebhookController;
 use App\Http\Controllers\API\Public\FullLeadsByCourseController;
+use App\Http\Controllers\API\Public\PublicFileController;
 
 // Meta WhatsApp contact webhook (public — no API key)
 Route::post('v1/webhooks/meta-whatsapp', [MetaWhatsAppLeadWebhookController::class, 'store'])
@@ -35,6 +36,10 @@ Route::post('v1/webhooks/meta-whatsapp', [MetaWhatsAppLeadWebhookController::cla
 Route::get('v1/public/leads/by-course/{course_id}', FullLeadsByCourseController::class)
     ->whereNumber('course_id')
     ->name('api.public.leads.by-course');
+
+Route::get('v1/public/files/{path}', PublicFileController::class)
+    ->where('path', '.*')
+    ->name('api.public.files');
 
 //Call App API Routes
 Route::prefix('v1/call')->group(function () {

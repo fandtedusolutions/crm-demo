@@ -11,10 +11,8 @@ use App\Models\LeadDetail;
 use App\Models\Payment;
 use App\Models\PaymentLink;
 use App\Models\PaymentProof;
-use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -295,8 +293,10 @@ class FullLeadsByCourseController extends Controller
             'deleted_by' => $detail->deleted_by ?? null,
             'documents' => [
                 'passport_photo_file' => $this->buildFileUrl($detail->passport_photo),
+                'passport_photo_download_url' => $this->buildDownloadUrl($detail->passport_photo),
                 'passport_photo_path' => $passportPath,
                 'document_proof_file' => $this->buildFileUrl($documentProof['path'] ?? null),
+                'document_proof_download_url' => $this->buildDownloadUrl($documentProof['path'] ?? null),
                 'document_proof_path' => $documentProofPath,
                 'document_proof_source_field' => $documentProof['source_field'] ?? null,
             ],
@@ -346,6 +346,7 @@ class FullLeadsByCourseController extends Controller
                 'path' => $this->normalizeStoragePath($path),
                 'disk_path' => $this->diskRelativePath($path),
                 'url' => $this->buildFileUrl($path),
+                'download_url' => $this->buildDownloadUrl($path),
                 'verification_status' => $detail->{$statusField} ?? 'pending',
                 'verified_by' => $detail->{$verifiedByField} ?? null,
                 'verified_at' => isset($detail->{$verifiedAtField}) && $detail->{$verifiedAtField}
@@ -363,6 +364,7 @@ class FullLeadsByCourseController extends Controller
                     'path' => $this->normalizeStoragePath($path),
                     'disk_path' => $this->diskRelativePath($path),
                     'url' => $this->buildFileUrl($path),
+                    'download_url' => $this->buildDownloadUrl($path),
                     'original_filename' => $certificate->original_filename ?? null,
                     'verification_status' => $certificate->verification_status ?? 'pending',
                     'verified_by' => $certificate->verified_by,
@@ -566,6 +568,7 @@ class FullLeadsByCourseController extends Controller
                 'transaction_id' => $proof->transaction_id,
                 'file_path' => $this->normalizeStoragePath($proof->file_upload),
                 'file_url' => $this->buildFileUrl($proof->file_upload),
+                'download_url' => $this->buildDownloadUrl($proof->file_upload),
                 'sort_order' => (int) ($proof->sort_order ?? 0),
             ];
         })->values()->all();
@@ -583,6 +586,7 @@ class FullLeadsByCourseController extends Controller
             'payment_date' => $payment->payment_date?->format('Y-m-d'),
             'file_path' => $this->normalizeStoragePath($payment->file_upload),
             'file_url' => $this->buildFileUrl($payment->file_upload),
+            'download_url' => $this->buildDownloadUrl($payment->file_upload),
             'status' => $payment->status,
             'approved_date' => $payment->approved_date?->format('Y-m-d H:i:s'),
             'approved_by' => $payment->approved_by,
@@ -606,6 +610,7 @@ class FullLeadsByCourseController extends Controller
                 'payment_date' => $payment->payment_date?->format('Y-m-d'),
                 'approved_date' => $approved ? $payment->approved_date?->format('Y-m-d H:i:s') : null,
                 'file_url' => $this->buildFileUrl($payment->file_upload),
+                'download_url' => $this->buildDownloadUrl($payment->file_upload),
             ],
         ];
     }
@@ -823,14 +828,33 @@ class FullLeadsByCourseController extends Controller
             return null;
         }
 
-        /** @var FilesystemAdapter $publicDisk */
-        $publicDisk = Storage::disk('public');
+        return $this->absoluteStorageUrl($diskPath);
+    }
 
-        if ($publicDisk->exists($diskPath)) {
-            return $publicDisk->url($diskPath);
+    /**
+     * API download that reads the file from disk. Use this when /storage/... returns 404.
+     */
+    private function buildDownloadUrl(?string $path): ?string
+    {
+        $diskPath = $this->diskRelativePath($path);
+        if (!$diskPath) {
+            return null;
         }
 
-        return asset('storage/' . ltrim($diskPath, '/'));
+        return rtrim((string) config('app.url'), '/') . '/api/v1/public/files/' . $this->encodeDiskPath($diskPath);
+    }
+
+    private function absoluteStorageUrl(string $diskPath): string
+    {
+        return rtrim((string) config('app.url'), '/') . '/storage/' . $this->encodeDiskPath($diskPath);
+    }
+
+    private function encodeDiskPath(string $diskPath): string
+    {
+        return implode('/', array_map(
+            fn (string $segment) => rawurlencode(rawurldecode($segment)),
+            explode('/', $diskPath)
+        ));
     }
 
     private function registrationNumberFor(ConvertedLead $converted): ?string

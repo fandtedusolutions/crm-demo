@@ -90,6 +90,8 @@ class FullLeadsByCourseExportTest extends TestCase
         $this->assertSame('RCPT-40', $invoices[0]['payments'][0]['receipt']['receipt_number']);
         $this->assertSame('TXN-40', $invoices[0]['payments'][0]['proofs'][0]['transaction_id']);
         $this->assertNotNull($invoices[0]['payments'][0]['proofs'][0]['file_url']);
+        $this->assertStringContainsString('/api/v1/public/files/payments/proof.pdf', $invoices[0]['payments'][0]['download_url']);
+        $this->assertStringContainsString('/storage/payments/proof.pdf', $invoices[0]['payments'][0]['file_url']);
         $this->assertSame(40, $invoices[0]['first_approved_payment_id']);
         $this->assertTrue($invoices[0]['can_generate_tax_invoice']);
 
