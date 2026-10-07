@@ -10,7 +10,23 @@
         vertical-align: middle;
     }
     .table td .btn-group { white-space: nowrap; }
-    .table td .inline-edit { white-space: nowrap; }
+    .table td .inline-edit { white-space: nowrap; position: relative; overflow: visible; }
+    .inline-edit .edit-form {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 30;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px;
+        min-width: 220px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+    .inline-edit.editing .edit-form { display: block; }
+    .inline-edit.editing .display-value,
+    .inline-edit.editing .edit-btn { display: none !important; }
     .table td .display-value {
         white-space: nowrap;
         overflow: hidden;
@@ -217,12 +233,13 @@
                                         </div>
                                     </td>
                                     <td>
-                                        @if(($course && $course->needs_time) && (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant()))
+                                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
                                         <div class="inline-edit"
                                              data-field="class_time_id"
                                              data-id="{{ $convertedLead->id }}"
-                                             data-course-id="{{ $convertedLead->course_id }}"
-                                             data-programme-type="{{ $leadDetailPromptEngineering?->programme_type ?? 'online' }}"
+                                             data-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() ?: 34 }}"
+                                             data-listing-course-id="{{ \App\Models\ConvertedLead::currentListingCourseId() ?: 34 }}"
+                                             data-programme-type="{{ $leadDetailPromptEngineering?->programme_type ?? '' }}"
                                              data-current-id="{{ $leadDetailPromptEngineering?->class_time_id }}">
                                             <span class="display-value">
                                                 @if($leadDetailPromptEngineering && $leadDetailPromptEngineering->classTime)
@@ -495,23 +512,33 @@ $(document).ready(function() {
         return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     }
 
+    function renderInlineClassTimeOptions(list, programmeType, $select, currentId) {
+        var times = Array.isArray(list) ? list.slice() : [];
+        if (programmeType) {
+            var matched = times.filter(function (t) {
+                return !t.class_type || String(t.class_type) === String(programmeType);
+            });
+            if (matched.length) {
+                times = matched;
+            }
+        }
+        var options = '<option value="">Select Class Time</option>';
+        times.forEach(function (t) {
+            var selected = String(currentId) === String(t.id) ? 'selected' : '';
+            var label = formatClassTimeLabel(t.from_time) + ' - ' + formatClassTimeLabel(t.to_time);
+            options += '<option value="' + t.id + '" ' + selected + '>' + label + '</option>';
+        });
+        $select.html(options).focus();
+    }
+
     function loadInlineClassTimes(courseId, programmeType, $select, currentId) {
         if (!courseId) {
             $select.html('<option value="">No course selected</option>');
             return;
         }
-        var classType = programmeType || 'online';
-        $.get('/api/class-times/by-course/' + courseId + '?class_type=' + encodeURIComponent(classType))
+        $.get('/api/class-times/by-course/' + courseId)
             .done(function (list) {
-                var options = '<option value="">Select Class Time</option>';
-                if (list && list.length) {
-                    list.forEach(function (t) {
-                        var selected = String(currentId) === String(t.id) ? 'selected' : '';
-                        var label = formatClassTimeLabel(t.from_time) + ' - ' + formatClassTimeLabel(t.to_time);
-                        options += '<option value="' + t.id + '" ' + selected + '>' + label + '</option>';
-                    });
-                }
-                $select.html(options).focus();
+                renderInlineClassTimeOptions(list, programmeType, $select, currentId);
             })
             .fail(function () {
                 $select.html('<option value="">Error loading class times</option>');
@@ -659,8 +686,8 @@ $(document).ready(function() {
             var selectFac = container.find('select');
             loadInlineFaculties(selectFac, currentId);
         } else if (field === 'class_time_id') {
-            var courseIdCt = container.data('course-id') || 34;
-            var programmeType = container.data('programme-type') || 'online';
+            var courseIdCt = container.data('course-id') || container.data('listing-course-id') || 34;
+            var programmeType = container.data('programme-type') || '';
             loadInlineClassTimes(courseIdCt, programmeType, container.find('select'), currentId);
         } else {
             container.find('input, select').first().focus();
@@ -686,6 +713,7 @@ $(document).ready(function() {
             data: {
                 field: field,
                 value: value,
+                listing_course_id: container.data('listing-course-id') || '',
                 _token: '{{ csrf_token() }}'
             },
             success: function(response) {

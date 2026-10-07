@@ -189,6 +189,8 @@ If `CRM_API_KEY` is empty or the header does not match, the API returns `401`.
         "lead_id": 101,
         "name": "Student Full Name",
         "register_number": null,
+        "registration_number": "EDU-1001",
+        "class_time": "09:30:00",
         "is_academic_verified": false,
         "academic_verified_by": null,
         "academic_verified_at": null,
@@ -219,6 +221,8 @@ If `CRM_API_KEY` is empty or the header does not match, the API returns `401`.
         "called_time": null,
         "screening_date": null,
         "class_status": null,
+        "class_time": "09:30:00",
+        "registration_number": "EDU-1001",
         "remarks": null,
         "continuing_studies": null,
         "reason": null,
@@ -238,6 +242,8 @@ If `CRM_API_KEY` is empty or the header does not match, the API returns `401`.
         "email": "student@example.com",
         "dob": "2005-01-15",
         "register_number": null,
+        "registration_number": "EDU-1001",
+        "class_time": "09:30:00",
         "course_id": 5,
         "batch_id": 12,
         "admission_batch_id": null,
@@ -282,8 +288,8 @@ If `CRM_API_KEY` is empty or the header does not match, the API returns `401`.
 | `lead` | `leads` (`title` → `name`) shaped for destination CRM `leads` |
 | `registration` | `leads_details` shaped for destination `lead_details` / registration import |
 | `documents` | All uploaded registration files with public URLs |
-| `student` | `converted_leads` → destination `students` |
-| `student_details` | Converted flags/ops → destination `student_details` |
+| `student` | `converted_leads` → destination `students`. `registration_number` is `converted_student_details.registration_number`, or `converted_leads.register_number` when that detail is empty. `class_time` is the mentor class time, or the student-detail class time. |
+| `student_details` | Converted flags/ops → destination `student_details`, including `registration_number` and `class_time` |
 | `converted_lead` | Full source `converted_leads` row (extra source fields) |
 
 ### Documents notes

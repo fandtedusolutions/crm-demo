@@ -2435,10 +2435,7 @@ class ConvertedLeadController extends Controller
         $country_codes = get_country_code();
 
         $course = \App\Models\Course::find($courseId);
-        $classTimes = collect();
-        if ($course && $course->needs_time) {
-            $classTimes = \App\Models\ClassTime::where('course_id', $courseId)->where('is_active', true)->get();
-        }
+        $classTimes = \App\Models\ClassTime::where('course_id', $courseId)->where('is_active', true)->get();
 
         return view($viewName, compact(
             'convertedLeads', 'courses', 'batches', 'admission_batches', 'country_codes', 'course', 'classTimes'
@@ -4509,20 +4506,26 @@ class ConvertedLeadController extends Controller
         $mentorDetailFields = ['all_online_result_publication_date', 'online_result_publication_date', 'certificate_publication_date', 'certificate_distribution_mode', 'courier_tracking_number', 'call_time'];
         
         if (in_array($field, $leadDetailFields)) {
+            // Class time on a course listing belongs to that course's registration row.
+            $detailCourseId = (int) ($convertedLead->course_id ?? 0);
+            if ($field === 'class_time_id' && (int) $request->input('listing_course_id') > 0) {
+                $detailCourseId = (int) $request->input('listing_course_id');
+            }
+
             // Update in LeadDetail (prefer row matching converted lead course)
             $leadDetail = null;
-            if ($convertedLead->course_id) {
+            if ($detailCourseId) {
                 $leadDetail = \App\Models\LeadDetail::where('lead_id', $convertedLead->lead_id)
-                    ->where('course_id', $convertedLead->course_id)
+                    ->where('course_id', $detailCourseId)
                     ->first();
             }
-            if (!$leadDetail) {
+            if (!$leadDetail && $field !== 'class_time_id') {
                 $leadDetail = $convertedLead->leadDetail;
             }
             if (!$leadDetail) {
                 $leadDetail = \App\Models\LeadDetail::create([
                     'lead_id' => $convertedLead->lead_id,
-                    'course_id' => $convertedLead->course_id,
+                    'course_id' => $detailCourseId ?: $convertedLead->course_id,
                 ]);
             }
             

@@ -79,6 +79,7 @@ class FullLeadsByCourseController extends Controller
             ->with([
                 'studentDetails.sslcCertificates',
                 'convertedLead.studentDetails',
+                'convertedLead.mentorDetails',
                 'batch:id,title',
             ])
             ->orderBy('id');
@@ -357,6 +358,8 @@ class FullLeadsByCourseController extends Controller
             'lead_id' => $converted->lead_id,
             'name' => $converted->name,
             'register_number' => $converted->register_number,
+            'registration_number' => $this->registrationNumberFor($converted),
+            'class_time' => $this->classTimeFor($converted),
             'is_academic_verified' => (bool) $converted->is_academic_verified,
             'academic_verified_by' => $converted->academic_verified_by,
             'academic_verified_at' => $converted->academic_verified_at
@@ -401,6 +404,8 @@ class FullLeadsByCourseController extends Controller
                 ? $this->formatDate($details->screening)
                 : null,
             'class_status' => $details?->class_status,
+            'class_time' => $this->classTimeFor($converted),
+            'registration_number' => $this->registrationNumberFor($converted),
             'remarks' => $details?->remarks,
             'continuing_studies' => $details?->continuing_studies,
             'reason' => $details?->reason,
@@ -427,6 +432,8 @@ class FullLeadsByCourseController extends Controller
             'email' => $converted->email,
             'dob' => $this->formatDate($converted->dob),
             'register_number' => $converted->register_number,
+            'registration_number' => $this->registrationNumberFor($converted),
+            'class_time' => $this->classTimeFor($converted),
             'course_id' => $converted->course_id,
             'batch_id' => $converted->batch_id,
             'admission_batch_id' => $converted->admission_batch_id,
@@ -615,6 +622,23 @@ class FullLeadsByCourseController extends Controller
         }
 
         return asset('storage/' . ltrim($diskPath, '/'));
+    }
+
+    private function registrationNumberFor(ConvertedLead $converted): ?string
+    {
+        $fromDetails = $converted->studentDetails?->registration_number;
+        if (filled($fromDetails)) {
+            return (string) $fromDetails;
+        }
+
+        return filled($converted->register_number) ? (string) $converted->register_number : null;
+    }
+
+    private function classTimeFor(ConvertedLead $converted): ?string
+    {
+        return $this->formatTimeValue(
+            $converted->mentorDetails?->class_time ?: $converted->studentDetails?->class_time
+        );
     }
 
     private function formatDate(mixed $value): ?string
