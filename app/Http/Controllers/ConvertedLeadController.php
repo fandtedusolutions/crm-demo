@@ -2436,6 +2436,7 @@ class ConvertedLeadController extends Controller
 
         $course = \App\Models\Course::find($courseId);
         $classTimes = \App\Models\ClassTime::where('course_id', $courseId)
+            ->where('is_active', true)
             ->orderBy('from_time')
             ->orderBy('id')
             ->get(['id', 'class_type', 'from_time', 'to_time', 'is_active']);
