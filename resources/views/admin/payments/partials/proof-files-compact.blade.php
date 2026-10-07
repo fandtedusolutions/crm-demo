@@ -6,9 +6,12 @@
     <div class="d-flex flex-column gap-1">
         @foreach($displayProofs as $proof)
             @php
-                $viewUrl = !empty($proof->id)
+                $proofUpdatedAt = $proof->updated_at ?? $payment->updated_at ?? null;
+                $proofVersion = $proofUpdatedAt instanceof \DateTimeInterface ? $proofUpdatedAt->getTimestamp() : null;
+                $proofVersionQuery = $proofVersion ? ('?v=' . $proofVersion) : '';
+                $viewUrl = (!empty($proof->id)
                     ? route('admin.payments.proofs.view', $proof->id)
-                    : route('admin.payments.view', $payment->id);
+                    : route('admin.payments.view', $payment->id)) . $proofVersionQuery;
             @endphp
             <a href="{{ $viewUrl }}" class="btn btn-outline-primary btn-sm" title="View Receipt/Proof" target="_blank">
                 <i class="ti ti-file-invoice"></i>

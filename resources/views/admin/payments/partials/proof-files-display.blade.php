@@ -9,12 +9,15 @@
     <div class="d-flex flex-column gap-1">
         @foreach($displayProofs as $proof)
             @php
-                $viewUrl = !empty($proof->id)
+                $proofUpdatedAt = $proof->updated_at ?? $payment->updated_at ?? null;
+                $proofVersion = $proofUpdatedAt instanceof \DateTimeInterface ? $proofUpdatedAt->getTimestamp() : null;
+                $proofVersionQuery = $proofVersion ? ('?v=' . $proofVersion) : '';
+                $viewUrl = (!empty($proof->id)
                     ? route('admin.payments.proofs.view', $proof->id)
-                    : route('admin.payments.view', $payment->id);
-                $downloadUrl = !empty($proof->id)
+                    : route('admin.payments.view', $payment->id)) . $proofVersionQuery;
+                $downloadUrl = (!empty($proof->id)
                     ? route('admin.payments.proofs.download', $proof->id)
-                    : route('admin.payments.download', $payment->id);
+                    : route('admin.payments.download', $payment->id)) . $proofVersionQuery;
                 $fileName = basename($proof->file_upload);
             @endphp
             <div class="btn-group btn-group-sm" role="group" aria-label="Receipt/Proof {{ $loop->iteration }}">

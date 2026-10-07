@@ -597,13 +597,11 @@ class PaymentController extends Controller
                 ->with('message_danger', 'File not found.');
         }
 
-        $filePath = storage_path('app/public/' . $proof->file_upload);
-        $mimeType = mime_content_type($filePath);
-
-        return response()->file($filePath, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($proof->file_upload) . '"',
-        ]);
+        return $this->respondWithStoredProof(
+            storage_path('app/public/' . $proof->file_upload),
+            basename($proof->file_upload),
+            false
+        );
     }
 
     /**
@@ -619,9 +617,10 @@ class PaymentController extends Controller
                 ->with('message_danger', 'File not found.');
         }
 
-        return response()->download(
+        return $this->respondWithStoredProof(
             storage_path('app/public/' . $proof->file_upload),
-            basename($proof->file_upload)
+            basename($proof->file_upload),
+            true
         );
     }
 
@@ -788,6 +787,31 @@ class PaymentController extends Controller
     }
 
     /**
+     * Serve a proof without letting the browser reuse an older file from the same address.
+     */
+    private function respondWithStoredProof(string $absolutePath, string $downloadName, bool $download)
+    {
+        $headers = [
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ];
+
+        if ($download) {
+            $response = response()->download($absolutePath, $downloadName, $headers);
+        } else {
+            $headers['Content-Type'] = mime_content_type($absolutePath) ?: 'application/octet-stream';
+            $headers['Content-Disposition'] = 'inline; filename="' . $downloadName . '"';
+            $response = response()->file($absolutePath, $headers);
+        }
+
+        $response->setAutoEtag(false);
+        $response->setAutoLastModified(false);
+
+        return $response;
+    }
+
+    /**
      * Remove a stored proof only when no payment still references it.
      */
     private function deleteUnusedProofFile(?string $path): void
@@ -819,13 +843,11 @@ class PaymentController extends Controller
                 ->with('message_danger', 'File not found.');
         }
 
-        $filePath = storage_path('app/public/' . $payment->file_upload);
-        $mimeType = mime_content_type($filePath);
-        
-        return response()->file($filePath, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($payment->file_upload) . '"'
-        ]);
+        return $this->respondWithStoredProof(
+            storage_path('app/public/' . $payment->file_upload),
+            basename($payment->file_upload),
+            false
+        );
     }
 
     /**
@@ -843,7 +865,11 @@ class PaymentController extends Controller
                 ->with('message_danger', 'File not found.');
         }
 
-        return response()->download(storage_path('app/public/' . $payment->file_upload), basename($payment->file_upload));
+        return $this->respondWithStoredProof(
+            storage_path('app/public/' . $payment->file_upload),
+            basename($payment->file_upload),
+            true
+        );
     }
 
     /**

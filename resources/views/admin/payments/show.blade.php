@@ -227,12 +227,15 @@
                                             <i class="fas fa-file fa-3x text-primary mb-3"></i>
                                             <p class="mb-3">Receipt/Proof {{ $displayProofFiles->count() > 1 ? $loop->iteration : 'Document' }}</p>
                                             @php
-                                                $viewUrl = !empty($proof->id)
+                                                $proofUpdatedAt = $proof->updated_at ?? $payment->updated_at ?? null;
+                                                $proofVersion = $proofUpdatedAt instanceof \DateTimeInterface ? $proofUpdatedAt->getTimestamp() : null;
+                                                $proofVersionQuery = $proofVersion ? ('?v=' . $proofVersion) : '';
+                                                $viewUrl = (!empty($proof->id)
                                                     ? route('admin.payments.proofs.view', $proof->id)
-                                                    : route('admin.payments.view', $payment->id);
-                                                $downloadUrl = !empty($proof->id)
+                                                    : route('admin.payments.view', $payment->id)) . $proofVersionQuery;
+                                                $downloadUrl = (!empty($proof->id)
                                                     ? route('admin.payments.proofs.download', $proof->id)
-                                                    : route('admin.payments.download', $payment->id);
+                                                    : route('admin.payments.download', $payment->id)) . $proofVersionQuery;
                                                 $proofFileName = basename($proof->file_upload);
                                                 $proofTransactionId = $proof->transaction_id ?? '';
                                             @endphp
