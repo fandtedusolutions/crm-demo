@@ -26,9 +26,13 @@
                 </a>
                 @if(!empty($canUpdateProof))
                     <button type="button"
-                            class="btn btn-outline-secondary"
+                            class="btn btn-outline-secondary js-update-payment-proof"
                             title="Update {{ $fileName }}"
-                            onclick="showUpdateProofModal({{ $payment->id }}, {{ !empty($proof->id) ? (int) $proof->id : 'null' }}, @json($fileName), @json($proof->transaction_id ?? ''), {{ $isRejectedPayment ? 'true' : 'false' }})">
+                            data-payment-id="{{ $payment->id }}"
+                            data-proof-id="{{ $proof->id ?? '' }}"
+                            data-file-name="{{ $fileName }}"
+                            data-transaction-id="{{ $proof->transaction_id ?? '' }}"
+                            data-rejected="{{ $isRejectedPayment ? '1' : '0' }}">
                         <i class="fas fa-pen"></i>
                     </button>
                 @endif
@@ -42,9 +46,13 @@
         </span>
         @if(!empty($canUpdateProof))
             <button type="button"
-                    class="btn btn-sm btn-outline-primary"
+                    class="btn btn-sm btn-outline-primary js-update-payment-proof"
                     title="Upload receipt/proof"
-                    onclick="showUpdateProofModal({{ $payment->id }}, {{ $uploadTarget && !empty($uploadTarget->id) ? (int) $uploadTarget->id : 'null' }}, '', @json($uploadTarget->transaction_id ?? $payment->transaction_id ?? ''), {{ $isRejectedPayment ? 'true' : 'false' }})">
+                    data-payment-id="{{ $payment->id }}"
+                    data-proof-id="{{ $uploadTarget->id ?? '' }}"
+                    data-file-name=""
+                    data-transaction-id="{{ $uploadTarget->transaction_id ?? $payment->transaction_id ?? '' }}"
+                    data-rejected="{{ $isRejectedPayment ? '1' : '0' }}">
                 <i class="fas fa-upload"></i>
             </button>
         @endif

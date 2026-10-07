@@ -244,8 +244,12 @@
                                             </a>
                                             @if($canUpdateProof)
                                                 <button type="button"
-                                                        class="btn btn-outline-secondary mt-2"
-                                                        onclick="showUpdateProofModal({{ $payment->id }}, {{ !empty($proof->id) ? (int) $proof->id : 'null' }}, @json($proofFileName), @json($proofTransactionId), {{ $payment->status === 'Rejected' ? 'true' : 'false' }})">
+                                                        class="btn btn-outline-secondary mt-2 js-update-payment-proof"
+                                                        data-payment-id="{{ $payment->id }}"
+                                                        data-proof-id="{{ $proof->id ?? '' }}"
+                                                        data-file-name="{{ $proofFileName }}"
+                                                        data-transaction-id="{{ $proofTransactionId }}"
+                                                        data-rejected="{{ $payment->status === 'Rejected' ? '1' : '0' }}">
                                                     <i class="fas fa-pen"></i> Update File
                                                 </button>
                                             @endif
@@ -260,8 +264,12 @@
                                                 <i class="fas fa-file-slash fa-3x text-muted mb-3"></i>
                                                 <p class="mb-3">No receipt uploaded</p>
                                                 <button type="button"
-                                                        class="btn btn-outline-primary"
-                                                        onclick="showUpdateProofModal({{ $payment->id }}, null, '', @json($payment->transaction_id ?? ''), {{ $payment->status === 'Rejected' ? 'true' : 'false' }})">
+                                                        class="btn btn-outline-primary js-update-payment-proof"
+                                                        data-payment-id="{{ $payment->id }}"
+                                                        data-proof-id=""
+                                                        data-file-name=""
+                                                        data-transaction-id="{{ $payment->transaction_id ?? '' }}"
+                                                        data-rejected="{{ $payment->status === 'Rejected' ? '1' : '0' }}">
                                                     <i class="fas fa-upload"></i> Upload File
                                                 </button>
                                             </div>

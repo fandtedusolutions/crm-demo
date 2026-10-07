@@ -5,7 +5,10 @@
                 <h5 class="modal-title" id="updateProofModalLabel">Update Payment</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="updateProofForm" method="POST" enctype="multipart/form-data">
+            <form id="updateProofForm"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  data-action-template="{{ route('admin.payments.proofs.update', ['id' => '__PAYMENT_ID__']) }}">
                 @csrf
                 <input type="hidden" name="proof_id" id="updateProofId" value="">
                 <div class="modal-body">
@@ -43,25 +46,29 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
-    function showUpdateProofModal(paymentId, proofId, fileName, transactionId, isRejected) {
+    document.addEventListener('click', function (event) {
+        const button = event.target.closest('.js-update-payment-proof');
+        if (!button) {
+            return;
+        }
+
         const form = document.getElementById('updateProofForm');
-        const proofInput = document.getElementById('updateProofId');
-        const fileInput = document.getElementById('updateProofFile');
-        const transactionInput = document.getElementById('updateProofTransactionId');
+        const fileName = button.dataset.fileName || '';
         const current = document.getElementById('updateProofCurrent');
         const rejectedNotice = document.getElementById('updateProofRejectedNotice');
 
-        form.action = '{{ route('admin.payments.proofs.update', ':id') }}'.replace(':id', paymentId);
-        proofInput.value = proofId || '';
-        fileInput.value = '';
-        transactionInput.value = transactionId || '';
+        form.action = form.dataset.actionTemplate.replace('__PAYMENT_ID__', button.dataset.paymentId);
+        document.getElementById('updateProofId').value = button.dataset.proofId || '';
+        document.getElementById('updateProofFile').value = '';
+        document.getElementById('updateProofTransactionId').value = button.dataset.transactionId || '';
         current.textContent = fileName
             ? 'Current file: ' + fileName + '. Choose a new file only if you want to replace it.'
             : 'No receipt is uploaded yet. You can add one below.';
-        rejectedNotice.classList.toggle('d-none', !isRejected);
+        rejectedNotice.classList.toggle('d-none', button.dataset.rejected !== '1');
 
-        const modal = new bootstrap.Modal(document.getElementById('updateProofModal'));
-        modal.show();
-    }
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('updateProofModal')).show();
+    });
 </script>
+@endpush

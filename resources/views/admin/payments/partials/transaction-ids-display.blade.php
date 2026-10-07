@@ -14,9 +14,13 @@
                 @endif
                 @if(!empty($canUpdateProof))
                     <button type="button"
-                            class="btn btn-outline-secondary btn-sm py-0 px-1"
+                            class="btn btn-outline-secondary btn-sm py-0 px-1 js-update-payment-proof"
                             title="Edit transaction ID"
-                            onclick="showUpdateProofModal({{ $payment->id }}, {{ !empty($proof->id) ? (int) $proof->id : 'null' }}, @json(!empty($proof->file_upload) ? basename($proof->file_upload) : ''), @json($proof->transaction_id ?? ''), {{ $isRejectedPayment ? 'true' : 'false' }})">
+                            data-payment-id="{{ $payment->id }}"
+                            data-proof-id="{{ $proof->id ?? '' }}"
+                            data-file-name="{{ !empty($proof->file_upload) ? basename($proof->file_upload) : '' }}"
+                            data-transaction-id="{{ $proof->transaction_id ?? '' }}"
+                            data-rejected="{{ $isRejectedPayment ? '1' : '0' }}">
                         <i class="fas fa-pen"></i>
                     </button>
                 @endif
@@ -28,9 +32,13 @@
         <span class="text-muted">N/A</span>
         @if(!empty($canUpdateProof))
             <button type="button"
-                    class="btn btn-outline-secondary btn-sm py-0 px-1"
+                    class="btn btn-outline-secondary btn-sm py-0 px-1 js-update-payment-proof"
                     title="Edit transaction ID"
-                    onclick="showUpdateProofModal({{ $payment->id }}, null, '', @json($payment->transaction_id ?? ''), {{ $isRejectedPayment ? 'true' : 'false' }})">
+                    data-payment-id="{{ $payment->id }}"
+                    data-proof-id=""
+                    data-file-name=""
+                    data-transaction-id="{{ $payment->transaction_id ?? '' }}"
+                    data-rejected="{{ $isRejectedPayment ? '1' : '0' }}">
                 <i class="fas fa-pen"></i>
             </button>
         @endif

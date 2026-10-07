@@ -656,7 +656,7 @@ class PaymentController extends Controller
 
         $newTxn = trim((string) $request->input('transaction_id', ''));
         $newTxn = $newTxn !== '' ? $newTxn : null;
-        $proofId = $request->input('proof_id');
+        $proofId = $request->filled('proof_id') ? (int) $request->input('proof_id') : null;
 
         if ($newTxn && PaymentProofHelper::transactionIdExists($newTxn, $payment->id)) {
             return redirect()->back()
