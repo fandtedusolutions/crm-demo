@@ -411,6 +411,7 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    var pageClassTimes = @json($classTimeOptions);
     function loadAdmissionBatchesByBatch(batchId, selectedId) {
         var $admission = $('#admission_batch_id');
         $admission.html('<option value="">Loading...</option>');
@@ -492,11 +493,25 @@ $(document).ready(function() {
             '</div>';
     }
 
-    function createInlineClassTimeSelect() {
+    function classTimeOptionsHtml(currentId) {
+        var times = Array.isArray(pageClassTimes) ? pageClassTimes : [];
+        if (!times.length) {
+            return '<option value="">No class times for this course</option>';
+        }
+        var options = '<option value="">Select Class Time</option>';
+        times.forEach(function (t) {
+            var selected = String(currentId) === String(t.id) ? ' selected' : '';
+            var label = t.label || ((t.class_type ? t.class_type + ' ' : '') + (t.from_time || '') + ' - ' + (t.to_time || ''));
+            options += '<option value="' + t.id + '"' + selected + '>' + label + '</option>';
+        });
+        return options;
+    }
+
+    function createInlineClassTimeSelect(currentId) {
         return '' +
             '<div class="edit-form">' +
                 '<select class="form-select form-select-sm">' +
-                    '<option value="">Loading...</option>' +
+                    classTimeOptionsHtml(currentId) +
                 '</select>' +
                 '<div class="btn-group mt-1">' +
                     '<button type="button" class="btn btn-success btn-sm save-edit">Save</button>' +
@@ -512,33 +527,32 @@ $(document).ready(function() {
         return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
     }
 
-    function renderInlineClassTimeOptions(list, programmeType, $select, currentId) {
+    function renderInlineClassTimeOptions(list, $select, currentId) {
         var times = Array.isArray(list) ? list.slice() : [];
-        if (programmeType) {
-            var matched = times.filter(function (t) {
-                return !t.class_type || String(t.class_type) === String(programmeType);
-            });
-            if (matched.length) {
-                times = matched;
-            }
-        }
         var options = '<option value="">Select Class Time</option>';
         times.forEach(function (t) {
-            var selected = String(currentId) === String(t.id) ? 'selected' : '';
-            var label = formatClassTimeLabel(t.from_time) + ' - ' + formatClassTimeLabel(t.to_time);
-            options += '<option value="' + t.id + '" ' + selected + '>' + label + '</option>';
+            var selected = String(currentId) === String(t.id) ? ' selected' : '';
+            var label = t.label || (formatClassTimeLabel(t.from_time) + ' - ' + formatClassTimeLabel(t.to_time));
+            options += '<option value="' + t.id + '"' + selected + '>' + label + '</option>';
         });
+        if (!times.length) {
+            options = '<option value="">No class times for this course</option>';
+        }
         $select.html(options).focus();
     }
 
-    function loadInlineClassTimes(courseId, programmeType, $select, currentId) {
+    function loadInlineClassTimes(courseId, $select, currentId) {
+        if (Array.isArray(pageClassTimes) && pageClassTimes.length) {
+            renderInlineClassTimeOptions(pageClassTimes, $select, currentId);
+            return;
+        }
         if (!courseId) {
             $select.html('<option value="">No course selected</option>');
             return;
         }
         $.get('/api/class-times/by-course/' + courseId)
             .done(function (list) {
-                renderInlineClassTimeOptions(list, programmeType, $select, currentId);
+                renderInlineClassTimeOptions(list, $select, currentId);
             })
             .fail(function () {
                 $select.html('<option value="">Error loading class times</option>');
@@ -660,7 +674,7 @@ $(document).ready(function() {
         } else if (field === 'admission_batch_id') {
             editForm = createInlineAdmissionBatchSelect();
         } else if (field === 'class_time_id') {
-            editForm = createInlineClassTimeSelect();
+            editForm = createInlineClassTimeSelect(currentId);
         } else if (field === 'faculty_id') {
             editForm = createInlineFacultySelect();
         } else if (field === 'finance_approval') {
@@ -686,9 +700,8 @@ $(document).ready(function() {
             var selectFac = container.find('select');
             loadInlineFaculties(selectFac, currentId);
         } else if (field === 'class_time_id') {
-            var courseIdCt = container.data('course-id') || container.data('listing-course-id') || 34;
-            var programmeType = container.data('programme-type') || '';
-            loadInlineClassTimes(courseIdCt, programmeType, container.find('select'), currentId);
+            var courseIdCt = container.attr('data-course-id') || container.attr('data-listing-course-id') || 34;
+            loadInlineClassTimes(courseIdCt, container.find('select'), currentId);
         } else {
             container.find('input, select').first().focus();
         }

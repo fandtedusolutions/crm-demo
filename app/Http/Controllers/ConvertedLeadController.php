@@ -2435,10 +2435,24 @@ class ConvertedLeadController extends Controller
         $country_codes = get_country_code();
 
         $course = \App\Models\Course::find($courseId);
-        $classTimes = \App\Models\ClassTime::where('course_id', $courseId)->where('is_active', true)->get();
+        $classTimes = \App\Models\ClassTime::where('course_id', $courseId)
+            ->orderBy('from_time')
+            ->orderBy('id')
+            ->get(['id', 'class_type', 'from_time', 'to_time', 'is_active']);
+        $classTimeOptions = $classTimes->map(function ($time) {
+            $type = $time->class_type ? ucfirst($time->class_type).' ' : '';
+
+            return [
+                'id' => $time->id,
+                'class_type' => $time->class_type,
+                'from_time' => (string) $time->from_time,
+                'to_time' => (string) $time->to_time,
+                'label' => trim($type.\Carbon\Carbon::parse($time->from_time)->format('h:i A').' - '.\Carbon\Carbon::parse($time->to_time)->format('h:i A')),
+            ];
+        })->values();
 
         return view($viewName, compact(
-            'convertedLeads', 'courses', 'batches', 'admission_batches', 'country_codes', 'course', 'classTimes'
+            'convertedLeads', 'courses', 'batches', 'admission_batches', 'country_codes', 'course', 'classTimes', 'classTimeOptions'
         ));
     }
 

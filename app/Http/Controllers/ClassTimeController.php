@@ -265,12 +265,6 @@ class ClassTimeController extends Controller
 
     public function getByCourse($courseId, Request $request)
     {
-        // Check if course needs time
-        $course = Course::find($courseId);
-        if (!$course || !$course->needs_time) {
-            return response()->json([]);
-        }
-
         $query = ClassTime::where('course_id', $courseId)
             ->where('is_active', true);
 
