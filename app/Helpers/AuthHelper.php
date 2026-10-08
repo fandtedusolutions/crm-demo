@@ -113,13 +113,13 @@ class AuthHelper
             return [];
         }
 
-        $users = User::where('team_id', $teamId)
+        $query = User::where('team_id', $teamId)
             ->where('role_id', 3)
-            ->whereNull('deleted_at')
-            ->pluck('id')
-            ->toArray();
+            ->whereNull('deleted_at');
 
-        return $users;
+        PostSaleLeadHelper::excludeHiddenTelecallersFromUserQuery($query);
+
+        return $query->pluck('id')->toArray();
     }
 
     /**

@@ -37,6 +37,7 @@ class User extends Authenticatable
         'is_active',
         'is_b2b',
         'is_postsale',
+        'hide_from_team_lead',
         'is_postsale_gm',
         'joining_date',
         'department_id',
@@ -70,6 +71,7 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'is_b2b' => 'boolean',
             'is_postsale' => 'boolean',
+            'hide_from_team_lead' => 'boolean',
             'is_postsale_gm' => 'boolean',
             'joining_date' => 'date',
         ];

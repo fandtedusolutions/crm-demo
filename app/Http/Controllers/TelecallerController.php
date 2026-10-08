@@ -144,6 +144,7 @@ class TelecallerController extends Controller
             'is_senior_manager' => 'nullable|boolean',
             'is_b2b' => 'nullable|boolean',
             'is_postsale' => 'nullable|boolean',
+            'hide_from_team_lead' => 'nullable|boolean',
             'joining_date' => 'nullable|date',
         ]);
 
@@ -165,6 +166,7 @@ class TelecallerController extends Controller
             'is_senior_manager' => $request->has('is_senior_manager') ? 1 : 0,
             'is_b2b' => $request->has('is_b2b') ? 1 : 0,
             'is_postsale' => $request->has('is_postsale') ? 1 : 0,
+            'hide_from_team_lead' => ($request->has('is_postsale') && $request->has('hide_from_team_lead')) ? 1 : 0,
             'joining_date' => $request->joining_date,
         ]);
 
@@ -212,6 +214,7 @@ class TelecallerController extends Controller
             'is_senior_manager' => 'nullable|boolean',
             'is_b2b' => 'nullable|boolean',
             'is_postsale' => 'nullable|boolean',
+            'hide_from_team_lead' => 'nullable|boolean',
             'joining_date' => 'required|date',
         ]);
 
@@ -228,6 +231,7 @@ class TelecallerController extends Controller
         $updateData['is_senior_manager'] = $request->has('is_senior_manager') ? 1 : 0;
         $updateData['is_b2b'] = $request->has('is_b2b') ? 1 : 0;
         $updateData['is_postsale'] = $request->has('is_postsale') ? 1 : 0;
+        $updateData['hide_from_team_lead'] = ($request->has('is_postsale') && $request->has('hide_from_team_lead')) ? 1 : 0;
 
         $telecaller->update($updateData);
 

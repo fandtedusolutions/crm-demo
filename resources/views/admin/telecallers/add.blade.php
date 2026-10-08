@@ -113,6 +113,17 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-12" id="hide_from_team_lead_wrap" style="display: none;">
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="hide_from_team_lead" id="hide_from_team_lead" value="1" {{ old('hide_from_team_lead') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="hide_from_team_lead">
+                            <i class="ti ti-eye-off me-1"></i>Hide from Team Lead
+                        </label>
+                        <small class="form-text text-muted d-block">When selected, the team lead will not see this telecaller or their leads. Only the Post-sale GM can see them in Leads and Bulk Re-assign.</small>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-success float-end">Submit</button>
@@ -121,6 +132,17 @@
 
 <script>
 $(document).ready(function() {
+    function toggleHideFromTeamLead() {
+        const show = $('#is_postsale').is(':checked');
+        $('#hide_from_team_lead_wrap').toggle(show);
+        if (!show) {
+            $('#hide_from_team_lead').prop('checked', false);
+        }
+    }
+
+    $('#is_postsale').on('change', toggleHideFromTeamLead);
+    toggleHideFromTeamLead();
+
     // Store all team options
     const allTeamOptions = $('#team_id option').clone();
     

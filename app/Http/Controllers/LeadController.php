@@ -3835,6 +3835,8 @@ class LeadController extends Controller
             if ($request->boolean('is_postsale') || \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
                 $query->where('is_postsale', 1);
             }
+
+            \App\Helpers\PostSaleLeadHelper::excludeHiddenTelecallersFromUserQuery($query);
             
             if ($isTeamLead && ! $canSeeAllTeamTelecallerOptions) {
                 // Team Lead (not elevated manager): Only show if it's their team
@@ -3956,6 +3958,17 @@ class LeadController extends Controller
         // Get telecaller names for activity history
         $toTelecaller = \App\Models\User::find($request->telecaller_id);
         $fromTelecaller = \App\Models\User::find($request->from_telecaller_id);
+
+        if (\App\Helpers\PostSaleLeadHelper::teamLeadShouldHideGmOnlyTelecallers()) {
+            $selfId = (int) AuthHelper::getCurrentUserId();
+            $touchesHiddenTelecaller = (\App\Helpers\PostSaleLeadHelper::isGmOnlyTelecaller($toTelecaller) && (int) $toTelecaller->id !== $selfId)
+                || (\App\Helpers\PostSaleLeadHelper::isGmOnlyTelecaller($fromTelecaller) && (int) $fromTelecaller->id !== $selfId);
+            if ($touchesHiddenTelecaller) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'These post-sale leads are visible only to the Post-sale GM.');
+            }
+        }
         
         $toTelecallerName = $toTelecaller ? $toTelecaller->name : 'Unknown';
         $fromTelecallerName = $fromTelecaller ? $fromTelecaller->name : 'Unknown';
@@ -4852,6 +4865,16 @@ class LeadController extends Controller
         ->where('is_converted', 0)
         ->where('created_at', '>=', $fromDate)
         ->where('created_at', '<=', $toDate);
+
+        if (\App\Helpers\PostSaleLeadHelper::teamLeadShouldHideGmOnlyTelecallers()) {
+            $sourceTelecaller = User::select('id', 'is_postsale', 'hide_from_team_lead')->find($request->tele_caller_id);
+            if (\App\Helpers\PostSaleLeadHelper::isGmOnlyTelecaller($sourceTelecaller)
+                && (int) $sourceTelecaller->id !== (int) AuthHelper::getCurrentUserId()) {
+                $leads = collect();
+
+                return view('admin.leads.partials.leads-table-rows-reassign', compact('leads'));
+            }
+        }
 
         $onlyPostSale = \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()
             || $request->input('is_postsale') === 'postsale'
