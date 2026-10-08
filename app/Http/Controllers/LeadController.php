@@ -3966,7 +3966,7 @@ class LeadController extends Controller
             if ($touchesHiddenTelecaller) {
                 return redirect()->back()
                     ->withInput()
-                    ->with('error', 'These post-sale leads are visible only to the Post-sale GM.');
+                    ->with('error', 'These post-sale leads are hidden from the team lead. Admin, Super Admin, and the Post-sale GM can assign them.');
             }
         }
         

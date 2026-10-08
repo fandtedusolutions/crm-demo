@@ -108,7 +108,7 @@
                                         <span class="badge bg-dark ms-1">Post-sale</span>
                                     @endif
                                     @if($telecaller->is_postsale && $telecaller->hide_from_team_lead)
-                                        <span class="badge bg-secondary ms-1">Post-sale GM only</span>
+                                        <span class="badge bg-secondary ms-1">Hidden from Team Lead</span>
                                     @endif
                                 </td>
                                 <td>{{ $telecaller->email }}</td>

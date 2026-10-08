@@ -113,7 +113,7 @@
                         <label class="form-check-label" for="hide_from_team_lead">
                             <i class="ti ti-eye-off me-1"></i>Hide from Team Lead
                         </label>
-                        <small class="form-text text-muted d-block">When selected, the team lead will not see this telecaller or their leads. Only the Post-sale GM can see them in Leads and Bulk Re-assign.</small>
+                        <small class="form-text text-muted d-block">When selected, the team lead will not see this telecaller or their leads. Admin, Super Admin, and the Post-sale GM can still see and assign them in Leads and Bulk Re-assign.</small>
                     </div>
                 </div>
             </div>

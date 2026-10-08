@@ -46,7 +46,7 @@ class PostSaleLeadHelper
     }
 
     /**
-     * Team leads stay off these telecallers. Post-sale GM, admin, and managers still see them.
+     * Team leads stay off these telecallers. Admin, Super Admin, and the Post-sale GM still see and assign them.
      */
     public static function teamLeadShouldHideGmOnlyTelecallers(): bool
     {
