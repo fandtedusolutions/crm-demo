@@ -114,9 +114,14 @@
                     </span>
                     <span class="badge bg-light text-dark border">{{ $rows->count() }} {{ $rows->count() === 1 ? 'telecaller' : 'telecallers' }}</span>
                 </div>
-                <button type="button" class="btn btn-outline-secondary btn-sm no-print" onclick="window.print()">
-                    <i class="ti ti-printer me-1"></i> Print
-                </button>
+                <div class="d-flex gap-2 no-print">
+                    <a href="{{ route('admin.background-exports.index') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="ti ti-file-spreadsheet me-1"></i> Excel export
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                        <i class="ti ti-printer me-1"></i> Print
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <div class="ca-table-scroll">

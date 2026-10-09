@@ -801,6 +801,12 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::post('/natx-app-settings', [App\Http\Controllers\NatXAppSettingController::class, 'update'])->name('natx-app.settings.update');
         Route::post('/natx-app-settings/remove-apk', [App\Http\Controllers\NatXAppSettingController::class, 'removeApk'])->name('natx-app.settings.remove-apk');
 
+        // Background Excel exports (files stored on the server, progress polled from the page)
+        Route::get('/background-exports', [App\Http\Controllers\BackgroundExportController::class, 'index'])->name('background-exports.index');
+        Route::get('/background-exports/{key}/status', [App\Http\Controllers\BackgroundExportController::class, 'status'])->name('background-exports.status')->where('key', 'unconverted-leads|telecaller-wise-report');
+        Route::post('/background-exports/{key}/start', [App\Http\Controllers\BackgroundExportController::class, 'start'])->name('background-exports.start')->where('key', 'unconverted-leads|telecaller-wise-report');
+        Route::get('/background-exports/{key}/download', [App\Http\Controllers\BackgroundExportController::class, 'download'])->name('background-exports.download')->where('key', 'unconverted-leads|telecaller-wise-report');
+
         // Reports routes
         Route::get('/reports/leads', [App\Http\Controllers\LeadReportController::class, 'index'])->name('reports.leads');
         Route::get('/reports/converted-leads-report', [App\Http\Controllers\ConvertedLeadsReportController::class, 'index'])->name('reports.converted-leads-report');
