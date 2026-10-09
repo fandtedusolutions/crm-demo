@@ -11,6 +11,8 @@ class ExportProgress
 
     public const TELECALLER_WISE = 'telecaller-wise-report';
 
+    public const CALL_LOGS = 'call-logs';
+
     /**
      * @return array<int, string>
      */
@@ -19,6 +21,7 @@ class ExportProgress
         return [
             self::UNCONVERTED_LEADS,
             self::TELECALLER_WISE,
+            self::CALL_LOGS,
         ];
     }
 
@@ -49,6 +52,7 @@ class ExportProgress
         return match ($key) {
             self::UNCONVERTED_LEADS => 'unconverted_leads_'.$date.'.xlsx',
             self::TELECALLER_WISE => 'telecaller_wise_report_'.$date.'.xlsx',
+            self::CALL_LOGS => 'call_logs_'.$date.'.xlsx',
             default => $key.'.xlsx',
         };
     }
@@ -58,6 +62,7 @@ class ExportProgress
         return match ($key) {
             self::UNCONVERTED_LEADS => 'exports:unconverted-leads',
             self::TELECALLER_WISE => 'exports:telecaller-wise-report',
+            self::CALL_LOGS => 'exports:call-logs',
             default => '',
         };
     }

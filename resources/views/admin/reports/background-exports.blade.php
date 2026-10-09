@@ -22,6 +22,10 @@
     </div>
 </div>
 
+@if(session('success'))
+<div class="alert alert-success">{{ session('success') }}</div>
+@endif
+
 <div class="row">
     @foreach($exports as $key => $export)
         @php $status = $export['status']; @endphp

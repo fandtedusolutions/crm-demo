@@ -11,7 +11,7 @@ class BackgroundExportLauncher
     /**
      * @return array<string, mixed>
      */
-    public static function start(string $key): array
+    public static function start(string $key, array $arguments = []): array
     {
         if (! ExportProgress::isValidKey($key)) {
             throw new RuntimeException('Unknown export.');
@@ -34,10 +34,14 @@ class BackgroundExportLauncher
             'started_at' => now()->toDateTimeString(),
             'finished_at' => null,
             'error' => null,
+            'filters' => [
+                'start_date' => self::argumentValue($arguments, 'start') ?: '2024-01-01',
+                'end_date' => self::argumentValue($arguments, 'end') ?: now()->format('Y-m-d'),
+            ],
         ]);
 
         try {
-            self::spawn(ExportProgress::command($key));
+            self::spawn(ExportProgress::command($key), $arguments);
         } catch (Throwable $exception) {
             ExportProgress::update($key, [
                 'status' => 'failed',
@@ -64,7 +68,19 @@ class BackgroundExportLauncher
         return PHP_BINARY;
     }
 
-    private static function spawn(string $artisanCommand): void
+    private static function argumentValue(array $arguments, string $name): ?string
+    {
+        foreach ($arguments as $argument) {
+            $prefix = '--'.$name.'=';
+            if (str_starts_with($argument, $prefix)) {
+                return substr($argument, strlen($prefix));
+            }
+        }
+
+        return null;
+    }
+
+    private static function spawn(string $artisanCommand, array $arguments = []): void
     {
         $php = self::phpBinary();
         $artisan = base_path('artisan');
@@ -76,7 +92,7 @@ class BackgroundExportLauncher
         $log = $logDirectory.'/'.str_replace(':', '-', $artisanCommand).'.log';
 
         if (PHP_OS_FAMILY === 'Windows') {
-            $process = new Process([$php, $artisan, $artisanCommand], base_path());
+            $process = new Process(array_merge([$php, $artisan, $artisanCommand], $arguments), base_path());
             $process->setOptions(['create_new_console' => true]);
             $process->setTimeout(null);
             $process->start();
@@ -84,12 +100,13 @@ class BackgroundExportLauncher
             return;
         }
 
+        $parts = array_merge(
+            [escapeshellarg($php), escapeshellarg($artisan), escapeshellarg($artisanCommand)],
+            array_map(static fn (string $argument) => escapeshellarg($argument), $arguments)
+        );
+
         // setsid detaches from php-fpm so the page does not wait for the export or get killed with it.
-        $command = 'setsid nohup '
-            .escapeshellarg($php).' '
-            .escapeshellarg($artisan).' '
-            .escapeshellarg($artisanCommand)
-            .' >> '.escapeshellarg($log).' 2>&1 < /dev/null &';
+        $command = 'setsid nohup '.implode(' ', $parts).' >> '.escapeshellarg($log).' 2>&1 < /dev/null &';
 
         $started = false;
         if (function_exists('shell_exec')) {

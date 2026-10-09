@@ -90,7 +90,7 @@ class BackgroundExportController extends Controller
             abort(403, 'Access denied.');
         }
 
-        if ($key === ExportProgress::TELECALLER_WISE && ! $this->canExportCalls()) {
+        if (in_array($key, [ExportProgress::TELECALLER_WISE, ExportProgress::CALL_LOGS], true) && ! $this->canExportCalls()) {
             abort(403, 'Access denied.');
         }
     }
@@ -124,6 +124,12 @@ class BackgroundExportController extends Controller
                 'title' => 'Telecaller-wise Call Report',
                 'description' => 'The telecaller-wise summary from Call Analytics, covering every call log from the start of the project through today.',
                 'command' => 'php artisan exports:telecaller-wise-report',
+                'allowed' => $this->canExportCalls(),
+            ],
+            ExportProgress::CALL_LOGS => [
+                'title' => 'Call Logs',
+                'description' => 'Every call log from 2024-01-01 through today, the same file as the long Call Analytics export. Large ranges run here instead of in the browser.',
+                'command' => 'php artisan exports:call-logs --start=2024-01-01 --end='.now()->format('Y-m-d'),
                 'allowed' => $this->canExportCalls(),
             ],
         ];

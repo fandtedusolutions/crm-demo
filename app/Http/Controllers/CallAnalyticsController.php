@@ -6,7 +6,11 @@ use App\Helpers\RoleHelper;
 use App\Helpers\DateRangeHelper;
 use App\Models\CallAppLog;
 use App\Models\User;
+use App\Services\Exports\BackgroundExportLauncher;
+use App\Services\Exports\CallLogsExportService;
+use App\Services\Exports\ExportProgress;
 use App\Support\StreamingXlsxWriter;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -429,51 +433,45 @@ class CallAnalyticsController extends Controller
     public function export(Request $request)
     {
         $this->denyUnlessAllowed();
+
+        $filters = $this->getFilterParams($request);
+        $start = (string) ($filters['start_date'] ?? now()->format('Y-m-d'));
+        $end = (string) ($filters['end_date'] ?? now()->format('Y-m-d'));
+        $days = abs(Carbon::parse($start)->startOfDay()->diffInDays(Carbon::parse($end)->startOfDay()));
+
+        if ($days > 31) {
+            BackgroundExportLauncher::start(ExportProgress::CALL_LOGS, [
+                '--start='.$start,
+                '--end='.$end,
+            ]);
+
+            return redirect()
+                ->route('admin.background-exports.index')
+                ->with('success', 'This call-log range is large, so the Excel file is being created in the background. Stay on this page to watch the percentage, then download the file.');
+        }
+
         @ini_set('memory_limit', '512M');
         set_time_limit(0);
         DB::disableQueryLog();
 
-        $filters = $this->getFilterParams($request);
-        $query = CallAppLog::query()->with(['telecaller:id,name,email']);
-        $this->applyFilters($query, $filters);
+        $filename = 'call_logs_'.$start.'_to_'.$end.'_'.date('Y-m-d_His').'.xlsx';
+        $directory = storage_path('app/exports/tmp');
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+        $path = $directory.'/'.uniqid('calls_', true).'.xlsx';
 
-        $filename = 'call_logs_'.($filters['start_date'] ?? 'all').'_to_'.($filters['end_date'] ?? 'all').'_'.date('Y-m-d_His').'.xlsx';
+        try {
+            app(CallLogsExportService::class)->writeFile($path, $start, $end);
+        } catch (\Throwable $exception) {
+            if (is_file($path)) {
+                @unlink($path);
+            }
 
-        return $this->downloadStreamedWorkbook($filename, function (StreamingXlsxWriter $writer) use ($query) {
-            $writer->addRow([
-                'S.No', 'Telecaller', 'Email', 'Phone', 'Contact', 'Type', 'Remarks',
-                'Duration', 'Duration (seconds)', 'Call Date', 'Call Time', 'End Date', 'End Time',
-                'Recording', 'Uploaded', 'Device ID', 'App Version',
-            ], true);
+            throw $exception;
+        }
 
-            $serial = 0;
-            $query->reorder()->chunkById(1000, function ($calls) use ($writer, &$serial) {
-                foreach ($calls as $call) {
-                    $serial++;
-                    $started = $call->display_started_at;
-                    $ended = $call->display_ended_at;
-                    $writer->addRow([
-                        (string) $serial,
-                        $call->telecaller?->name ?: 'N/A',
-                        $call->telecaller?->email ?: '-',
-                        $call->phone_number ?: '-',
-                        $call->contact_name ?: '-',
-                        $call->call_type_label,
-                        $call->remarks ?: '-',
-                        $call->formatted_duration,
-                        (string) (int) $call->duration_seconds,
-                        $started ? $started->format('d M Y') : '-',
-                        $started ? $started->format('h:i A') : '-',
-                        $ended ? $ended->format('d M Y') : '-',
-                        $ended ? $ended->format('h:i A') : '-',
-                        $call->has_recording ? 'Yes' : 'No',
-                        $call->recording_uploaded ? 'Yes' : 'No',
-                        $call->device_id ?: '-',
-                        $call->app_version ?: '-',
-                    ]);
-                }
-            }, 'id');
-        });
+        return response()->download($path, $filename)->deleteFileAfterSend(true);
     }
 
     public function exportReport(Request $request)
