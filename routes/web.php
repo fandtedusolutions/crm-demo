@@ -465,7 +465,9 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // Call Analytics (Call Tracker app data)
         Route::prefix('call-analytics')->name('call-analytics.')->group(function () {
             Route::get('/', [CallAnalyticsController::class, 'index'])->name('index');
+            Route::get('/export', [CallAnalyticsController::class, 'export'])->name('export');
             Route::get('/report', [CallAnalyticsController::class, 'report'])->name('report');
+            Route::get('/report/export', [CallAnalyticsController::class, 'exportReport'])->name('report.export');
             Route::get('/report/telecaller/{telecaller}', [CallAnalyticsController::class, 'telecallerReport'])->name('report.telecaller')->whereNumber('telecaller');
             Route::get('/{call}/recording/stream', [CallAnalyticsController::class, 'streamRecording'])->name('recording.stream')->whereNumber('call');
             Route::get('/{call}/recording/download', [CallAnalyticsController::class, 'downloadRecording'])->name('recording.download')->whereNumber('call');

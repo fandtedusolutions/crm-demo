@@ -13,6 +13,8 @@ class TelecallerWiseReportExportService
     public function run(): void
     {
         $key = ExportProgress::TELECALLER_WISE;
+        ExportProgress::ensureWritableDirectory(ExportProgress::directory());
+        ExportProgress::ensureWritableDirectory(dirname(ExportProgress::statusPath($key)));
         $current = ExportProgress::read($key);
         $pid = (int) ($current['pid'] ?? 0);
         if (($current['status'] ?? '') === 'processing' && $pid > 0 && $pid !== getmypid() && ExportProgress::pidIsRunning($pid)) {

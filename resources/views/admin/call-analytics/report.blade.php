@@ -115,8 +115,8 @@
                     <span class="badge bg-light text-dark border">{{ $rows->count() }} {{ $rows->count() === 1 ? 'telecaller' : 'telecallers' }}</span>
                 </div>
                 <div class="d-flex gap-2 no-print">
-                    <a href="{{ route('admin.background-exports.index') }}" class="btn btn-outline-primary btn-sm">
-                        <i class="ti ti-file-spreadsheet me-1"></i> Excel export
+                    <a href="{{ route('admin.call-analytics.report.export', $queryParams) }}" class="btn btn-outline-success btn-sm">
+                        <i class="ti ti-file-spreadsheet me-1"></i> Export Excel
                     </a>
                     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
                         <i class="ti ti-printer me-1"></i> Print

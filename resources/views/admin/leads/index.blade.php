@@ -13,14 +13,7 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <ul class="breadcrumb d-flex justify-content-end align-items-center gap-2">
-                    @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_general_manager() || \App\Helpers\RoleHelper::is_senior_manager() || \App\Helpers\RoleHelper::is_auditor())
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('admin.background-exports.index') }}" class="btn btn-outline-primary btn-sm">
-                            <i class="ti ti-file-spreadsheet me-1"></i> Full Excel export
-                        </a>
-                    </li>
-                    @endif
+                <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item">Leads</li>
                 </ul>

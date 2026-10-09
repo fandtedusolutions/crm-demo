@@ -115,6 +115,8 @@ class StreamingXlsxWriter
             throw new RuntimeException('Unable to store the Excel file.');
         }
 
+        @chmod($this->destinationPath, 0644);
+
         $this->closed = true;
     }
 

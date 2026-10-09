@@ -20,8 +20,24 @@ class BackgroundExportController extends Controller
                 continue;
             }
 
+            try {
+                $status = ExportProgress::present($key);
+            } catch (\Throwable $exception) {
+                $status = [
+                    'status' => 'failed',
+                    'percent' => 0,
+                    'processed' => 0,
+                    'total' => 0,
+                    'message' => 'Could not read this export.',
+                    'error' => $exception->getMessage(),
+                    'file_ready' => is_file(ExportProgress::filePath($key)),
+                    'file_size_label' => '',
+                    'finished_at' => null,
+                ];
+            }
+
             $exports[$key] = array_merge($definition, [
-                'status' => ExportProgress::present($key),
+                'status' => $status,
             ]);
         }
 
@@ -47,7 +63,11 @@ class BackgroundExportController extends Controller
         $this->denyUnlessAllowed($key);
 
         $path = ExportProgress::filePath($key);
-        abort_unless(is_file($path), 404, 'The Excel file is not ready yet.');
+        if (is_file($path)) {
+            @chmod($path, 0644);
+        }
+
+        abort_unless(is_file($path) && is_readable($path), 404, 'The Excel file is not ready yet.');
 
         return response()->download($path, ExportProgress::downloadName($key));
     }

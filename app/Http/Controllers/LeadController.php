@@ -17,7 +17,7 @@ use App\Models\PlusTwoFollowUpQuestionnaire;
 use App\Helpers\AuthHelper;
 use App\Helpers\PhoneNumberHelper;
 use App\Helpers\RoleHelper;
-use App\Exports\LeadsExport;
+use App\Support\StreamingXlsxWriter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -27,7 +27,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 
@@ -1924,60 +1923,102 @@ class LeadController extends Controller
      */
     public function export(Request $request)
     {
-        // Set execution time limit for this operation
-        set_time_limit(config('timeout.max_execution_time', 300));
-        
-        // Reuse the comprehensive query builder to ensure filters match the leads list
-        $query = $this->buildLeadsQuery($request);
+        @ini_set('memory_limit', '512M');
+        set_time_limit(0);
+        DB::disableQueryLog();
 
-        // Capture the effective date range for the filename (mirrors buildLeadsQuery defaults)
+        $query = $this->buildLeadsQuery($request);
+        $query->setEagerLoads([]);
+
         $fromDate = null;
         $toDate = null;
-        if (!$request->filled('search_key')) {
+        if (! $request->filled('search_key')) {
             $fromDate = $request->get('date_from', now()->subDays(7)->format('Y-m-d'));
             $toDate = $request->get('date_to', now()->format('Y-m-d'));
         }
 
-        // Fetch all matching leads ordered by creation date (newest first)
-        $leads = $query->orderBy('created_at', 'desc')->get();
+        $statuses = [];
+        LeadStatus::withTrashed()->get(['id', 'title'])->each(function (LeadStatus $row) use (&$statuses) {
+            $statuses[(int) $row->id] = trim((string) ($row->title ?? ''));
+        });
 
-        // Resolve source/course labels by id (includes soft-deleted rows). Use full rows + fallbacks
-        // so exports never rely on PhpSpreadsheet coercing short/numeric titles into plain numbers.
-        $sourceIds = $leads->pluck('lead_source_id')->filter()->unique()->values();
-        $courseIds = $leads->pluck('course_id')->filter()->unique()->values();
+        $sources = [];
+        LeadSource::withTrashed()->get(['id', 'title', 'description'])->each(function (LeadSource $row) use (&$sources) {
+            $label = trim((string) ($row->title ?? ''));
+            if ($label === '') {
+                $label = trim((string) ($row->description ?? ''));
+            }
+            $sources[(int) $row->id] = $label;
+        });
 
-        $sourceTitles = [];
-        if ($sourceIds->isNotEmpty()) {
-            LeadSource::withTrashed()
-                ->whereIn('id', $sourceIds)
-                ->get(['id', 'title', 'description'])
-                ->each(function (LeadSource $row) use (&$sourceTitles) {
-                    $label = trim((string) ($row->title ?? ''));
-                    if ($label === '') {
-                        $label = trim((string) ($row->description ?? ''));
-                    }
-                    $sourceTitles[(int) $row->id] = $label;
-                });
+        $courses = [];
+        Course::withTrashed()->get(['id', 'title', 'code'])->each(function (Course $row) use (&$courses) {
+            $label = trim((string) ($row->title ?? ''));
+            if ($label === '') {
+                $label = trim((string) ($row->code ?? ''));
+            }
+            $courses[(int) $row->id] = $label;
+        });
+
+        $telecallers = User::query()->pluck('name', 'id')->all();
+
+        $filename = 'leads_export_'.($fromDate ?: 'all').'_to_'.($toDate ?: 'all').'_'.date('Y-m-d_His').'.xlsx';
+        $directory = storage_path('app/exports/tmp');
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+        $path = $directory.'/'.uniqid('leads_', true).'.xlsx';
+
+        try {
+            $writer = new StreamingXlsxWriter($path);
+            $writer->open();
+            $writer->addRow([
+                'S.No', 'Created At', 'Name', 'Phone', 'Email', 'Status', 'Interest', 'Rating',
+                'Source', 'Course', 'Telecaller', 'Place', 'Followup Date', 'Remarks', 'Date', 'Time',
+            ], true);
+
+            $serial = 0;
+            $query->reorder()->chunkById(1000, function ($leads) use ($writer, &$serial, $statuses, $sources, $courses, $telecallers) {
+                foreach ($leads as $lead) {
+                    $serial++;
+                    $interest = $lead->interest_status
+                        ? ((int) $lead->interest_status === 1 ? 'Hot' : ((int) $lead->interest_status === 2 ? 'Warm' : 'Cold'))
+                        : 'Not Set';
+                    $phone = ($lead->phone === null || $lead->phone === '')
+                        ? '-'
+                        : (($lead->code !== null && $lead->code !== '') ? ($lead->code.$lead->phone) : $lead->phone);
+
+                    $writer->addRow([
+                        (string) $serial,
+                        $lead->created_at ? $lead->created_at->format('d-m-Y h:i A') : '-',
+                        $lead->title ?: '-',
+                        $phone,
+                        $lead->email ?: '-',
+                        $statuses[(int) $lead->lead_status_id] ?? '-',
+                        $interest,
+                        $lead->rating ? ($lead->rating.'/10') : 'Not Rated',
+                        $sources[(int) $lead->lead_source_id] ?? '-',
+                        $courses[(int) $lead->course_id] ?? '-',
+                        $telecallers[(int) $lead->telecaller_id] ?? 'Unassigned',
+                        $lead->place ?: '-',
+                        $lead->followup_date ? $lead->followup_date->format('M d, Y') : '-',
+                        $lead->remarks ?: '-',
+                        $lead->created_at ? $lead->created_at->format('M d, Y') : '-',
+                        $lead->created_at ? $lead->created_at->format('h:i A') : '-',
+                    ]);
+                }
+            }, 'id');
+
+            $writer->close();
+        } catch (\Throwable $exception) {
+            if (is_file($path)) {
+                @unlink($path);
+            }
+
+            throw $exception;
         }
 
-        $courseTitles = [];
-        if ($courseIds->isNotEmpty()) {
-            Course::withTrashed()
-                ->whereIn('id', $courseIds)
-                ->get(['id', 'title', 'code'])
-                ->each(function (Course $row) use (&$courseTitles) {
-                    $label = trim((string) ($row->title ?? ''));
-                    if ($label === '') {
-                        $label = trim((string) ($row->code ?? ''));
-                    }
-                    $courseTitles[(int) $row->id] = $label;
-                });
-        }
-
-        // Generate filename with date range
-        $filename = 'leads_export_' . ($fromDate ? $fromDate : 'all') . '_to_' . ($toDate ? $toDate : 'all') . '_' . date('Y-m-d_His') . '.xlsx';
-
-        return Excel::download(new LeadsExport($leads, $sourceTitles, $courseTitles), $filename);
+        return response()->download($path, $filename)->deleteFileAfterSend(true);
     }
 
     /**

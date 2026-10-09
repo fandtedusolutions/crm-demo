@@ -12,6 +12,8 @@ class UnconvertedLeadsExportService
     public function run(): void
     {
         $key = ExportProgress::UNCONVERTED_LEADS;
+        ExportProgress::ensureWritableDirectory(ExportProgress::directory());
+        ExportProgress::ensureWritableDirectory(dirname(ExportProgress::statusPath($key)));
         $this->guardAlreadyRunning($key);
 
         ExportProgress::update($key, [

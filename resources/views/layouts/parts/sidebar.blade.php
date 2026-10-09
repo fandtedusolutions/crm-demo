@@ -396,29 +396,6 @@
                     </a>
                 </li>
                 @endif
-
-                @php
-                    $canBackgroundLeadExport = \App\Helpers\RoleHelper::is_admin_or_super_admin()
-                        || \App\Helpers\RoleHelper::is_general_manager()
-                        || \App\Helpers\RoleHelper::is_senior_manager()
-                        || \App\Helpers\RoleHelper::is_auditor();
-                    $canBackgroundCallExport = has_permission('admin/call-analytics/index');
-                @endphp
-                @if($canBackgroundLeadExport || $canBackgroundCallExport)
-                @if(!has_permission('admin/reports/leads'))
-                <li class="pc-item pc-caption">
-                    <label>Reports</label>
-                </li>
-                @endif
-                <li class="pc-item {{ request()->routeIs('admin.background-exports.*') ? 'active' : '' }}">
-                    <a href="{{ route('admin.background-exports.index') }}" class="pc-link">
-                        <span class="pc-micon">
-                            <i class="ti ti-file-spreadsheet"></i>
-                        </span>
-                        <span class="pc-mtext">Excel Exports</span>
-                    </a>
-                </li>
-                @endif
                 
                 {{-- Advanced Reports Section --}}
                 @if(has_permission('admin/reports/lead-stage-movement') || has_permission('admin/reports/lead-efficiency') || has_permission('admin/reports/lead-aging') || has_permission('admin/reports/team-wise') || has_permission('admin/reports/course-summary'))

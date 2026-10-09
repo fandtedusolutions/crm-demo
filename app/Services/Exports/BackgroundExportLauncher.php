@@ -84,18 +84,27 @@ class BackgroundExportLauncher
             return;
         }
 
-        $command = 'nohup '
+        // setsid detaches from php-fpm so the page does not wait for the export or get killed with it.
+        $command = 'setsid nohup '
             .escapeshellarg($php).' '
             .escapeshellarg($artisan).' '
             .escapeshellarg($artisanCommand)
-            .' >> '.escapeshellarg($log).' 2>&1 &';
+            .' >> '.escapeshellarg($log).' 2>&1 < /dev/null &';
 
-        $process = Process::fromShellCommandline($command, base_path());
-        $process->setTimeout(15);
-        $process->run();
+        $started = false;
+        if (function_exists('shell_exec')) {
+            shell_exec($command);
+            $started = true;
+        } elseif (function_exists('popen')) {
+            $handle = popen($command, 'r');
+            if ($handle !== false) {
+                pclose($handle);
+                $started = true;
+            }
+        }
 
-        if (! $process->isSuccessful()) {
-            throw new RuntimeException(trim($process->getErrorOutput()) ?: 'Unable to start the background export. Run: php artisan '.$artisanCommand);
+        if (! $started) {
+            throw new RuntimeException('Unable to start the background export. Run: php artisan '.$artisanCommand);
         }
     }
 }
