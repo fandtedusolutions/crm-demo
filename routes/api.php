@@ -103,6 +103,8 @@ Route::prefix('v1')->group(function () {
         Route::get('leads', [LeadsController::class, 'index']);
         Route::get('leads/filters', [LeadsController::class, 'filters']);
         Route::get('leads/call', [LeadsController::class, 'callLead']);
+        Route::get('team-members', [LeadsController::class, 'teamMembers']);
+        Route::get('leads/by-telecaller/{telecaller}', [LeadsController::class, 'leadsByTelecaller'])->whereNumber('telecaller');
         Route::get('leads/{lead}/status-update', [LeadsController::class, 'statusUpdateData'])->whereNumber('lead');
         Route::post('leads/{lead}/status-update', [LeadsController::class, 'statusUpdate'])->whereNumber('lead');
         Route::get('leads/{lead}/plus-two-follow-up', [LeadsController::class, 'plusTwoFollowUpDetails'])->whereNumber('lead');

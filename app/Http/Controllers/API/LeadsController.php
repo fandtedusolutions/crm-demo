@@ -53,6 +53,13 @@ class LeadsController extends Controller
         // Apply role-based filtering
         $this->applyRoleBasedFilter($query, $user);
 
+        if ($request->filled('telecaller_id') && $user->is_team_lead && ! $this->canViewAllLeads($user)) {
+            $telecallerDenied = $this->denyUnlessTeamTelecaller($user, (int) $request->telecaller_id);
+            if ($telecallerDenied) {
+                return $telecallerDenied;
+            }
+        }
+
         // Apply filters
         if ($request->filled('lead_status_id')) {
             $query->where('lead_status_id', $request->lead_status_id);
@@ -255,6 +262,7 @@ class LeadsController extends Controller
                 'courses' => $courses,
                 'ratings' => $ratings,
                 'telecallers' => $telecallers,
+                'can_filter_by_telecaller' => $this->canViewAllLeads($user) || (bool) $user->is_team_lead,
                 'registration_form_courses' => collect(\App\Helpers\LeadRegistrationRouteHelper::courseRegistrationRouteNames())
                     ->map(function ($routeName, $courseId) {
                         return [
@@ -766,6 +774,7 @@ class LeadsController extends Controller
             'lead_source' => $lead->leadSource ? $lead->leadSource->title : '',
             'course_name' => $lead->course ? $lead->course->title : '',
             'course_id' => $lead->course_id,
+            'telecaller_id' => $lead->telecaller_id,
             'telecaller_name' => $lead->telecaller ? $lead->telecaller->name : '',
             'remarks' => $this->stripHtmlContent($lead->remarks ?? ''),
             'marketing_remarks' => $this->stripHtmlContent($lead->marketing_remarks ?? ''),
@@ -780,6 +789,156 @@ class LeadsController extends Controller
 
 
     /**
+     * Team members for the authenticated team lead.
+     */
+    public function teamMembers(Request $request)
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        if (! $user->is_team_lead) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Only a team lead can view team members.',
+            ], 403);
+        }
+
+        $members = User::select('id', 'name', 'email', 'phone', 'code', 'team_id', 'is_team_lead', 'is_active')
+            ->with('team:id,name')
+            ->whereIn('id', $this->visibleTeamMemberIds($user))
+            ->orderBy('name')
+            ->get()
+            ->map(function ($member) {
+                $phone = '';
+                if ($member->code && $member->phone) {
+                    $phone = '+' . $member->code . ' ' . $member->phone;
+                } elseif ($member->phone) {
+                    $phone = $member->phone;
+                }
+
+                return [
+                    'id' => $member->id,
+                    'name' => $member->name,
+                    'phone' => $phone,
+                    'email' => $member->email ?? '',
+                    'team_id' => $member->team_id,
+                    'team_name' => $member->team ? $member->team->name : '',
+                    'is_team_lead' => $member->is_team_lead ? 1 : 0,
+                    'is_active' => $member->is_active ? 1 : 0,
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'data' => $members,
+        ], 200);
+    }
+
+    /**
+     * Leads assigned to one telecaller. Team leads can only request their own team.
+     */
+    public function leadsByTelecaller(Request $request, $telecallerId)
+    {
+        $user = $request->user();
+
+        if (! $user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $telecallerId = (int) $telecallerId;
+        $telecaller = User::select('id', 'name', 'team_id', 'role_id', 'is_postsale', 'hide_from_team_lead')
+            ->find($telecallerId);
+
+        if (! $telecaller) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Telecaller not found.',
+            ], 404);
+        }
+
+        if ($user->is_team_lead && ! $this->canViewAllLeads($user)) {
+            $denied = $this->denyUnlessTeamTelecaller($user, $telecallerId);
+            if ($denied) {
+                return $denied;
+            }
+        } elseif (! $this->canViewAllLeads($user) && (int) $user->id !== $telecallerId) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You can only view your own leads.',
+            ], 403);
+        }
+
+        $request->merge(['telecaller_id' => $telecallerId]);
+
+        $response = $this->index($request);
+        $payload = $response->getData(true);
+        if (($payload['status'] ?? false) === true) {
+            $payload['telecaller'] = [
+                'id' => $telecaller->id,
+                'name' => $telecaller->name,
+            ];
+            return response()->json($payload, $response->status());
+        }
+
+        return $response;
+    }
+
+    /**
+     * Telecaller ids a team lead is allowed to see, including themselves.
+     * Post-sale telecallers hidden from the team lead are excluded.
+     *
+     * @return array<int>
+     */
+    private function visibleTeamMemberIds($user): array
+    {
+        if (! $user->team_id) {
+            return [(int) $user->id];
+        }
+
+        $ids = User::query()
+            ->where('team_id', $user->team_id)
+            ->where('role_id', 3)
+            ->where(function ($outer) use ($user) {
+                $outer->where(function ($inner) {
+                    $inner->where('hide_from_team_lead', 0)
+                        ->orWhereNull('hide_from_team_lead')
+                        ->orWhere('is_postsale', 0);
+                })->orWhere('id', $user->id);
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $ids[] = (int) $user->id;
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * Reject a team-lead telecaller filter that is outside their team.
+     */
+    private function denyUnlessTeamTelecaller($user, int $telecallerId)
+    {
+        if (in_array($telecallerId, $this->visibleTeamMemberIds($user), true)) {
+            return null;
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'You can only filter leads for telecallers on your team.',
+        ], 403);
+    }
+
+    /**
      * Apply role-based filtering to leads queries
      */
     private function applyRoleBasedFilter($query, $user)
@@ -792,19 +951,7 @@ class LeadsController extends Controller
 
         if ($user->is_team_lead) {
             // Team Lead: Can see their own leads + their team members' leads
-            $teamId = $user->team_id;
-            if ($teamId) {
-                $teamMemberIds = User::where('team_id', $teamId)
-                    ->where('role_id', 3)
-                    ->whereNull('deleted_at')
-                    ->pluck('id')
-                    ->toArray();
-                $teamMemberIds[] = $user->id;
-                $query->whereIn('telecaller_id', $teamMemberIds);
-            } else {
-                // If no team assigned, only show their own leads
-                $query->where('telecaller_id', $user->id);
-            }
+            $query->whereIn('telecaller_id', $this->visibleTeamMemberIds($user));
         } elseif ($user->role_id == 3) {
             // Telecaller: Can only see their own leads
             $query->where('telecaller_id', $user->id);
@@ -839,24 +986,9 @@ class LeadsController extends Controller
         }
 
         if ($user->is_team_lead) {
-            $teamId = $user->team_id;
-            if ($teamId) {
-                $teamMemberIds = User::where('team_id', $teamId)
-                    ->where('role_id', 3)
-                    ->whereNull('deleted_at')
-                    ->pluck('id')
-                    ->toArray();
-
-                $teamMemberIds[] = $user->id;
-
-                return User::select('id', 'name')
-                    ->whereIn('id', array_unique($teamMemberIds))
-                    ->orderBy('name')
-                    ->get();
-            }
-
             return User::select('id', 'name')
-                ->where('id', $user->id)
+                ->whereIn('id', $this->visibleTeamMemberIds($user))
+                ->orderBy('name')
                 ->get();
         }
 
