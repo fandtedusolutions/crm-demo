@@ -4917,18 +4917,21 @@ class LeadController extends Controller
             }
         }
 
-        $onlyPostSale = \App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()
-            || $request->input('is_postsale') === 'postsale'
-            || $request->boolean('is_postsale');
-        if ($onlyPostSale) {
+        if (\App\Helpers\PostSaleLeadHelper::seesOnlyPostSaleRecords()) {
             $query->where('is_postsale', 1);
-        } else {
-            $query->where(function ($q) {
-                $q->whereNull('is_b2b')->orWhere('is_b2b', 0);
-            })->where(function ($q) {
-                $q->whereNull('is_postsale')->orWhere('is_postsale', 0);
-            });
+        } elseif ($request->filled('is_postsale')) {
+            if ($request->input('is_postsale') === 'postsale' || $request->boolean('is_postsale')) {
+                $query->where('is_postsale', 1);
+            } elseif ($request->input('is_postsale') === 'normal' || $request->input('is_postsale') === '0') {
+                $query->where(function ($q) {
+                    $q->whereNull('is_postsale')->orWhere('is_postsale', 0);
+                });
+            }
         }
+
+        $query->where(function ($q) {
+            $q->whereNull('is_b2b')->orWhere('is_b2b', 0);
+        });
         
         // Optional course filter - only apply if course_id is provided
         if ($request->filled('course_id')) {
