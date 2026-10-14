@@ -197,14 +197,14 @@
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.mentor-nios-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">National Institute of Open Schooling Converted Mentor List</h5>
+                <h5 class="mb-0">National Institute of Open Schooling Converted Mentor List <span class="badge bg-primary ms-2">{{ $convertedLeads->count() }}</span></h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-nios'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->
                 <div class="d-none d-lg-block">
                     <div class="table-responsive">
-                        <table class="table table-hover data_table_basic" id="niosMentorTable" data-page-length="{{ request('per_page', 50) }}">
+                        <table class="table table-hover data_table_basic" id="niosMentorTable" data-page-length="{{ request('per_page', 50) }}" data-dom="Blfrtip">
                             <thead>
                                 <tr>
                                     <th>SL No</th>
@@ -892,11 +892,9 @@
                     </div>
                 </div>
 
-                @if(method_exists($convertedLeads, 'links'))
-                <div class="mt-3">
-                    {{ $convertedLeads->withQueryString()->links('pagination::bootstrap-5') }}
+                <div class="d-lg-none mt-3 text-center text-muted small">
+                    Showing all {{ $convertedLeads->count() }} records
                 </div>
-                @endif
             </div>
         </div>
     </div>
@@ -980,6 +978,22 @@
 @include('admin.converted-leads.partials.placement-modal-reopen-script')
 <script>
     $(document).ready(function() {
+        // Clean up leaked auth/page query parameters from the browser URL address bar if present
+        if (window.history && window.history.replaceState && window.location.search) {
+            const currentUrl = new URL(window.location.href);
+            let cleaned = false;
+            ['user_id', 'user_name', 'role_id', 'role_title', 'user_designation', 'page'].forEach(function(param) {
+                if (currentUrl.searchParams.has(param)) {
+                    currentUrl.searchParams.delete(param);
+                    cleaned = true;
+                }
+            });
+            if (cleaned) {
+                const newQuery = currentUrl.searchParams.toString();
+                window.history.replaceState({}, document.title, currentUrl.pathname + (newQuery ? '?' + newQuery : ''));
+            }
+        }
+
         // Dependent filters: admission batches by batch
         function loadAdmissionBatchesByBatch(batchId, selectedId) {
             const $admission = $('#admission_batch_id');

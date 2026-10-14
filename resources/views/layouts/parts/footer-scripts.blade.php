@@ -72,14 +72,22 @@
                     console.warn('Invalid data-order attribute for table', tableId, defaultOrder);
                 }
             }
+            var customDom = $table.data('dom');
+            var customPaging = $table.data('paging');
+            var isPaging = customPaging !== undefined ? (customPaging !== false && customPaging !== 'false') : true;
+
+            // If URL has search query parameters, reset lastPageIndex so user starts on page 1 of filtered results
+            if (window.location.search && window.location.search.length > 1) {
+                lastPageIndex = 0;
+            }
             
             // Initialize the DataTable
             var table = new DataTable(this, {
-                dom: "Bfrtip",
+                dom: customDom || "Bfrtip",
                 buttons: ["csv", "excel", "print", "pdf"],
                 pagingType: "full_numbers",
                 scrollCollapse: true,
-                paging: true,
+                paging: isPaging,
                 stateSave: true,
                 stateDuration: -1,
                 pageLength: effectivePageLength,
@@ -87,7 +95,7 @@
                 order: parsedOrder || [[0, 'asc']],
                 
                 // Set the initial page if there was a stored page
-                "displayStart": lastPageIndex !== null ? lastPageIndex * effectivePageLength : 0,  // Multiply by page size
+                "displayStart": (lastPageIndex !== null && isPaging) ? lastPageIndex * effectivePageLength : 0,  // Multiply by page size
                 
                 // Language configuration
                 language: {

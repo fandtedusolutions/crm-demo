@@ -37,88 +37,39 @@ class NiosMentorConvertedLeadController extends Controller
         ])->forCourseListing(1) // NIOS course
           ->where('is_support_verified', 1);
 
-        // Apply role-based filtering
-        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+        // Filter by post-sale flag only if explicitly requested
+        if ($request->filled('is_postsale')) {
+            $value = (string) $request->input('is_postsale');
+            if ($value === 'postsale' || $value === '1') {
+                $query->where('converted_leads.is_postsale', 1);
+            } elseif ($value === 'normal' || $value === '0') {
+                $query->where(function ($inner) {
+                    $inner->whereNull('converted_leads.is_postsale')->orWhere('converted_leads.is_postsale', 0);
+                });
+            }
+        }
 
-        $currentUser = AuthHelper::getCurrentUser();
-        if ($currentUser) {
-            if (RoleHelper::is_admin_or_super_admin()) {
-                // Admins and super admins can see all support verified leads
-                // No additional filtering needed
-            } elseif (RoleHelper::is_hod()) {
-                // HOD: Only see leads for courses where they are assigned as HOD
-                $hodCourseIds = \App\Models\Course::where('hod_id', AuthHelper::getCurrentUserId())
-                    ->pluck('id')
-                    ->toArray();
-                
-                // Check if current course (1) is in HOD's assigned courses
-                if (!empty($hodCourseIds) && in_array(1, $hodCourseIds)) {
-                    // HOD is assigned to this course, show data
-                } else {
-                    // HOD is not assigned to this course, return empty results
-                    $query->whereRaw('1 = 0');
-                }
-            } elseif (RoleHelper::is_mentor_head()) {
-                // Mentor Head: Can see all support verified leads
-                // No additional filtering needed
-            } elseif (RoleHelper::is_mentor() || RoleHelper::is_faculty()) {
-                // Regular Mentor or Faculty: Filter by admission_batch_id where mentor_id matches
-                $mentorAdmissionBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())
-                    ->pluck('id')
-                    ->toArray();
-                
-                if (!empty($mentorAdmissionBatchIds)) {
-                    $query->forMentorAdmissionBatches($mentorAdmissionBatchIds);
-                } else {
-                    // If mentor has no admission batches, return empty result
-                    $query->whereRaw('1 = 0');
-                }
-            } elseif (RoleHelper::is_team_lead()) {
-                $teamId = $currentUser->team_id;
-                if ($teamId) {
-                    $teamMemberIds = \App\Models\User::where('team_id', $teamId)->pluck('id')->toArray();
-                    $query->whereHas('lead', function($q) use ($teamMemberIds) {
-                        $q->whereIn('telecaller_id', $teamMemberIds);
-                    });
-                } else {
-                    $query->whereHas('lead', function($q) {
-                        $q->where('telecaller_id', AuthHelper::getCurrentUserId());
-                    });
-                }
-            } elseif (RoleHelper::is_senior_manager()) {
-                // Senior Manager: Filter by their own leads or team leads if they have a team
-                $teamId = $currentUser->team_id;
-                if ($teamId) {
-                    $teamMemberIds = \App\Models\User::where('team_id', $teamId)->pluck('id')->toArray();
-                    $query->whereHas('lead', function($q) use ($teamMemberIds) {
-                        $q->whereIn('telecaller_id', $teamMemberIds);
-                    });
-                } else {
-                    $query->whereHas('lead', function($q) {
-                        $q->where('telecaller_id', AuthHelper::getCurrentUserId());
-                    });
-                }
-            } elseif (RoleHelper::is_general_manager()) {
-                // General Manager: Can see all leads
-                // No additional filtering needed
-            } elseif (RoleHelper::is_admission_counsellor()) {
-                // Can see all
-            } elseif (RoleHelper::is_academic_assistant()) {
-                // Can see all
-            } elseif (RoleHelper::is_support_team()) {
-                // Support team: Can see all support verified leads
-                // No additional filtering needed
-            } elseif (RoleHelper::is_auditor()) {
-                // Auditor: Can see all leads
-                // No additional filtering needed
-            } elseif (RoleHelper::is_telecaller()) {
-                $query->whereHas('lead', function($q) {
-                    $q->where('telecaller_id', AuthHelper::getCurrentUserId());
-                });
+        // On this mentor page, only regular mentors and faculty (who are not mentor heads) are restricted by their user_id / assigned admission batches.
+        // Super Admin, Admin, Admission Counselor, Academic Assistant, Support Team, Mentor Head, Auditor, General Manager, etc. see all support-verified leads.
+        if ((RoleHelper::is_mentor() || RoleHelper::is_faculty()) && !RoleHelper::is_mentor_head() && !RoleHelper::is_admin_or_super_admin()) {
+            $mentorAdmissionBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())
+                ->pluck('id')
+                ->toArray();
+
+            if (!empty($mentorAdmissionBatchIds)) {
+                $query->forMentorAdmissionBatches($mentorAdmissionBatchIds);
             } else {
-                $query->whereHas('lead', function($q) {
-                    $q->where('telecaller_id', AuthHelper::getCurrentUserId());
-                });
+                // If mentor has no admission batches assigned, return empty result
+                $query->whereRaw('1 = 0');
+            }
+        } elseif (RoleHelper::is_hod()) {
+            // HOD: Only see leads for courses where they are assigned as HOD
+            $hodCourseIds = \App\Models\Course::where('hod_id', AuthHelper::getCurrentUserId())
+                ->pluck('id')
+                ->toArray();
+
+            if (empty($hodCourseIds) || !in_array(1, $hodCourseIds)) {
+                $query->whereRaw('1 = 0');
             }
         }
 
@@ -180,18 +131,19 @@ class NiosMentorConvertedLeadController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $perPage = (int) $request->input('per_page', 50);
-        if (!in_array($perPage, [25, 50, 100, 200, 500], true)) {
-            $perPage = 50;
-        }
-
-        $convertedLeads = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        $convertedLeads = $query->orderBy('created_at', 'desc')->get();
 
         // Get filter data
         $batches = Batch::where('course_id', 1)->orderBy('title')->get();
-        $admissionBatches = AdmissionBatch::whereHas('batch', function($q) {
+        $admissionBatchesQuery = AdmissionBatch::whereHas('batch', function($q) {
             $q->where('course_id', 1);
-        })->orderBy('title')->get();
+        });
+
+        if ((RoleHelper::is_mentor() || RoleHelper::is_faculty()) && !RoleHelper::is_mentor_head() && !RoleHelper::is_admin_or_super_admin()) {
+            $admissionBatchesQuery->where('mentor_id', AuthHelper::getCurrentUserId());
+        }
+
+        $admissionBatches = $admissionBatchesQuery->orderBy('title')->get();
         $subjects = Subject::where('course_id', 1)->orderBy('title')->get();
         $country_codes = \App\Helpers\CountriesHelper::get_country_code();
         $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
