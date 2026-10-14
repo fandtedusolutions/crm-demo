@@ -113,18 +113,15 @@
                         </div>
                         <div class="col-12 col-sm-6 col-md-2">
                             <label for="admission_batch_id" class="form-label">Admission Batch</label>
-                            <select class="form-select" id="admission_batch_id" name="admission_batch_id">
+                            <select class="form-select" id="admission_batch_id" name="admission_batch_id" data-selected="{{ request('admission_batch_id') }}">
                                 <option value="">All Admission Batches</option>
-                                @if(request('batch_id'))
-                                @php
-                                $admissionBatches = \App\Models\AdmissionBatch::where('batch_id', request('batch_id'))->get();
-                                @endphp
                                 @foreach($admissionBatches as $admissionBatch)
-                                <option value="{{ $admissionBatch->id }}" {{ request('admission_batch_id') == $admissionBatch->id ? 'selected' : '' }}>
+                                <option value="{{ $admissionBatch->id }}"
+                                    data-batch-id="{{ $admissionBatch->batch_id }}"
+                                    {{ request('admission_batch_id') == $admissionBatch->id ? 'selected' : '' }}>
                                     {{ $admissionBatch->title }}
                                 </option>
                                 @endforeach
-                                @endif
                             </select>
                         </div>
                         <div class="col-12 col-sm-6 col-md-2">
@@ -167,6 +164,16 @@
                             <label for="date_to" class="form-label">Date To</label>
                             <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request('date_to') }}">
                         </div>
+                        <div class="col-12 col-sm-6 col-md-2">
+                            <label for="per_page" class="form-label">Per Page</label>
+                            <select class="form-select" id="per_page" name="per_page">
+                                <option value="25" {{ request('per_page') == '25' ? 'selected' : '' }}>25</option>
+                                <option value="50" {{ request('per_page', '50') == '50' ? 'selected' : '' }}>50</option>
+                                <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>100</option>
+                                <option value="200" {{ request('per_page') == '200' ? 'selected' : '' }}>200</option>
+                                <option value="500" {{ request('per_page') == '500' ? 'selected' : '' }}>500</option>
+                            </select>
+                        </div>
                         <div class="col-12 col-md-4">
                             <div class="d-flex gap-2 flex-wrap">
                                 <button type="submit" class="btn btn-primary">
@@ -197,7 +204,7 @@
                 <!-- Desktop Table View -->
                 <div class="d-none d-lg-block">
                     <div class="table-responsive">
-                        <table class="table table-hover data_table_basic" id="niosMentorTable">
+                        <table class="table table-hover data_table_basic" id="niosMentorTable" data-page-length="{{ request('per_page', 50) }}">
                             <thead>
                                 <tr>
                                     <th>SL No</th>
@@ -884,6 +891,12 @@
                         @endforelse
                     </div>
                 </div>
+
+                @if(method_exists($convertedLeads, 'links'))
+                <div class="mt-3">
+                    {{ $convertedLeads->withQueryString()->links('pagination::bootstrap-5') }}
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -970,24 +983,38 @@
         // Dependent filters: admission batches by batch
         function loadAdmissionBatchesByBatch(batchId, selectedId) {
             const $admission = $('#admission_batch_id');
-            $admission.html('<option value="">Loading...</option>');
             if (!batchId) {
-                $admission.html('<option value="">All Admission Batches</option>');
+                $admission.find('option').show();
+                if (selectedId) {
+                    $admission.val(selectedId);
+                }
                 return;
             }
             $.get(`/api/admission-batches/by-batch/${batchId}`).done(function(list) {
-                let opts = '<option value=\"\">All Admission Batches</option>';
+                let opts = '<option value="">All Admission Batches</option>';
                 list.forEach(function(i) {
                     const sel = String(selectedId) === String(i.id) ? 'selected' : '';
-                    opts += `<option value="${i.id}" ${sel}>${i.title}</option>`;
+                    opts += `<option value="${i.id}" data-batch-id="${i.batch_id}" ${sel}>${i.title}</option>`;
                 });
                 $admission.html(opts);
             }).fail(function() {
-                $admission.html('<option value="">All Admission Batches</option>');
+                $admission.find('option').each(function() {
+                    const bId = $(this).data('batch-id');
+                    if (!bId || String(bId) === String(batchId)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                if (selectedId) {
+                    $admission.val(selectedId);
+                }
             });
         }
 
-        loadAdmissionBatchesByBatch($('#batch_id').val(), $('#admission_batch_id').data('selected'));
+        if ($('#batch_id').val()) {
+            loadAdmissionBatchesByBatch($('#batch_id').val(), $('#admission_batch_id').data('selected'));
+        }
         $('#batch_id').on('change', function() {
             loadAdmissionBatchesByBatch($(this).val(), '');
         });

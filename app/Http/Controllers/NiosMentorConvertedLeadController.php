@@ -61,8 +61,8 @@ class NiosMentorConvertedLeadController extends Controller
             } elseif (RoleHelper::is_mentor_head()) {
                 // Mentor Head: Can see all support verified leads
                 // No additional filtering needed
-            } elseif (RoleHelper::is_mentor()) {
-                // Regular Mentor: Filter by admission_batch_id where mentor_id matches
+            } elseif (RoleHelper::is_mentor() || RoleHelper::is_faculty()) {
+                // Regular Mentor or Faculty: Filter by admission_batch_id where mentor_id matches
                 $mentorAdmissionBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())
                     ->pluck('id')
                     ->toArray();
@@ -105,6 +105,12 @@ class NiosMentorConvertedLeadController extends Controller
                 // Can see all
             } elseif (RoleHelper::is_academic_assistant()) {
                 // Can see all
+            } elseif (RoleHelper::is_support_team()) {
+                // Support team: Can see all support verified leads
+                // No additional filtering needed
+            } elseif (RoleHelper::is_auditor()) {
+                // Auditor: Can see all leads
+                // No additional filtering needed
             } elseif (RoleHelper::is_telecaller()) {
                 $query->whereHas('lead', function($q) {
                     $q->where('telecaller_id', AuthHelper::getCurrentUserId());
@@ -125,7 +131,11 @@ class NiosMentorConvertedLeadController extends Controller
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('register_number', 'like', "%{$search}%")
                   ->orWhereHas('studentDetails', function($subQ) use ($search) {
-                      $subQ->where('enroll_no', 'like', "%{$search}%");
+                      $subQ->where('enroll_no', 'like', "%{$search}%")
+                           ->orWhere('application_number', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('mentorDetails', function($subQ) use ($search) {
+                      $subQ->where('application_number', 'like', "%{$search}%");
                   });
             });
         }
@@ -139,8 +149,12 @@ class NiosMentorConvertedLeadController extends Controller
         }
 
         if ($request->filled('subject_id')) {
-            $query->whereHas('mentorDetails', function($q) use ($request) {
-                $q->where('subject_id', $request->subject_id);
+            $subjectId = $request->subject_id;
+            $query->where(function($q) use ($subjectId) {
+                $q->where('subject_id', $subjectId)
+                  ->orWhereHas('mentorDetails', function($subQ) use ($subjectId) {
+                      $subQ->where('subject_id', $subjectId);
+                  });
             });
         }
 
@@ -166,10 +180,18 @@ class NiosMentorConvertedLeadController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $convertedLeads = $query->orderBy('created_at', 'desc')->paginate(50);
+        $perPage = (int) $request->input('per_page', 50);
+        if (!in_array($perPage, [25, 50, 100, 200, 500], true)) {
+            $perPage = 50;
+        }
+
+        $convertedLeads = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         // Get filter data
         $batches = Batch::where('course_id', 1)->orderBy('title')->get();
+        $admissionBatches = AdmissionBatch::whereHas('batch', function($q) {
+            $q->where('course_id', 1);
+        })->orderBy('title')->get();
         $subjects = Subject::where('course_id', 1)->orderBy('title')->get();
         $country_codes = \App\Helpers\CountriesHelper::get_country_code();
         $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
@@ -177,6 +199,7 @@ class NiosMentorConvertedLeadController extends Controller
         return view('admin.converted-leads.nios-mentor-index', compact(
             'convertedLeads',
             'batches',
+            'admissionBatches',
             'subjects',
             'country_codes',
             'flags'
