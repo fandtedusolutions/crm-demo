@@ -21,14 +21,14 @@ class NiosMentorConvertedLeadController extends Controller
     public function index(Request $request)
     {
         $query = ConvertedLead::with([
-            'lead',
-            'leadDetail',
+            'lead.team',
+            'leadDetail.addonCourse',
             'course',
             'academicAssistant',
             'createdBy',
             'cancelledBy',
             'studentDetails',
-            'mentorDetails',
+            'mentorDetails.subject',
             'subject',
             'subjectAreas',
             'flag',
@@ -131,7 +131,12 @@ class NiosMentorConvertedLeadController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $convertedLeads = $query->orderBy('created_at', 'desc')->get();
+        $perPage = (int) $request->input('per_page', 50);
+        if (!in_array($perPage, [25, 50, 100, 200, 500], true)) {
+            $perPage = 50;
+        }
+
+        $convertedLeads = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         // Get filter data
         $batches = Batch::where('course_id', 1)->orderBy('title')->get();

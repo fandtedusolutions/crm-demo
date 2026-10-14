@@ -197,14 +197,14 @@
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.mentor-nios-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">National Institute of Open Schooling Converted Mentor List <span class="badge bg-primary ms-2">{{ $convertedLeads->count() }}</span></h5>
+                <h5 class="mb-0">National Institute of Open Schooling Converted Mentor List <span class="badge bg-primary ms-2">{{ method_exists($convertedLeads, 'total') ? $convertedLeads->total() : $convertedLeads->count() }}</span></h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-nios'])
             </div>
             <div class="card-body">
                 <!-- Desktop Table View -->
                 <div class="d-none d-lg-block">
                     <div class="table-responsive">
-                        <table class="table table-hover data_table_basic" id="niosMentorTable" data-page-length="{{ request('per_page', 50) }}" data-dom="Blfrtip">
+                        <table class="table table-hover data_table_basic" id="niosMentorTable" data-paging="false" data-dom="Bfrt">
                             <thead>
                                 <tr>
                                     <th>SL No</th>
@@ -282,7 +282,7 @@
                                     ? $convertedLead->support_verified_at->copy()->timezone($appTimezone)->format('d-m-Y h:i A')
                                     : null;
                                     @endphp
-                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ method_exists($convertedLeads, 'firstItem') ? ($convertedLeads->firstItem() + $index) : ($index + 1) }}</td>
                                     <td>{{ $convertedLead->created_at->format('d-m-Y') }}</td>
                                     <td>
                                         @if($academicVerifiedAt)
@@ -912,9 +912,20 @@
                     </div>
                 </div>
 
-                <div class="d-lg-none mt-3 text-center text-muted small">
-                    Showing all {{ $convertedLeads->count() }} records
+                <div class="d-lg-none mt-2 text-center text-muted small">
+                    Showing {{ method_exists($convertedLeads, 'firstItem') ? ($convertedLeads->firstItem() ?? 0) : 1 }} to {{ method_exists($convertedLeads, 'lastItem') ? ($convertedLeads->lastItem() ?? 0) : $convertedLeads->count() }} of {{ method_exists($convertedLeads, 'total') ? $convertedLeads->total() : $convertedLeads->count() }} records
                 </div>
+
+                @if(method_exists($convertedLeads, 'links'))
+                <div class="mt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-none d-lg-block text-muted small">
+                        Showing {{ $convertedLeads->firstItem() ?? 0 }} to {{ $convertedLeads->lastItem() ?? 0 }} of {{ $convertedLeads->total() }} results
+                    </div>
+                    <div>
+                        {{ $convertedLeads->appends(request()->except(['user_id', 'user_name', 'role_id', 'role_title', 'user_designation']))->links('pagination::bootstrap-5') }}
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
     </div>
@@ -1002,7 +1013,7 @@
         if (window.history && window.history.replaceState && window.location.search) {
             const currentUrl = new URL(window.location.href);
             let cleaned = false;
-            ['user_id', 'user_name', 'role_id', 'role_title', 'user_designation', 'page'].forEach(function(param) {
+            ['user_id', 'user_name', 'role_id', 'role_title', 'user_designation'].forEach(function(param) {
                 if (currentUrl.searchParams.has(param)) {
                     currentUrl.searchParams.delete(param);
                     cleaned = true;
