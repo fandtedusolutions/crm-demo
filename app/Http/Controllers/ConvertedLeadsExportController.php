@@ -62,6 +62,7 @@ class ConvertedLeadsExportController extends Controller
             'lead.team',
             'lead.telecaller',
             'lead.createdBy',
+            'lead.leadSource',
             'course',
             'academicAssistant',
             'createdBy',

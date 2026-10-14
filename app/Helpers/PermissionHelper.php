@@ -160,6 +160,7 @@ class PermissionHelper
             'leads/index',
             'profile/index',
             'admin/converted-leads/index',
+            'admin/reports/converted-leads-report',
             'admin/online-teaching-faculties/index',
             'admin/call-analytics/index',
             'admin/notifications/index',

@@ -271,6 +271,7 @@
                                     <th>Academic Verified At</th>
                                     <th>Support Verified At</th>
                                     <th>Lead Created By</th>
+                                    <th>Lead Source</th>
                                     <th>Pending Payment</th>
                                     <th>LMS</th>
                                     <th>Actions</th>
@@ -360,6 +361,7 @@ $convertedLeadsColumns = array_merge($convertedLeadsColumns, [
     ['data' => 'academic_verified_at', 'name' => 'academic_verified_at', 'orderable' => false, 'searchable' => false],
     ['data' => 'support_verified_at', 'name' => 'support_verified_at', 'orderable' => false, 'searchable' => false],
     ['data' => 'lead_created_by', 'name' => 'lead_created_by', 'orderable' => false, 'searchable' => false],
+    ['data' => 'lead_source', 'name' => 'lead_source', 'orderable' => false, 'searchable' => false],
     ['data' => 'pending_payment', 'name' => 'pending_payment', 'orderable' => false, 'searchable' => false],
     ['data' => 'lms_shared', 'name' => 'lms_shared', 'orderable' => false, 'searchable' => false],
     ['data' => 'actions', 'name' => 'actions', 'orderable' => false, 'searchable' => false],

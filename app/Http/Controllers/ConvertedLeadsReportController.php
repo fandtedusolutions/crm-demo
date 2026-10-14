@@ -340,6 +340,7 @@ class ConvertedLeadsReportController extends Controller
             || RoleHelper::is_general_manager()
             || RoleHelper::is_auditor()
             || RoleHelper::is_team_lead()
-            || RoleHelper::is_senior_manager();
+            || RoleHelper::is_senior_manager()
+            || RoleHelper::is_admission_counsellor();
     }
 }

@@ -122,6 +122,7 @@ class ConvertedLeadController extends Controller
                 'lead.createdBy',
                 'lead.telecaller',
                 'lead.team',
+                'lead.leadSource',
                 'course',
                 'cancelledBy',
                 'studentDetails',
@@ -494,6 +495,10 @@ class ConvertedLeadController extends Controller
             ? e($convertedLead->lead->createdBy->name)
             : '<span class="text-muted">N/A</span>';
 
+        $leadSource = ($convertedLead->lead && $convertedLead->lead->leadSource)
+            ? e($convertedLead->lead->leadSource->title)
+            : '<span class="text-muted">N/A</span>';
+
         $bdeName = ($convertedLead->lead && $convertedLead->lead->telecaller)
             ? e($convertedLead->lead->telecaller->name)
             : '<span class="text-muted">N/A</span>';
@@ -531,6 +536,7 @@ class ConvertedLeadController extends Controller
                 ? e($supportVerifiedAt)
                 : '<span class="text-muted">N/A</span>',
             'lead_created_by' => $leadCreatedBy,
+            'lead_source' => $leadSource,
             'pending_payment' => $pendingPayment,
             'lms_shared' => $lmsSharedHtml,
             'actions' => $actionsHtml,
@@ -557,6 +563,7 @@ class ConvertedLeadController extends Controller
             'lead.team',
             'lead.telecaller',
             'lead.createdBy',
+            'lead.leadSource',
             'course',
             'academicAssistant',
             'createdBy',

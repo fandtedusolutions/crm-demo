@@ -53,6 +53,7 @@ class ConvertedLeadsExport implements FromCollection, WithHeadings, WithMapping,
             'Academic Verified At',
             'Support Verified At',
             'Lead Created By',
+            'Lead Source',
             'Pending Payment',
         ];
     }
@@ -102,6 +103,7 @@ class ConvertedLeadsExport implements FromCollection, WithHeadings, WithMapping,
             $convertedLead->academic_verified_at ? \Carbon\Carbon::parse($convertedLead->academic_verified_at)->format('d-m-Y h:i A') : '-',
             $convertedLead->support_verified_at ? \Carbon\Carbon::parse($convertedLead->support_verified_at)->format('d-m-Y h:i A') : '-',
             $convertedLead->lead && $convertedLead->lead->createdBy ? $convertedLead->lead->createdBy->name : '-',
+            $convertedLead->lead && $convertedLead->lead->leadSource ? $convertedLead->lead->leadSource->title : '-',
             number_format($pendingPayment, 2),
         ];
     }

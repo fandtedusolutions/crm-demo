@@ -47,6 +47,7 @@
                 <th>Academic Verified At</th>
                 <th>Support Verified At</th>
                 <th>Lead Created By</th>
+                <th>Lead Source</th>
                 <th>Pending Payment</th>
             </tr>
         </thead>
@@ -84,11 +85,12 @@
                     <td>{{ $convertedLead->academic_verified_at ? \Carbon\Carbon::parse($convertedLead->academic_verified_at)->format('d-m-Y h:i A') : '-' }}</td>
                     <td>{{ $convertedLead->support_verified_at ? \Carbon\Carbon::parse($convertedLead->support_verified_at)->format('d-m-Y h:i A') : '-' }}</td>
                     <td>{{ $convertedLead->lead && $convertedLead->lead->createdBy ? $convertedLead->lead->createdBy->name : '-' }}</td>
+                    <td>{{ $convertedLead->lead && $convertedLead->lead->leadSource ? $convertedLead->lead->leadSource->title : '-' }}</td>
                     <td class="text-right">{{ number_format($pendingPayment, 2) }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="23" class="text-center">No converted leads found for the selected filters.</td>
+                    <td colspan="24" class="text-center">No converted leads found for the selected filters.</td>
                 </tr>
             @endforelse
         </tbody>

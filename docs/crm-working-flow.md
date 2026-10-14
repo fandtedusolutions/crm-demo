@@ -177,7 +177,7 @@ The sidebar is `resources/views/layouts/parts/sidebar.blade.php`. Each item call
 | Online Teaching Faculty | `admin/online-teaching-faculties/index` | Admission counsellor, academic assistant, HOD |
 | Call Analytics | `admin/call-analytics/index` | Senior-manager telecaller, admission, academic, post-sales, GM, HOD |
 | NatX Analytics | `admin/natx-analytics/index` | Admin, super admin, admission counsellor |
-| Converted Leads Report | `admin/reports/converted-leads-report` | Team lead, senior manager, general manager, auditor |
+| Converted Leads Report | `admin/reports/converted-leads-report` | Team lead, senior manager, general manager, auditor, admission counsellor |
 | Call Logs | `admin/call-logs/index` | Admin and super admin (not on the narrower allow-lists) |
 
 ### User management
