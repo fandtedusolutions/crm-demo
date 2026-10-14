@@ -350,7 +350,16 @@
                                     </td>
                                     @include('admin.converted-leads.partials.inline-subject-area-cell', ['convertedLead' => $convertedLead])
                                     <td>{{ $convertedLead->batch ? $convertedLead->batch->title : 'N/A' }}</td>
-                                    <td>{{ $convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : 'N/A' }}</td>
+                                    <td>
+                                        <div class="inline-edit" data-field="admission_batch_id" data-id="{{ $convertedLead->id }}" data-batch-id="{{ $convertedLead->batch_id }}" data-current-id="{{ $convertedLead->admission_batch_id }}" data-current="{{ $convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : 'N/A' }}">
+                                            <span class="display-value">{{ $convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : 'N/A' }}</span>
+                                            @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                            <button type="button" class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit">
+                                                <i class="ti ti-edit"></i>
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td>
                                         <div class="inline-edit" data-field="technology_side" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->mentorDetails?->technology_side }}">
                                             <span class="display-value">{{ $convertedLead->mentorDetails?->technology_side ?? '-' }}</span>
@@ -871,6 +880,17 @@
                                             <span class="fw-medium">{{ $convertedLead->batch ? $convertedLead->batch->title : 'N/A' }}</span>
                                         </div>
                                         <div class="col-6">
+                                            <small class="text-muted d-block">Admission Batch</small>
+                                            <div class="inline-edit" data-field="admission_batch_id" data-id="{{ $convertedLead->id }}" data-batch-id="{{ $convertedLead->batch_id }}" data-current-id="{{ $convertedLead->admission_batch_id }}" data-current="{{ $convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : 'N/A' }}">
+                                                <span class="fw-medium display-value">{{ $convertedLead->admissionBatch ? $convertedLead->admissionBatch->title : 'N/A' }}</span>
+                                                @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
+                                                <button type="button" class="btn btn-sm btn-outline-secondary ms-1 edit-btn py-0 px-1" title="Edit">
+                                                    <i class="ti ti-edit"></i>
+                                                </button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
                                             <small class="text-muted d-block">Academic Verified At</small>
                                             <span class="fw-medium">{{ $academicVerifiedAtMobile ?? 'N/A' }}</span>
                                         </div>
@@ -1057,6 +1077,9 @@
             let editForm = '';
             if (field === 'subject_id') {
                 editForm = createSubjectField(field, currentValue);
+            } else if (field === 'admission_batch_id') {
+                const currentId = container.data('current-id');
+                editForm = createAdmissionBatchField(field, currentId);
             } else if (field === 'problems') {
                 editForm = createTextareaField(field, currentValue);
             } else if (['registration_status', 'technology_side', 'student_status', 'call_1', 'call_2', 'call_3', 'call_4', 'call_5', 'call_6', 'call_7', 'call_8', 'call_9', 'call_10', 'app', 'whatsapp_group', 'telegram_group', 'mentor_live_1', 'mentor_live_2', 'mentor_live_3', 'mentor_live_4', 'mentor_live_5', 'first_live', 'first_exam', 'second_live', 'second_exam', 'model_exam_live', 'model_exam', 'assignment', 'exam_fees', 'pcp_class', 'id_card', 'practical_hall_ticket', 'particle_exam', 'theory_hall_ticket', 'practical_record', 'admit_card', 'exam_subject_1', 'exam_subject_2', 'exam_subject_3', 'exam_subject_4', 'exam_subject_5', 'exam_subject_6'].includes(field)) {
@@ -1071,6 +1094,11 @@
             if (field === 'subject_id') {
                 const $select = container.find('select');
                 loadSubjectsForEdit($select, currentValue);
+            } else if (field === 'admission_batch_id') {
+                const batchId = container.data('batch-id');
+                const currentId = container.data('current-id');
+                const $select = container.find('select');
+                loadAdmissionBatchesForEdit(batchId, $select, currentId);
             }
 
             container.find('input, select, textarea').first().focus();
@@ -1105,8 +1133,12 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        container.find('.display-value').text(response.value || value || '-');
-                        container.data('current', response.value || value);
+                        const dispVal = response.value || (value ? value : '-');
+                        container.find('.display-value').text(dispVal);
+                        container.data('current', dispVal);
+                        if (field === 'admission_batch_id' || field === 'subject_id') {
+                            container.data('current-id', value || '');
+                        }
                         if (typeof toast_success === 'function') toast_success(response.message || 'Updated successfully');
                     } else {
                         if (typeof toast_error === 'function') toast_error(response.error || 'Update failed');
@@ -1188,7 +1220,7 @@
 
         function loadSubjectsForEdit($select, currentValue) {
             $.get('/api/subjects/by-course/1').done(function(list) {
-                let options = '<option value=\"\">Select Subject</option>';
+                let options = '<option value="">Select Subject</option>';
                 list.forEach(function(item) {
                     const selected = String(currentValue) === String(item.id) ? 'selected' : '';
                     options += `<option value="${item.id}" ${selected}>${item.title}</option>`;
@@ -1197,6 +1229,61 @@
             }).fail(function() {
                 $select.html('<option value="">Error loading subjects</option>');
             });
+        }
+
+        function createAdmissionBatchField(field, currentId) {
+            return `
+            <div class="edit-form">
+                <select class="form-select form-select-sm">
+                    <option value="">Loading admission batches...</option>
+                </select>
+                <div class="btn-group mt-1">
+                    <button type="button" class="btn btn-success btn-sm save-edit">Save</button>
+                    <button type="button" class="btn btn-secondary btn-sm cancel-edit">Cancel</button>
+                </div>
+            </div>
+        `;
+        }
+
+        function loadAdmissionBatchesForEdit(batchId, $select, currentId) {
+            function populateFromList(list) {
+                let options = '<option value="">Select Admission Batch</option>';
+                list.forEach(function(item) {
+                    const selected = (currentId && String(currentId) === String(item.id)) ? 'selected' : '';
+                    options += `<option value="${item.id}" ${selected}>${item.title}</option>`;
+                });
+                $select.html(options);
+                $select.focus();
+            }
+
+            function fallbackFromDom() {
+                let options = '<option value="">Select Admission Batch</option>';
+                $('#admission_batch_id option').each(function() {
+                    const val = $(this).val();
+                    if (!val) return;
+                    const bId = $(this).data('batch-id');
+                    if (!batchId || !bId || String(bId) === String(batchId)) {
+                        const selected = (currentId && String(currentId) === String(val)) ? 'selected' : '';
+                        options += `<option value="${val}" ${selected}>${$(this).text()}</option>`;
+                    }
+                });
+                $select.html(options);
+                $select.focus();
+            }
+
+            if (batchId) {
+                $.get(`/api/admission-batches/by-batch/${batchId}`).done(function(list) {
+                    if (list && list.length > 0) {
+                        populateFromList(list);
+                    } else {
+                        fallbackFromDom();
+                    }
+                }).fail(function() {
+                    fallbackFromDom();
+                });
+            } else {
+                fallbackFromDom();
+            }
         }
 
         function createSelectField(field, currentValue) {

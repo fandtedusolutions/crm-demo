@@ -168,8 +168,17 @@ class NiosMentorConvertedLeadController extends Controller
             $field = $request->field;
             $value = $request->value;
 
-            if ($denied = \App\Support\MentorFlagFieldSupport::mentorFieldDeniedJsonResponse($field, ['subject_id', 'registration_status', 'status'])) {
+            if ($denied = \App\Support\MentorFlagFieldSupport::mentorFieldDeniedJsonResponse($field, ['subject_id', 'registration_status', 'status', 'admission_batch_id'])) {
                 return $denied;
+            }
+
+            if ($field === 'admission_batch_id') {
+                if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor() && !RoleHelper::is_academic_assistant() && !RoleHelper::is_hod()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'You do not have permission to edit admission batch.'
+                    ], 403);
+                }
             }
 
             if ($denied = \App\Support\MentorFlagFieldSupport::mentorLeadScopeDeniedJsonResponse($convertedLead)) {
@@ -192,9 +201,16 @@ class NiosMentorConvertedLeadController extends Controller
                 return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
             }
 
-            // Handle status field - update in converted_leads table
+            // Handle status and admission_batch_id fields - update in converted_leads table
             if ($field === 'status') {
                 $convertedLead->status = $value;
+                $convertedLead->save();
+            } elseif ($field === 'admission_batch_id') {
+                $oldAdmissionBatchId = $convertedLead->admission_batch_id;
+                $convertedLead->admission_batch_id = $value ?: null;
+                if ((string)$oldAdmissionBatchId !== (string)$value) {
+                    $convertedLead->admission_batch_assigned_at = $value ? now() : null;
+                }
                 $convertedLead->save();
             } else {
                 // Handle all other fields - update in converted_student_mentor_details table
@@ -231,6 +247,7 @@ class NiosMentorConvertedLeadController extends Controller
     private function getValidationRules($field)
     {
         $rules = [
+            'admission_batch_id' => 'nullable|exists:admission_batches,id',
             'subject_id' => 'nullable|exists:subjects,id',
             'flag_id' => \App\Support\MentorFlagFieldSupport::validationRule(),
             'status' => 'nullable|in:Paid,Admission cancel,Active,Inactive',
@@ -294,6 +311,14 @@ class NiosMentorConvertedLeadController extends Controller
         if ($field === 'subject_id' && $value) {
             $subject = Subject::find($value);
             return $subject ? $subject->title : $value;
+        }
+
+        if ($field === 'admission_batch_id') {
+            if ($value) {
+                $admissionBatch = AdmissionBatch::find($value);
+                return $admissionBatch ? $admissionBatch->title : $value;
+            }
+            return 'N/A';
         }
         
         return $value;
