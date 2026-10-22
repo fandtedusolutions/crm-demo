@@ -2290,6 +2290,14 @@ class ConvertedLeadController extends Controller
     }
 
     /**
+     * Display Data Analytics with Gen AI converted leads (course_id = 37)
+     */
+    public function dataAnalyticsWithGenAIIndex(Request $request)
+    {
+        return $this->programmeCourseConvertedLeadsIndex(37, 'data-analytics-with-gen-ai-index', 'dataAnalyticsWithGenAIConvertedLeadsTable');
+    }
+
+    /**
      * Display Web Development & Designing converted leads (course_id = 13)
      */
     public function webDevIndex(Request $request)

@@ -52,6 +52,9 @@
                     <a href="{{ route('admin.data-science-mentor-converted-leads.index') }}" class="{{ $mentorNavBtn('admin.data-science-mentor-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> Data Science Course Mentor List
                     </a>
+                    <a href="{{ route('admin.data-analytics-with-gen-ai-mentor-converted-leads.index') }}" class="{{ $mentorNavBtn('admin.data-analytics-with-gen-ai-mentor-converted-leads.index') }}">
+                        <i class="ti ti-user-star"></i> Data Analytics with Gen AI Mentor List
+                    </a>
                     <a href="{{ route('admin.graphic-designing-mentor-converted-leads.index') }}" class="{{ $mentorNavBtn('admin.graphic-designing-mentor-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> Diploma in Graphic Designing Mentor List
                     </a>

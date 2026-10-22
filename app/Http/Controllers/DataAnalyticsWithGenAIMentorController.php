@@ -1,0 +1,392 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\ConvertedLead;
+use App\Models\ConvertedStudentMentorDetail;
+use App\Models\Batch;
+use App\Models\AdmissionBatch;
+use App\Models\ClassTime;
+use App\Models\OfflinePlace;
+use App\Helpers\AuthHelper;
+use App\Helpers\RoleHelper;
+use App\Support\DataScienceMentorTrackColumns;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+
+class DataAnalyticsWithGenAIMentorController extends Controller
+{
+    /**
+     * Display a listing of Data Analytics with Gen AI converted leads for mentoring
+     */
+    public function index(Request $request)
+    {
+        // Check permissions
+        if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor() && !RoleHelper::is_mentor() && !RoleHelper::is_telecaller() && !RoleHelper::is_team_lead() && !RoleHelper::is_senior_manager() && !RoleHelper::is_general_manager() && !RoleHelper::is_hod()) {
+            return redirect()->route('dashboard')->with('message_danger', 'Access denied.');
+        }
+
+        $query = ConvertedLead::with([
+            
+            'flag','lead', 
+            'course', 
+            'academicAssistant', 
+            'createdBy',
+            'cancelledBy',
+            'studentDetails',
+            'mentorDetails',
+            'batch',
+            'admissionBatch',
+            'leadDetail'
+        ])->forCourseListing(37) // Data Analytics with Gen AI course
+          ->where('is_support_verified', 1);
+
+        // Apply role-based filtering
+        \App\Helpers\PostSaleLeadHelper::apply($query, 'converted_leads.is_postsale');
+
+        $currentUser = AuthHelper::getCurrentUser();
+        if ($currentUser) {
+            if (RoleHelper::is_admin_or_super_admin()) {
+                // Admins can see all support verified leads
+            } elseif (RoleHelper::is_hod()) {
+                // HOD: Only see leads for courses where they are assigned as HOD
+                $hodCourseIds = \App\Models\Course::where('hod_id', AuthHelper::getCurrentUserId())
+                    ->pluck('id')
+                    ->toArray();
+                
+                // Check if current course (37) is in HOD's assigned courses
+                if (!empty($hodCourseIds) && in_array(37, $hodCourseIds)) {
+                    // HOD is assigned to this course, show data
+                } else {
+                    // HOD is not assigned to this course, return empty results
+                    $query->whereRaw('1 = 0');
+                }
+            } elseif (RoleHelper::is_mentor_head()) {
+                // Mentor Head: Can see all support verified leads
+            } elseif (RoleHelper::is_mentor()) {
+                // Regular Mentor: Filter by admission_batch_id where mentor_id matches
+                $mentorAdmissionBatchIds = AdmissionBatch::where('mentor_id', AuthHelper::getCurrentUserId())
+                    ->pluck('id')
+                    ->toArray();
+                
+                if (!empty($mentorAdmissionBatchIds)) {
+                    $query->forMentorAdmissionBatches($mentorAdmissionBatchIds);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            } elseif (RoleHelper::is_team_lead()) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = \App\Models\User::where('team_id', $teamId)->pluck('id')->toArray();
+                    $query->whereHas('lead', function($q) use ($teamMemberIds) {
+                        $q->whereIn('telecaller_id', $teamMemberIds);
+                    });
+                } else {
+                    $query->whereHas('lead', function($q) {
+                        $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                    });
+                }
+            } elseif (RoleHelper::is_senior_manager()) {
+                $teamId = $currentUser->team_id;
+                if ($teamId) {
+                    $teamMemberIds = \App\Models\User::where('team_id', $teamId)->pluck('id')->toArray();
+                    $query->whereHas('lead', function($q) use ($teamMemberIds) {
+                        $q->whereIn('telecaller_id', $teamMemberIds);
+                    });
+                } else {
+                    $query->whereHas('lead', function($q) {
+                        $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                    });
+                }
+            } elseif (RoleHelper::is_general_manager()) {
+                // General Manager: Can see all leads
+            } elseif (RoleHelper::is_admission_counsellor()) {
+                // Can see all
+            } elseif (RoleHelper::is_academic_assistant()) {
+                // Can see all
+            } elseif (RoleHelper::is_telecaller()) {
+                $query->whereHas('lead', function($q) {
+                    $q->where('telecaller_id', AuthHelper::getCurrentUserId());
+                });
+            }
+        }
+
+        // Apply filters
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('register_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('batch_id')) {
+            $query->whereListingBatch($request->batch_id);
+        }
+
+        if ($request->filled('admission_batch_id')) {
+            $query->whereListingAdmissionBatch($request->admission_batch_id);
+        }
+
+        \App\Support\MentorFlagFieldSupport::applyListingFilter($query, $request);
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $convertedLeads = $query->orderBy('created_at', 'desc')->paginate(50);
+
+        // Get filter data
+        $batches = Batch::where('course_id', 37)->orderBy('title')->get();
+        $country_codes = \App\Helpers\CountriesHelper::get_country_code();
+        $course = \App\Models\Course::find(37);
+        $classTimes = collect();
+        if ($course && $course->needs_time) {
+            $classTimes = ClassTime::where('course_id', 37)->where('is_active', true)->get();
+        }
+        $offlinePlaces = \App\Support\CourseOfflinePlaceSupport::placesFor($course);
+        $flags = \App\Support\MentorFlagFieldSupport::forFilterSelect();
+
+        return view('admin.converted-leads.data-analytics-with-gen-ai-mentor-index', compact(
+            'convertedLeads', 
+            'batches', 
+            'country_codes',
+            'course',
+            'classTimes',
+            'offlinePlaces',
+            'flags'
+        ));
+    }
+
+    /**
+     * Update mentor details inline
+     */
+    public function updateMentorDetails(Request $request, $id)
+    {
+        try {
+            if (!RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_admission_counsellor() && !RoleHelper::is_academic_assistant() && !RoleHelper::is_hod() && !RoleHelper::is_mentor()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Access denied'
+                ], 403);
+            }
+
+            $restrictedFields = [
+                'phone',
+                'batch_id',
+                'admission_batch_id',
+                'internship_id',
+                'email',
+                'call_status',
+                'orientation_class_date',
+                'class_start_date',
+                'class_end_date',
+                'whatsapp_group_status',
+                'class_time_id',
+                'programme_type',
+                'location',
+                'total_class',
+                'total_present',
+                'total_absent',
+            ];
+
+            $isRestricted = in_array($request->field, $restrictedFields, true);
+            $canEditRestricted = RoleHelper::is_admin_or_super_admin() || RoleHelper::is_hod() || RoleHelper::is_admission_counsellor();
+            if ($isRestricted && !$canEditRestricted) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Access denied'
+                ], 403);
+            }
+
+            $facultyManagedFields = [
+                'current_month',
+                'current_module',
+                'm1_marks',
+                'm2_marks',
+                'm3_marks',
+                'm4_marks',
+                'm5_marks',
+                'm6_marks',
+            ];
+            if (in_array($request->field, $facultyManagedFields, true) && !RoleHelper::is_admin_or_super_admin() && !RoleHelper::is_faculty()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'This field can only be updated by Faculty or Admin'
+                ], 403);
+            }
+
+            $convertedLead = ConvertedLead::findOrFail($id);
+            $field = $request->field;
+            $value = $request->value;
+
+            if ($denied = \App\Support\MentorFlagFieldSupport::mentorLeadScopeDeniedJsonResponse($convertedLead)) {
+                return $denied;
+            }
+
+            // Validate the field and value
+            $validationRules = $this->getValidationRules($field);
+            if ($validationRules) {
+                $validator = Validator::make([$field => $value], [$field => $validationRules]);
+                if ($validator->fails()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => $validator->errors()->first($field)
+                    ], 422);
+                }
+            }
+
+            if ($field === 'flag_id') {
+                return \App\Support\MentorFlagFieldSupport::flagUpdateJsonResponse($convertedLead, $value);
+            }
+
+            // Handle fields that belong to converted_leads or student_details
+            $convertedLeadFields = ['phone', 'register_number', 'email', 'batch_id', 'admission_batch_id'];
+            $studentDetailFields = ['internship_id', 'call_status'];
+            $leadDetailFields = ['class_time_id', 'programme_type', 'location'];
+
+            if (in_array($field, $convertedLeadFields)) {
+                if ($field === 'phone') {
+                    $convertedLead->phone = $value;
+                    if ($request->has('code')) {
+                        $convertedLead->code = $request->code;
+                    }
+                } else {
+                    $listingBatchUpdate = $convertedLead->applyListingBatchUpdate($field, $value, (int) request()->input('listing_course_id'));
+                    if ($listingBatchUpdate['error']) {
+                        return response()->json(['success' => false, 'error' => $listingBatchUpdate['error']], 422);
+                    }
+                    if (! $listingBatchUpdate['handled']) {
+                        $convertedLead->$field = $value;
+                    }
+                }
+                $convertedLead->save();
+                $responseValue = $this->formatResponseValue($field, $value, $convertedLead);
+            } elseif (in_array($field, $studentDetailFields)) {
+                $studentDetails = $convertedLead->studentDetails;
+                if (!$studentDetails) {
+                    $studentDetails = new \App\Models\ConvertedStudentDetail();
+                    $studentDetails->converted_student_id = $id;
+                }
+                $studentDetails->$field = $value;
+                $studentDetails->save();
+                $responseValue = $value;
+            } elseif (in_array($field, $leadDetailFields)) {
+                $leadDetail = $convertedLead->leadDetail;
+                if (!$leadDetail) {
+                    $leadDetail = new \App\Models\LeadDetail();
+                    $leadDetail->lead_id = $convertedLead->lead_id;
+                    $leadDetail->course_id = $convertedLead->course_id;
+                }
+                $leadDetail->$field = $value;
+                $leadDetail->save();
+                $responseValue = $this->formatResponseValue($field, $value, $convertedLead);
+            } elseif (DataScienceMentorTrackColumns::isTrackField($field)) {
+                $mentorDetails = $convertedLead->mentorDetails;
+                if (!$mentorDetails) {
+                    $mentorDetails = new ConvertedStudentMentorDetail();
+                    $mentorDetails->converted_student_id = $id;
+                }
+                DataScienceMentorTrackColumns::setTrackValue($mentorDetails, $field, ($value === '' ? null : $value));
+                $mentorDetails->save();
+
+                $responseValue = $value;
+                if (in_array($field, DataScienceMentorTrackColumns::dateFields(), true) && $value) {
+                    try {
+                        $responseValue = \Carbon\Carbon::parse($value)->format('d-m-Y');
+                    } catch (\Exception $e) {
+                        $responseValue = $value;
+                    }
+                } elseif ($value === null || $value === '') {
+                    $responseValue = '-';
+                }
+            } else {
+                // Handle legacy mentor detail fields
+                $mentorDetails = $convertedLead->mentorDetails;
+                if (!$mentorDetails) {
+                    $mentorDetails = new ConvertedStudentMentorDetail();
+                    $mentorDetails->converted_student_id = $id;
+                }
+                $mentorDetails->$field = $value;
+                $mentorDetails->save();
+                $responseValue = $value;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Updated successfully',
+                'value' => $responseValue,
+                'raw_value' => ($value === '' ? null : $value)
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error updating data science mentor details: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => 'Update failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get validation rules for specific fields
+     */
+    private function getValidationRules($field)
+    {
+        $trackRule = DataScienceMentorTrackColumns::validationRuleFor($field);
+        if ($trackRule) {
+            return $trackRule;
+        }
+
+        $rules = [
+            'whatsapp_group_status' => 'nullable|in:sent link,task complete',
+            'ai_workshop_attendance' => 'nullable|in:Attended,Not Attended',
+            'data_science_workshop_attendance' => 'nullable|in:Attended,Not Attended',
+            'total_class' => 'nullable|integer|min:0',
+            'total_present' => 'nullable|integer|min:0',
+            'total_absent' => 'nullable|integer|min:0',
+        ];
+
+        return $rules[$field] ?? null;
+    }
+
+    /**
+     * Format response value for display
+     */
+    private function formatResponseValue($field, $value, $convertedLead = null)
+    {
+        if ($field === 'batch_id' && $value) {
+            $batch = Batch::find($value);
+            return $batch ? $batch->title : $value;
+        }
+
+        if ($field === 'admission_batch_id' && $value) {
+            $admissionBatch = AdmissionBatch::find($value);
+            return $admissionBatch ? $admissionBatch->title : $value;
+        }
+
+        if ($field === 'class_time_id' && $value) {
+            $classTime = ClassTime::find($value);
+            if ($classTime) {
+                $fromTime = \Carbon\Carbon::parse($classTime->from_time)->format('h:i A');
+                $toTime = \Carbon\Carbon::parse($classTime->to_time)->format('h:i A');
+                return $fromTime . ' - ' . $toTime;
+            }
+            return $value;
+        }
+
+        if ($field === 'phone' && $convertedLead) {
+            return \App\Helpers\PhoneNumberHelper::display($convertedLead->code, $convertedLead->phone);
+        }
+
+        return $value;
+    }
+}
+

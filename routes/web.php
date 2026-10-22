@@ -223,6 +223,12 @@ Route::prefix('register')->group(function () {
     Route::get('/diploma-in-data-science/subjects', [App\Http\Controllers\Public\LeadAIAutomationRegistrationController::class, 'getSubjects'])->name('public.lead.diploma-in-data-science.subjects');
     Route::get('/diploma-in-data-science/batches', [App\Http\Controllers\Public\LeadAIAutomationRegistrationController::class, 'getBatches'])->name('public.lead.diploma-in-data-science.batches');
 
+    // Data Analytics with Gen AI Registration Routes (course_id = 37)
+    Route::get('/data-analytics-with-gen-ai/subjects', [App\Http\Controllers\Public\LeadDataAnalyticsWithGenAIRegistrationController::class, 'getSubjects'])->name('public.lead.data-analytics-with-gen-ai.subjects');
+    Route::get('/data-analytics-with-gen-ai/batches', [App\Http\Controllers\Public\LeadDataAnalyticsWithGenAIRegistrationController::class, 'getBatches'])->name('public.lead.data-analytics-with-gen-ai.batches');
+    Route::get('/data-analytics-with-gen-ai/{leadId?}', [App\Http\Controllers\Public\LeadDataAnalyticsWithGenAIRegistrationController::class, 'showForm'])->name('public.lead.data-analytics-with-gen-ai.register');
+    Route::post('/data-analytics-with-gen-ai', [App\Http\Controllers\Public\LeadDataAnalyticsWithGenAIRegistrationController::class, 'store'])->name('public.lead.data-analytics-with-gen-ai.register.store');
+
     // Web Development & Designing Registration Routes
     Route::get('/web-dev/{leadId?}', [App\Http\Controllers\Public\LeadWebDevRegistrationController::class, 'showWebDevForm'])->name('public.lead.web-dev.register');
     Route::post('/web-dev', [App\Http\Controllers\Public\LeadWebDevRegistrationController::class, 'store'])->name('public.lead.web-dev.register.store');
@@ -1013,6 +1019,7 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         Route::get('/digital-marketing-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'digitalMarketingIndex'])->name('digital-marketing-converted-leads.index');
         Route::get('/digital-marketing-converted-leads/data', [App\Http\Controllers\ConvertedLeadController::class, 'getDigitalMarketingConvertedLeadsData'])->name('digital-marketing-converted-leads.data');
         Route::get('/diploma-in-data-science-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'aiAutomationIndex'])->name('diploma-in-data-science-converted-leads.index');
+        Route::get('/data-analytics-with-gen-ai-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'dataAnalyticsWithGenAIIndex'])->name('data-analytics-with-gen-ai-converted-leads.index');
         Route::get('/web-development-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'webDevIndex'])->name('web-development-converted-leads.index');
         Route::get('/vibe-coding-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'vibeCodingIndex'])->name('vibe-coding-converted-leads.index');
         Route::get('/graphic-designing-converted-leads', [App\Http\Controllers\ConvertedLeadController::class, 'graphicDesigningIndex'])->name('graphic-designing-converted-leads.index');
@@ -1060,6 +1067,10 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // Data Science Mentor Converted Leads Routes
         Route::get('/data-science-mentor-converted-leads', [App\Http\Controllers\DataScienceMentorController::class, 'index'])->name('data-science-mentor-converted-leads.index');
         Route::post('/data-science-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\DataScienceMentorController::class, 'updateMentorDetails'])->name('data-science-mentor-converted-leads.update-mentor-details');
+
+        // Data Analytics with Gen AI Mentor Converted Leads Routes (course_id = 37)
+        Route::get('/data-analytics-with-gen-ai-mentor-converted-leads', [App\Http\Controllers\DataAnalyticsWithGenAIMentorController::class, 'index'])->name('data-analytics-with-gen-ai-mentor-converted-leads.index');
+        Route::post('/data-analytics-with-gen-ai-mentor-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\DataAnalyticsWithGenAIMentorController::class, 'updateMentorDetails'])->name('data-analytics-with-gen-ai-mentor-converted-leads.update-mentor-details');
 
         // Machine Learning Mentor Converted Leads Routes
         Route::get('/machine-learning-mentor-converted-leads', [App\Http\Controllers\MachineLearningMentorController::class, 'index'])->name('machine-learning-mentor-converted-leads.index');
@@ -1124,6 +1135,10 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // Data Science Faculty Converted Leads Routes
         Route::get('/data-science-faculty-converted-leads', [App\Http\Controllers\DataScienceFacultyController::class, 'index'])->name('data-science-faculty-converted-leads.index');
         Route::post('/data-science-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\DataScienceFacultyController::class, 'updateMentorDetails'])->name('data-science-faculty-converted-leads.update-mentor-details');
+
+        // Data Analytics with Gen AI Faculty Converted Leads Routes (course_id = 37)
+        Route::get('/data-analytics-with-gen-ai-faculty-converted-leads', [App\Http\Controllers\DataAnalyticsWithGenAIFacultyController::class, 'index'])->name('data-analytics-with-gen-ai-faculty-converted-leads.index');
+        Route::post('/data-analytics-with-gen-ai-faculty-converted-leads/{id}/update-mentor-details', [App\Http\Controllers\DataAnalyticsWithGenAIFacultyController::class, 'updateMentorDetails'])->name('data-analytics-with-gen-ai-faculty-converted-leads.update-mentor-details');
 
         // Machine Learning Faculty Converted Leads Routes
         Route::get('/machine-learning-faculty-converted-leads', [App\Http\Controllers\MachineLearningFacultyController::class, 'index'])->name('machine-learning-faculty-converted-leads.index');
@@ -1218,6 +1233,10 @@ Route::middleware(['custom.auth', 'telecaller.tracking'])->group(function () {
         // AI Automation Support Converted Leads Routes
         Route::get('/support-diploma-in-data-science-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'aiAutomationIndex'])->name('support-diploma-in-data-science-converted-leads.index');
         Route::post('/support-diploma-in-data-science-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-diploma-in-data-science-converted-leads.update-support-details');
+
+        // Data Analytics with Gen AI Support Converted Leads Routes (course_id = 37)
+        Route::get('/support-data-analytics-with-gen-ai-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'dataAnalyticsWithGenAIIndex'])->name('support-data-analytics-with-gen-ai-converted-leads.index');
+        Route::post('/support-data-analytics-with-gen-ai-converted-leads/{id}/update-support-details', [App\Http\Controllers\SupportConvertedLeadController::class, 'updateSupportDetails'])->name('support-data-analytics-with-gen-ai-converted-leads.update-support-details');
 
         // Web Development Support Converted Leads Routes
         Route::get('/support-web-development-converted-leads', [App\Http\Controllers\SupportConvertedLeadController::class, 'webDevelopmentIndex'])->name('support-web-development-converted-leads.index');

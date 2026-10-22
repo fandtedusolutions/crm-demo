@@ -468,6 +468,12 @@
                                                 <i class="ti ti-external-link me-1"></i>Prompt Engineering Form
                                             </a>
                                         </div>
+                                        @elseif($lead->course_id == 37)
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ route('public.lead.data-analytics-with-gen-ai.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Open Data Analytics with Gen AI Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>Data Analytics with Gen AI Form
+                                            </a>
+                                        </div>
                                         @else
                                         <span class="text-muted">No form available</span>
                                         @endif

@@ -52,6 +52,9 @@
                     <a href="{{ route('admin.diploma-in-data-science-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.diploma-in-data-science-converted-leads.index') }}">
                         <i class="ti ti-database"></i> Diploma in Data Science Converted Leads
                     </a>
+                    <a href="{{ route('admin.data-analytics-with-gen-ai-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.data-analytics-with-gen-ai-converted-leads.index') }}">
+                        <i class="ti ti-database"></i> Data Analytics with Gen AI Converted Leads
+                    </a>
                     <a href="{{ route('admin.web-development-converted-leads.index') }}" class="{{ $convertedNavBtn('admin.web-development-converted-leads.index') }}">
                         <i class="ti ti-world"></i> Web Development & Designing Converted Leads
                     </a>

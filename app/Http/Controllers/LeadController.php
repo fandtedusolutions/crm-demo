@@ -6189,6 +6189,7 @@ class LeadController extends Controller
 
                 $studentDetail->update([$field => $value]);
 
+                $lead = $studentDetail->lead()->with('convertedLead.studentDetails')->first();
                 if ($lead && $lead->is_converted && $lead->convertedLead && $lead->convertedLead->studentDetails) {
                     $lead->convertedLead->studentDetails->update(['re_mode' => $value]);
                 }

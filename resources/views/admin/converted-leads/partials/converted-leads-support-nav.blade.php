@@ -46,6 +46,9 @@
                     <a href="{{ route('admin.support-diploma-in-data-science-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-diploma-in-data-science-converted-leads.index') }}">
                         <i class="ti ti-headphones"></i> Diploma in Data Science Converted Support List
                     </a>
+                    <a href="{{ route('admin.support-data-analytics-with-gen-ai-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-data-analytics-with-gen-ai-converted-leads.index') }}">
+                        <i class="ti ti-headphones"></i> Data Analytics with Gen AI Converted Support List
+                    </a>
                     <a href="{{ route('admin.support-web-development-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-web-development-converted-leads.index') }}">
                         <i class="ti ti-headphones"></i> Web Development & Designing Converted Support List
                     </a>

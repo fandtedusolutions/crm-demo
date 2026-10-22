@@ -48,6 +48,9 @@
                     <a href="{{ route('admin.data-science-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.data-science-faculty-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> Data Science Course Faculty List
                     </a>
+                    <a href="{{ route('admin.data-analytics-with-gen-ai-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.data-analytics-with-gen-ai-faculty-converted-leads.index') }}">
+                        <i class="ti ti-user-star"></i> Data Analytics with Gen AI Faculty List
+                    </a>
                     <a href="{{ route('admin.graphic-designing-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.graphic-designing-faculty-converted-leads.index') }}">
                         <i class="ti ti-user-star"></i> Diploma in Graphic Designing Faculty List
                     </a>

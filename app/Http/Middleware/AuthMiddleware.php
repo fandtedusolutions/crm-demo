@@ -22,6 +22,22 @@ class AuthMiddleware
                 ->with('message', 'Session expired, Login Again!');
         }
 
+        $userId = AuthHelper::getUserId();
+
+        // Ensure user is authenticated in Laravel's Auth guard so the sessions table user_id is populated
+        if (!\Illuminate\Support\Facades\Auth::check() && $userId) {
+            \Illuminate\Support\Facades\Auth::loginUsingId($userId);
+        }
+
+        // Also ensure current session record in sessions table has user_id updated if currently null
+        $sessionId = $request->session()->getId();
+        if ($sessionId && $userId) {
+            \Illuminate\Support\Facades\DB::table(config('session.table', 'sessions'))
+                ->where('id', $sessionId)
+                ->whereNull('user_id')
+                ->update(['user_id' => $userId]);
+        }
+
         // Add user data to request attributes for easy access without polluting query parameters
         $request->attributes->add([
             'user_id' => AuthHelper::getUserId(),

@@ -312,6 +312,11 @@ class Lead extends Model
         return $this->hasOne(LeadDetail::class, 'lead_id')->where('course_id', 34);
     }
 
+    public function dataAnalyticsWithGenAIStudentDetails()
+    {
+        return $this->hasOne(LeadDetail::class, 'lead_id')->where('course_id', 37);
+    }
+
     public function plusTwoFollowUpQuestionnaire()
     {
         return $this->hasOne(PlusTwoFollowUpQuestionnaire::class, 'lead_id');

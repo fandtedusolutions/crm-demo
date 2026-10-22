@@ -1104,6 +1104,14 @@ class SupportConvertedLeadController extends Controller
     }
 
     /**
+     * Display Data Analytics with Gen AI converted leads for support (course_id = 37)
+     */
+    public function dataAnalyticsWithGenAIIndex(Request $request)
+    {
+        return $this->getCourseSupportIndex($request, 37, 'Data Analytics with Gen AI Converted Support List', 'admin.converted-leads.support-data-analytics-with-gen-ai-index');
+    }
+
+    /**
      * Display a listing of Web Development converted leads for support
      */
     public function webDevelopmentIndex(Request $request)

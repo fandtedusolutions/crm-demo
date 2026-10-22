@@ -52,6 +52,10 @@ class AuthController extends Controller
 
         if ($loginResult['status'] == 1) {
             $user = $loginResult['user'];
+
+            // Log in the user via Laravel's Auth guard
+            \Illuminate\Support\Facades\Auth::login($user);
+
             $userRole = UserRole::find($user->role_id);
             
             // Set session data
@@ -68,6 +72,14 @@ class AuthController extends Controller
                 'logged_in_at' => time(),
             ]);
 
+            // Ensure the sessions database table has user_id updated immediately for current session
+            $sessionId = $request->session()->getId();
+            if ($sessionId) {
+                \Illuminate\Support\Facades\DB::table(config('session.table', 'sessions'))
+                    ->where('id', $sessionId)
+                    ->update(['user_id' => $user->id]);
+            }
+
             return redirect()->route('dashboard')
                 ->with('message_success', "Welcome back! <b>{$user->name}</b>");
         } else {
@@ -78,9 +90,21 @@ class AuthController extends Controller
     /**
      * Logout the user.
      */
-    public function logout()
+    public function logout(Request $request)
     {
+        $sessionId = $request->session()->getId();
+
+        \Illuminate\Support\Facades\Auth::logout();
+
         Session::flush();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        if ($sessionId) {
+            \Illuminate\Support\Facades\DB::table(config('session.table', 'sessions'))
+                ->where('id', $sessionId)
+                ->delete();
+        }
         
         return redirect()->route('login')
             ->with('message', 'Session expired, Login Again!');

@@ -257,6 +257,7 @@ class PermissionHelper
             'admin/ai-integrated-photography-converted-leads/index',
             'admin/robo-vibe-converted-leads/index',
             'admin/prompt-engineering-converted-leads/index',
+            'admin/data-analytics-with-gen-ai-converted-leads/index',
             'admin/eduthanzeel-converted-leads/index',
             'admin/e-school-converted-leads/index',
             'admin/payments/list',
@@ -321,6 +322,7 @@ class PermissionHelper
             'admin/support-ai-integrated-photography-converted-leads/index',
             'admin/support-robo-vibe-converted-leads/index',
             'admin/support-prompt-engineering-converted-leads/index',
+            'admin/support-data-analytics-with-gen-ai-converted-leads/index',
             'admin/support-eduthanzeel-converted-leads/index',
             'admin/support-e-school-converted-leads/index',
         ];
@@ -391,6 +393,7 @@ class PermissionHelper
             'admin/gmvss-faculty-converted-leads/index',
             'admin/digital-marketing-faculty-converted-leads/index',
             'admin/data-science-faculty-converted-leads/index',
+            'admin/data-analytics-with-gen-ai-faculty-converted-leads/index',
             'admin/graphic-designing-faculty-converted-leads/index',
             'admin/ai-integrated-video-editing-faculty-converted-leads/index',
             'admin/ai-integrated-videography-faculty-converted-leads/index',
