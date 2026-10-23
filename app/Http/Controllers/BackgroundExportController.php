@@ -72,6 +72,22 @@ class BackgroundExportController extends Controller
         return response()->download($path, ExportProgress::downloadName($key));
     }
 
+    public function convertedLeadsPage()
+    {
+        $this->denyUnlessAllowed(ExportProgress::CONVERTED_LEADS);
+
+        $key = ExportProgress::CONVERTED_LEADS;
+        $export = [
+            'key' => $key,
+            'title' => 'Converted Leads Export',
+            'description' => 'Full converted leads details matching the https://crm.natdemy.com/admin/converted-leads page, including registration, academic, support, finance, course, batch, faculty and payment details.',
+            'command' => 'php artisan '.ExportProgress::command($key),
+            'status' => ExportProgress::present($key),
+        ];
+
+        return view('admin.reports.converted-leads-export', compact('export'));
+    }
+
     private function denyUnlessAllowed(?string $key = null): void
     {
         if ($key !== null && ! ExportProgress::isValidKey($key)) {
@@ -86,7 +102,7 @@ class BackgroundExportController extends Controller
             return;
         }
 
-        if ($key === ExportProgress::UNCONVERTED_LEADS && ! $this->canExportLeads()) {
+        if (in_array($key, [ExportProgress::CONVERTED_LEADS, ExportProgress::UNCONVERTED_LEADS], true) && ! $this->canExportLeads()) {
             abort(403, 'Access denied.');
         }
 
@@ -114,6 +130,12 @@ class BackgroundExportController extends Controller
     private function definitions(): array
     {
         return [
+            ExportProgress::CONVERTED_LEADS => [
+                'title' => 'Converted Leads',
+                'description' => 'Every converted lead from project start to today with full registration, academic, support, finance, course, batch, faculty and payment details.',
+                'command' => 'php artisan exports:converted-leads',
+                'allowed' => $this->canExportLeads(),
+            ],
             ExportProgress::UNCONVERTED_LEADS => [
                 'title' => 'Unconverted Leads',
                 'description' => 'Every lead with is_converted = 0, from the start of the project through today. Same fields as the leads list: name, phone, status, source, course, telecaller, follow-up, remarks, and registration.',

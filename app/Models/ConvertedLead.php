@@ -337,6 +337,16 @@ class ConvertedLead extends Model
         return $this->belongsTo(User::class, 'cancelled_by');
     }
 
+    public function academicVerifiedBy()
+    {
+        return $this->belongsTo(User::class, 'academic_verified_by');
+    }
+
+    public function supportVerifiedBy()
+    {
+        return $this->belongsTo(User::class, 'support_verified_by');
+    }
+
     public function postSalesUser()
     {
         return $this->belongsTo(User::class, 'post_sales_user_id');

@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\File;
 
 class ExportProgress
 {
+    public const CONVERTED_LEADS = 'converted-leads';
+
     public const UNCONVERTED_LEADS = 'unconverted-leads';
 
     public const TELECALLER_WISE = 'telecaller-wise-report';
@@ -19,6 +21,7 @@ class ExportProgress
     public static function keys(): array
     {
         return [
+            self::CONVERTED_LEADS,
             self::UNCONVERTED_LEADS,
             self::TELECALLER_WISE,
             self::CALL_LOGS,
@@ -50,6 +53,7 @@ class ExportProgress
         $date = now()->format('Y-m-d');
 
         return match ($key) {
+            self::CONVERTED_LEADS => 'converted_leads_'.$date.'.xlsx',
             self::UNCONVERTED_LEADS => 'unconverted_leads_'.$date.'.xlsx',
             self::TELECALLER_WISE => 'telecaller_wise_report_'.$date.'.xlsx',
             self::CALL_LOGS => 'call_logs_'.$date.'.xlsx',
@@ -60,6 +64,7 @@ class ExportProgress
     public static function command(string $key): string
     {
         return match ($key) {
+            self::CONVERTED_LEADS => 'exports:converted-leads',
             self::UNCONVERTED_LEADS => 'exports:unconverted-leads',
             self::TELECALLER_WISE => 'exports:telecaller-wise-report',
             self::CALL_LOGS => 'exports:call-logs',
