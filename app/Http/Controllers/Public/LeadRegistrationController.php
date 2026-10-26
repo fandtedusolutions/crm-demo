@@ -235,7 +235,7 @@ class LeadRegistrationController extends Controller
             // Refresh from database to ensure we have the latest data including email
             $studentDetail->refresh();
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'NIOS');
+                MailService::sendStudentRegistrationEmail($studentDetail, \App\Helpers\CourseTitleHelper::title(1, 'NIOS'));
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for NIOS registration: ' . $e->getMessage());

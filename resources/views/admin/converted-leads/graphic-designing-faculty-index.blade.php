@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Diploma in Graphic Designing Faculty List')
+@section('title', course_title(15).' Faculty List')
 
 @section('content')
 @php
@@ -89,14 +89,14 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Diploma in Graphic Designing Faculty List</h5>
+                    <h5 class="m-b-10">{{ course_title(15) }} Faculty List</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Diploma in Graphic Designing Faculty</li>
+                    <li class="breadcrumb-item">{{ course_title(15) }}</li>
                 </ul>
             </div>
         </div>
@@ -240,7 +240,7 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.graphic-designing-faculty-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Diploma in Graphic Designing Faculty List</h5>
+                <h5>{{ course_title(15) }} Faculty List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'faculty-graphic-designing'])
             </div>
             <div class="card-body">
@@ -1026,7 +1026,7 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="66" class="text-center">No Diploma in Graphic Designing faculty records found</td>
+                                    <td colspan="66" class="text-center">No {{ course_title(15) }} faculty records found</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -1203,7 +1203,7 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
                     <div class="text-center py-5">
                         <div class="text-muted">
                             <i class="ti ti-marketing f-48 mb-3 d-block"></i>
-                            <h5>No Diploma in Graphic Designing faculty records found</h5>
+                            <h5>No {{ course_title(15) }} faculty records found</h5>
                             <p>Try adjusting your filters or check back later.</p>
                         </div>
                     </div>

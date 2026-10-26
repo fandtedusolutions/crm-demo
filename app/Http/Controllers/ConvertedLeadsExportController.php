@@ -465,7 +465,7 @@ class ConvertedLeadsExportController extends Controller
             'python' => 'Python Converted Leads',
             'data-science' => 'Data Science Converted Leads',
             'ai-python' => 'AI with Python Converted Leads',
-            'digital-marketing' => 'Digital Marketing Converted Leads',
+            'digital-marketing' => 'AI Integrated Digital Marketing + Graphic Designing Converted Leads',
             'diploma-in-data-science' => 'Diploma in Data Science Converted Leads',
             'data-analytics-with-gen-ai' => 'Data Analytics with Gen AI Converted Leads',
             'web-development' => 'Web Development Converted Leads',
@@ -487,11 +487,18 @@ class ConvertedLeadsExportController extends Controller
 
         $type = $this->getPageType($page);
         $base = $this->getBasePage($page);
+        $courseId = $this->courseMap[$base] ?? null;
+        $courseTitle = $courseId ? \App\Helpers\CourseTitleHelper::title((int) $courseId) : '';
+        $courseListTitle = $courseTitle !== '' ? $courseTitle.' Converted Leads' : null;
 
         if ($type !== 'admin' && $type !== 'post-sales') {
-            $baseTitle = $titles[$base] ?? (ucwords(str_replace('-', ' ', $base)) . ' Converted Leads');
+            $baseTitle = $courseListTitle ?? ($titles[$base] ?? (ucwords(str_replace('-', ' ', $base)) . ' Converted Leads'));
 
             return ucfirst($type) . ' - ' . $baseTitle;
+        }
+
+        if ($courseListTitle !== null && $page !== 'converted-leads' && $page !== 'post-sales') {
+            return $courseListTitle;
         }
 
         return $titles[$page] ?? (ucwords(str_replace('-', ' ', $page)) . ' Converted Leads');

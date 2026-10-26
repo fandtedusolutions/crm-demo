@@ -220,7 +220,7 @@ class LeadAiSalesMarketingRegistrationController extends Controller
             ]);
 
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, self::COURSE_TITLE);
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? \App\Helpers\CourseTitleHelper::title(self::COURSE_ID, self::COURSE_TITLE));
             } catch (\Exception $e) {
                 \Log::error('Email sending failed for ' . self::COURSE_TITLE . ' registration: ' . $e->getMessage());
             }

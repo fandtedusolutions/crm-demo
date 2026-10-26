@@ -153,7 +153,7 @@ class LeadESchoolRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'E-School');
+                MailService::sendStudentRegistrationEmail($studentDetail, \App\Helpers\CourseTitleHelper::title(5, 'E-School'));
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for E-School registration: ' . $e->getMessage());

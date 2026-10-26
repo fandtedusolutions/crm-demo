@@ -11,7 +11,7 @@ class LeadAiIntegratedVideoEditingRegistrationController extends BaseGraphicDesi
 
     protected function courseTitle(): string
     {
-        return 'AI-Integrated Video Editing';
+        return \App\Helpers\CourseTitleHelper::title($this->courseId(), 'AI-Integrated Video Editing');
     }
 
     protected function registerRouteName(): string

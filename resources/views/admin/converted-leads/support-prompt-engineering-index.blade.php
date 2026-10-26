@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Prompt Engineering - Course Support List')
+@section('title', course_title(34).' Converted Support List')
 
 @section('content')
 @php $appTimezone = config('app.timezone'); @endphp
@@ -62,7 +62,7 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Prompt Engineering - Course Support List</h5>
+                    <h5 class="m-b-10">{{ course_title(34) }} Converted Support List</h5>
                 </div>
             </div>
             <div class="col-md-6">
@@ -70,7 +70,7 @@
                     <ul class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                        <li class="breadcrumb-item">Prompt Engineering Support</li>
+                        <li class="breadcrumb-item">{{ course_title(34) }}</li>
                     </ul>
                     <a href="{{ route('admin.converted-leads.index') }}" class="btn btn-secondary">
                         <i class="ti ti-arrow-left"></i> Back to Converted Leads
@@ -142,7 +142,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Prompt Engineering - Course Support List</h5>
+                <h5 class="mb-0">{{ course_title(34) }} Converted Support List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'support-prompt-engineering'])
             </div>
             <div class="card-body">

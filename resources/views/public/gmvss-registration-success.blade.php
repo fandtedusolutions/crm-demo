@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration Successful - Grameen Mukt Vidhyalayi Shiksha Sansthan Course</title>
+    <title>Registration Successful - {{ course_title(16) }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -235,7 +235,7 @@
         <h1 class="success-title">Thank you!</h1>
         
         <p class="success-message">
-            Your Grameen Mukt Vidhyalayi Shiksha Sansthan registration has been submitted successfully.
+            Your {{ course_title(16) }} registration has been submitted successfully.
         </p>
         
     </div>

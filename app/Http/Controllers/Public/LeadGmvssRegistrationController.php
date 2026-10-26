@@ -235,7 +235,7 @@ class LeadGmvssRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Grameen Mukt Vidhyalayi Shiksha Sansthan');
+                MailService::sendStudentRegistrationEmail($studentDetail, \App\Helpers\CourseTitleHelper::title(16, 'Grameen Mukt Vidhyalayi Shiksha Sansthan'));
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 Log::error('Email sending failed for Grameen Mukt Vidhyalayi Shiksha Sansthan registration: ' . $e->getMessage());

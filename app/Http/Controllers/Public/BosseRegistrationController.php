@@ -196,7 +196,7 @@ class BosseRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Board of Open Schooling and Skill Education');
+                MailService::sendStudentRegistrationEmail($studentDetail, \App\Helpers\CourseTitleHelper::title(2, 'Board of Open Schooling and Skill Education'));
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Board of Open Schooling and Skill Education registration: ' . $e->getMessage());

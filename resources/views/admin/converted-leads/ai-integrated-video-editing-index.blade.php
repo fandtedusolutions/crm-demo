@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'AI-Integrated Video Editing Converted Leads')
+@section('title', course_title(30).' Converted Leads')
 
 @section('content')
 @include('admin.converted-leads.partials.programme-course-server-datatable')
@@ -41,14 +41,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">AI-Integrated Video Editing Converted Leads Management</h5>
+                    <h5 class="m-b-10">{{ course_title(30) }} Converted Leads Management</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">AI-Integrated Video Editing</li>
+                    <li class="breadcrumb-item">{{ course_title(30) }}</li>
                 </ul>
             </div>
         </div>
@@ -192,7 +192,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>AI-Integrated Video Editing Converted Leads</h5>
+                <h5>{{ course_title(30) }} Converted Leads</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'ai-integrated-video-editing'])
             </div>
             <div class="card-body">

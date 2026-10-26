@@ -23,11 +23,11 @@
                     </a>
                     @elseif(($convertedLead->course_id ?? null) === 2)
                     <a href="{{ route('admin.support-bosse-converted-leads.index') }}" class="btn btn-secondary">
-                        <i class="ti ti-arrow-left"></i> Back to Board of Open Schooling and Skill Education Support
+                        <i class="ti ti-arrow-left"></i> Back to {{ course_title(2) }} Support
                     </a>
                     @elseif(($convertedLead->course_id ?? null) === 1)
                     <a href="{{ route('admin.support-nios-converted-leads.index') }}" class="btn btn-secondary">
-                        <i class="ti ti-arrow-left"></i> Back to National Institute of Open Schooling Support
+                        <i class="ti ti-arrow-left"></i> Back to {{ course_title(1) }} Support
                     </a>
                     @else
                     <a href="{{ route('admin.converted-leads.index') }}" class="btn btn-secondary">

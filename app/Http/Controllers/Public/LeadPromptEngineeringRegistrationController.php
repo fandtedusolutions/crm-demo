@@ -11,7 +11,7 @@ class LeadPromptEngineeringRegistrationController extends BaseCandidateRegistrat
 
     protected function courseTitle(): string
     {
-        return 'Prompt Engineering';
+        return \App\Helpers\CourseTitleHelper::title($this->courseId(), 'Prompt Engineering');
     }
 
     protected function registerRouteName(): string

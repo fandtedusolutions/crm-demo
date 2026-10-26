@@ -22,73 +22,73 @@
                     </a>
                     @endif
                     <a href="{{ route('admin.faculty-bosse-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.faculty-bosse-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Board of Open Schooling and Skill Education Converted Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(2) }} Faculty List
                     </a>
                     <a href="{{ route('admin.faculty-nios-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.faculty-nios-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> National Institute of Open Schooling Converted Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(1) }} Faculty List
                     </a>
                     <a href="{{ route('admin.faculty-ugpg-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.faculty-ugpg-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> UG/PG Faculty Converted List
+                        <i class="ti ti-user-star"></i> {{ course_title(9) }} Faculty List
                     </a>
                     <a href="{{ route('admin.faculty-edumaster-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.faculty-edumaster-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> EduMaster Faculty Converted List
+                        <i class="ti ti-user-star"></i> {{ course_title(23) }} Faculty List
                     </a>
                     <a href="{{ route('admin.faculty-eschool-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.faculty-eschool-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> E-School Converted Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(5) }} Faculty List
                     </a>
                     <a href="{{ route('admin.faculty-eduthanzeel-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.faculty-eduthanzeel-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Eduthanzeel Converted Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(6) }} Faculty List
                     </a>
                     <a href="{{ route('admin.gmvss-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.gmvss-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(16) }} Faculty List
                     </a>
                     <a href="{{ route('admin.digital-marketing-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.digital-marketing-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> AI Integrated Digital Marketing Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(11) }} Faculty List
                     </a>
                     <a href="{{ route('admin.data-science-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.data-science-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Data Science Course Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(12) }} Faculty List
                     </a>
                     <a href="{{ route('admin.data-analytics-with-gen-ai-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.data-analytics-with-gen-ai-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Data Analytics with Gen AI Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(37) }} Faculty List
                     </a>
                     <a href="{{ route('admin.graphic-designing-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.graphic-designing-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Diploma in Graphic Designing Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(15) }} Faculty List
                     </a>
                     <a href="{{ route('admin.ai-integrated-video-editing-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.ai-integrated-video-editing-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> AI-Integrated Video Editing Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(30) }} Faculty List
                     </a>
                     <a href="{{ route('admin.ai-integrated-videography-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.ai-integrated-videography-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> AI-Integrated Videography Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(31) }} Faculty List
                     </a>
                     <a href="{{ route('admin.ai-integrated-photography-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.ai-integrated-photography-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> AI-Integrated Photography Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(32) }} Faculty List
                     </a>
                     <a href="{{ route('admin.machine-learning-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.machine-learning-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Machine Learning Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(20) }} Faculty List
                     </a>
                     <a href="{{ route('admin.medical-coding-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.medical-coding-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Certificate Course in Medical Coding Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(3) }} Faculty List
                     </a>
                     <a href="{{ route('admin.hospital-administration-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.hospital-administration-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Diploma in Hospital Administration Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(4) }} Faculty List
                     </a>
                     <a href="{{ route('admin.python-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.python-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Python Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(10) }} Faculty List
                     </a>
                     <a href="{{ route('admin.flutter-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.flutter-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Flutter Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(21) }} Faculty List
                     </a>
                     <a href="{{ route('admin.rpa-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.rpa-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> RPA Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(27) }} Faculty List
                     </a>
                     <a href="{{ route('admin.junior-vlogger-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.junior-vlogger-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> CreateX AI Converted Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(25) }} Faculty List
                     </a>
                     <a href="{{ route('admin.robo-vibe-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.robo-vibe-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Robo Vibe Converted Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(33) }} Faculty List
                     </a>
                     <a href="{{ route('admin.prompt-engineering-faculty-converted-leads.index') }}" class="{{ $facultyNavBtn('admin.prompt-engineering-faculty-converted-leads.index') }}">
-                        <i class="ti ti-user-star"></i> Prompt Engineering Converted Faculty List
+                        <i class="ti ti-user-star"></i> {{ course_title(34) }} Faculty List
                     </a>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Board of Open Schooling and Skill Education Converted Faculty List')
+@section('title', course_title(2).' Faculty List')
 
 @section('content')
 @php $appTimezone = config('app.timezone'); @endphp
@@ -41,7 +41,7 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Board of Open Schooling and Skill Education Converted Faculty List</h5>
+                    <h5 class="m-b-10">{{ course_title(2) }} Faculty List</h5>
                 </div>
             </div>
             <div class="col-md-6">
@@ -49,7 +49,7 @@
                     <ul class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                        <li class="breadcrumb-item">Board of Open Schooling and Skill Education Converted Faculty List</li>
+                        <li class="breadcrumb-item">{{ course_title(2) }}</li>
                     </ul>
                     <a href="{{ route('admin.converted-leads.index') }}" class="btn btn-secondary">
                         <i class="ti ti-arrow-left"></i> Back to Converted Leads
@@ -160,7 +160,7 @@
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.faculty-bosse-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Board of Open Schooling and Skill Education Converted Faculty List</h5>
+                <h5>{{ course_title(2) }} Faculty List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'faculty-bosse'])
             </div>
             <div class="card-body">
@@ -239,7 +239,7 @@
                                     @include('admin.converted-leads.partials.faculty-bosse-dt-desktop-row')
                                 @empty
                                 <tr>
-                                    <td colspan="56" class="text-center">No converted leads found for Board of Open Schooling and Skill Education mentoring</td>
+                                    <td colspan="56" class="text-center">No converted leads found for {{ course_title(2) }} mentoring</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -253,7 +253,7 @@
                     @forelse($convertedLeads as $convertedLead)
                     @include('admin.converted-leads.partials.faculty-bosse-mobile-card')
                     @empty
-                    <div class="text-center py-3 text-muted">No converted leads found for Board of Open Schooling and Skill Education mentoring</div>
+                    <div class="text-center py-3 text-muted">No converted leads found for {{ course_title(2) }} mentoring</div>
                     @endforelse
                 </div>
 

@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Web Development & Designing Converted Leads')
+@section('title', course_title(13).' Converted Leads')
 
 @section('content')
 @include('admin.converted-leads.partials.programme-course-server-datatable')
@@ -41,14 +41,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Web Development & Designing Converted Leads Management</h5>
+                    <h5 class="m-b-10">{{ course_title(13) }} Converted Leads Management</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Web Development & Designing</li>
+                    <li class="breadcrumb-item">{{ course_title(13) }}</li>
                 </ul>
             </div>
         </div>
@@ -69,7 +69,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Filter Web Development & Designing Converted Leads</h5>
+                <h5 class="mb-0">Filter {{ course_title(13) }} Converted Leads</h5>
             </div>
             <div class="card-body">
                 <form method="GET" action="{{ route('admin.web-development-converted-leads.index') }}" id="filterForm" class="js-programme-scoped-dt-form">
@@ -187,7 +187,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Web Development & Designing Converted Leads List</h5>
+                <h5 class="mb-0">{{ course_title(13) }} Converted Leads List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'web-development'])
             </div>
             <div class="card-body">

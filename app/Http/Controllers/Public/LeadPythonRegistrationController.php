@@ -227,7 +227,7 @@ class LeadPythonRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Python');
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? 'Python');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Python registration: ' . $e->getMessage());

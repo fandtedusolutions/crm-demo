@@ -230,7 +230,7 @@ class LeadDataAnalyticsWithGenAIRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Data Analytics with Gen AI');
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? 'Data Analytics with Gen AI');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Data Analytics with Gen AI registration: ' . $e->getMessage());

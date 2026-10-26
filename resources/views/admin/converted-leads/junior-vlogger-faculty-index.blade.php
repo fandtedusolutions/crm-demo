@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'CreateX AI Converted Faculty List')
+@section('title', course_title(25).' Faculty List')
 
 @section('content')
 @php
@@ -66,14 +66,14 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">CreateX AI Converted Faculty List</h5>
+                    <h5 class="m-b-10">{{ course_title(25) }} Faculty List</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">CreateX AI Faculty</li>
+                    <li class="breadcrumb-item">{{ course_title(25) }}</li>
                 </ul>
             </div>
         </div>
@@ -150,7 +150,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.junior-vlogger-faculty-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">CreateX AI Converted Faculty List</h5>
+                <h5 class="mb-0">{{ course_title(25) }} Faculty List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'faculty-junior-vlogger'])
             </div>
             <div class="card-body">

@@ -25,7 +25,7 @@ class LeadDigitalMarketingRegistrationController extends Controller
         if ($leadId) {
             $lead = Lead::find($leadId);
             
-            // Check if student has already registered (course_id = 11 for AI Integrated Digital Marketing)
+            // Check if student has already registered (course_id = 11 for AI Integrated Digital Marketing + Graphic Designing)
             if ($lead) {
                 $studentDetail = LeadDetail::where('lead_id', $leadId)
                     ->where('course_id', 11)
@@ -37,16 +37,16 @@ class LeadDigitalMarketingRegistrationController extends Controller
             }
         }
         
-        // Get AI Integrated Digital Marketing course subjects (course_id = 11)
+        // Get AI Integrated Digital Marketing + Graphic Designing course subjects (course_id = 11)
         $subjects = Subject::where('course_id', 11)->where('is_active', true)->get();
         
-        // Get AI Integrated Digital Marketing course batches (course_id = 11)
+        // Get AI Integrated Digital Marketing + Graphic Designing course batches (course_id = 11)
         $batches = Batch::where('course_id', 11)->where('is_active', true)->get();
         
         // Get course data
         $course = \App\Models\Course::find(11);
         
-        // Get class times for course_id = 11 (AI Integrated Digital Marketing) if course needs_time
+        // Get class times for course_id = 11 (AI Integrated Digital Marketing + Graphic Designing) if course needs_time
         $classTimes = collect();
         if ($course && $course->needs_time) {
             $classTimes = ClassTime::where('course_id', 11)->where('is_active', true)->get();
@@ -194,7 +194,7 @@ class LeadDigitalMarketingRegistrationController extends Controller
             // Create student detail record
             $studentDetail = LeadDetail::create([
                 'lead_id' => $request->lead_id,
-                'course_id' => 11, // AI Integrated Digital Marketing course ID
+                'course_id' => 11, // AI Integrated Digital Marketing + Graphic Designing course ID
                 'student_name' => $request->student_name,
                 'father_name' => $request->father_name,
                 'mother_name' => $request->mother_name,
@@ -236,10 +236,10 @@ class LeadDigitalMarketingRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'AI Integrated Digital Marketing');
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? 'AI Integrated Digital Marketing + Graphic Designing');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Email sending failed for AI Integrated Digital Marketing registration: ' . $e->getMessage());
+                \Log::error('Email sending failed for AI Integrated Digital Marketing + Graphic Designing registration: ' . $e->getMessage());
             }
             
             // Log lead activity for form submission
@@ -253,7 +253,7 @@ class LeadDigitalMarketingRegistrationController extends Controller
                 ]);
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
-                \Log::error('Failed to create lead activity for AI Integrated Digital Marketing registration: ' . $e->getMessage());
+                \Log::error('Failed to create lead activity for AI Integrated Digital Marketing + Graphic Designing registration: ' . $e->getMessage());
             }
             
             return response()->json([

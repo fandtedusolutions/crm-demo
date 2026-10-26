@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'EduMaster Converted Leads')
+@section('title', course_title(23).' Converted Leads')
 
 @section('content')
 <style>
@@ -40,14 +40,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">EduMaster Converted Leads Management</h5>
+                    <h5 class="m-b-10">{{ course_title(23) }} Converted Leads Management</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">EduMaster</li>
+                    <li class="breadcrumb-item">{{ course_title(23) }}</li>
                 </ul>
             </div>
         </div>
@@ -129,7 +129,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">EduMaster Converted Leads List</h5>
+                <h5 class="mb-0">{{ course_title(23) }} Converted Leads List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'edumaster'])
             </div>
             <div class="card-body">
@@ -432,7 +432,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="20" class="text-center">No EduMaster converted leads found</td>
+                                    <td colspan="20" class="text-center">No {{ course_title(23) }} converted leads found</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -635,7 +635,7 @@
                 },
                 error: function() {
                     if (typeof showToast === 'function') {
-                        showToast('Error loading EduMaster converted leads.', 'error');
+                        showToast('Error loading ' + @json(course_title(23)) + ' converted leads.', 'error');
                     }
                 }
             },

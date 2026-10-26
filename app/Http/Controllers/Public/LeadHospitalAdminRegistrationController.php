@@ -208,7 +208,7 @@ class LeadHospitalAdminRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Hospital Admin');
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? 'Hospital Admin');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Hospital Admin registration: ' . $e->getMessage());

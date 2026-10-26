@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Certificate Course in Medical Coding Mentor List')
+@section('title', course_title(3).' Mentor List')
 
 @section('content')
 @php
@@ -44,14 +44,14 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin()
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Certificate Course in Medical Coding Mentor List</h5>
+                    <h5 class="m-b-10">{{ course_title(3) }} Mentor List</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Medical Coding Mentor</li>
+                    <li class="breadcrumb-item">{{ course_title(3) }}</li>
                 </ul>
             </div>
         </div>
@@ -113,7 +113,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin()
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.medical-coding-mentor-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Certificate Course in Medical Coding Mentor List</h5>
+                <h5 class="mb-0">{{ course_title(3) }} Mentor List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-medical-coding'])
             </div>
             <div class="card-body">

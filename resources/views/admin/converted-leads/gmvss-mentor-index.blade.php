@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Grameen Mukt Vidhyalayi Shiksha Sansthan Mentor List')
+@section('title', course_title(16).' Mentor List')
 
 @section('content')
 @php $appTimezone = config('app.timezone'); @endphp
@@ -36,14 +36,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Grameen Mukt Vidhyalayi Shiksha Sansthan Mentor List</h5>
+                    <h5 class="m-b-10">{{ course_title(16) }} Mentor List</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Grameen Mukt Vidhyalayi Shiksha Sansthan Mentor</li>
+                    <li class="breadcrumb-item">{{ course_title(16) }}</li>
                 </ul>
             </div>
         </div>
@@ -149,7 +149,7 @@
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.converted-leads.inline-update', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Grameen Mukt Vidhyalayi Shiksha Sansthan Mentor List</h5>
+                <h5 class="mb-0">{{ course_title(16) }} Mentor List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-gmvss'])
             </div>
             <div class="card-body">

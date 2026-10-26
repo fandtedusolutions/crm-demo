@@ -25,7 +25,7 @@ class AllCoursesCopyLinkTest extends TestCase
             8 => 'Hotel Management',
             9 => 'UG/PG',
             10 => 'Python',
-            11 => 'AI Integrated Digital Marketing',
+            11 => 'AI Integrated Digital Marketing + Graphic Designing',
             12 => 'AI Automation',
             13 => 'Web Development & Designing',
             14 => 'Vibe Coding',

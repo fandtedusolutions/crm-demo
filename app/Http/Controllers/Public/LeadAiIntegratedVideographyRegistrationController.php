@@ -11,7 +11,7 @@ class LeadAiIntegratedVideographyRegistrationController extends BaseGraphicDesig
 
     protected function courseTitle(): string
     {
-        return 'AI-Integrated Videography';
+        return \App\Helpers\CourseTitleHelper::title($this->courseId(), 'AI-Integrated Videography');
     }
 
     protected function registerRouteName(): string

@@ -227,7 +227,7 @@ class LeadGraphicDesigningRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Diploma in Graphic Designing');
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? 'Diploma in Graphic Designing');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Diploma in Graphic Designing registration: ' . $e->getMessage());

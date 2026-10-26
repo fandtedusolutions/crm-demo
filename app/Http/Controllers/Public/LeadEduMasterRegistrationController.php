@@ -329,7 +329,7 @@ class LeadEduMasterRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'EduMaster');
+                MailService::sendStudentRegistrationEmail($studentDetail, \App\Helpers\CourseTitleHelper::title(23, 'EduMaster'));
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 Log::error('Email sending failed for EduMaster registration: ' . $e->getMessage());

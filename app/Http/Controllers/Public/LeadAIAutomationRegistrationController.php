@@ -230,7 +230,7 @@ class LeadAIAutomationRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Diploma in Data Science');
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? 'Diploma in Data Science');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Diploma in Data Science registration: ' . $e->getMessage());

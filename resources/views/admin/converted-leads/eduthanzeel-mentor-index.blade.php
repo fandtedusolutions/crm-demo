@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Eduthanzeel Converted Mentor List')
+@section('title', course_title(6).' Mentor List')
 
 @section('content')
 @php $appTimezone = config('app.timezone'); @endphp
@@ -41,14 +41,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Eduthanzeel Converted Mentor List</h5>
+                    <h5 class="m-b-10">{{ course_title(6) }} Mentor List</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Eduthanzeel Mentor</li>
+                    <li class="breadcrumb-item">{{ course_title(6) }}</li>
                 </ul>
             </div>
         </div>
@@ -143,7 +143,7 @@
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.mentor-eduthanzeel-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Eduthanzeel Converted Mentor List</h5>
+                <h5>{{ course_title(6) }} Mentor List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-eduthanzeel'])
             </div>
             <div class="card-body">
@@ -584,7 +584,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="35" class="text-center">No Eduthanzeel converted leads found for mentoring</td>
+                                    <td colspan="35" class="text-center">No {{ course_title(6) }} converted leads found for mentoring</td>
                                 </tr>
                                 @endforelse
                             </tbody>

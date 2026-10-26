@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'E-School Converted Leads')
+@section('title', course_title(5).' Converted Leads')
 
 @section('content')
 <style>
@@ -40,14 +40,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">E-School Converted Leads Management</h5>
+                    <h5 class="m-b-10">{{ course_title(5) }} Converted Leads Management</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">E-School</li>
+                    <li class="breadcrumb-item">{{ course_title(5) }}</li>
                 </ul>
             </div>
         </div>
@@ -159,7 +159,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>E-School Converted Leads</h5>
+                <h5>{{ course_title(5) }} Converted Leads</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'eschool'])
             </div>
             <div class="card-body">
@@ -377,7 +377,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="18" class="text-center">No E-School converted leads found.</td>
+                                    <td colspan="18" class="text-center">No {{ course_title(5) }} converted leads found.</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -561,7 +561,7 @@
                         @empty
                         <div class="text-center py-4">
                             <i class="ti ti-inbox f-48 text-muted"></i>
-                            <p class="text-muted mt-2">No E-School converted leads found.</p>
+                            <p class="text-muted mt-2">No {{ course_title(5) }} converted leads found.</p>
                         </div>
                         @endforelse
                     </div>

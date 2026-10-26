@@ -17,76 +17,76 @@
                     </a>
                     @endif
                     <a href="{{ route('admin.support-bosse-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-bosse-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Board of Open Schooling and Skill Education Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(2) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-nios-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-nios-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> National Institute of Open Schooling Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(1) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-ugpg-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-ugpg-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> UG/PG Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(9) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-edumaster-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-edumaster-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> EduMaster Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(23) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-hotel-management-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-hotel-management-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Hotel Management Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(8) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-medical-coding-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-medical-coding-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Certificate Course in Medical Coding Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(3) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-hospital-administration-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-hospital-administration-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Diploma in Hospital Administration Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(4) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-gmvss-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-gmvss-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Grameen Mukt Vidhyalayi Shiksha Sansthan Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(16) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-digital-marketing-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-digital-marketing-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> AI Integrated Digital Marketing Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(11) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-diploma-in-data-science-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-diploma-in-data-science-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Diploma in Data Science Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(12) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-data-analytics-with-gen-ai-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-data-analytics-with-gen-ai-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Data Analytics with Gen AI Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(37) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-web-development-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-web-development-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Web Development & Designing Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(13) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-vibe-coding-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-vibe-coding-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Vibe Coding Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(14) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-graphic-designing-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-graphic-designing-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Diploma in Graphic Designing Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(15) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-ai-integrated-video-editing-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-ai-integrated-video-editing-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> AI-Integrated Video Editing Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(30) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-ai-integrated-videography-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-ai-integrated-videography-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> AI-Integrated Videography Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(31) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-ai-integrated-photography-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-ai-integrated-photography-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> AI-Integrated Photography Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(32) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-machine-learning-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-machine-learning-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Diploma in Machine Learning Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(20) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-flutter-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-flutter-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Flutter Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(21) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-eduthanzeel-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-eduthanzeel-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Eduthanzeel Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(6) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-e-school-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-e-school-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> E-School Converted Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(5) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-junior-vlogger-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-junior-vlogger-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> CreateX AI - Course Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(25) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-robo-vibe-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-robo-vibe-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Robo Vibe - Course Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(33) }} Converted Support List
                     </a>
                     <a href="{{ route('admin.support-prompt-engineering-converted-leads.index') }}" class="{{ $supportNavBtn('admin.support-prompt-engineering-converted-leads.index') }}">
-                        <i class="ti ti-headphones"></i> Prompt Engineering - Course Support List
+                        <i class="ti ti-headphones"></i> {{ course_title(34) }} Converted Support List
                     </a>
                 </div>
             </div>

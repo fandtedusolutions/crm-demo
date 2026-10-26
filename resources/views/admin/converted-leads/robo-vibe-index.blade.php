@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Robo Vibe Converted Leads')
+@section('title', course_title(33).' Converted Leads')
 
 @section('content')
 @php $appTimezone = config('app.timezone'); @endphp
@@ -27,14 +27,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Robo Vibe Converted Leads Management</h5>
+                    <h5 class="m-b-10">{{ course_title(33) }} Converted Leads Management</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Robo Vibe</li>
+                    <li class="breadcrumb-item">{{ course_title(33) }}</li>
                 </ul>
             </div>
         </div>
@@ -55,7 +55,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Filter Robo Vibe Converted Leads</h5>
+                <h5 class="mb-0">Filter {{ course_title(33) }} Converted Leads</h5>
             </div>
             <div class="card-body">
                 <form method="GET" action="{{ route('admin.robo-vibe-converted-leads.index') }}" id="filterForm">
@@ -125,7 +125,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Robo Vibe Converted Leads List</h5>
+                <h5 class="mb-0">{{ course_title(33) }} Converted Leads List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'robo-vibe'])
             </div>
             <div class="card-body">
@@ -314,7 +314,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="23" class="text-center">No Robo Vibe converted leads found</td>
+                                    <td colspan="23" class="text-center">No {{ course_title(33) }} converted leads found</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -363,7 +363,7 @@
                     @empty
                     <div class="text-center py-4">
                         <i class="ti ti-inbox fs-1 text-muted"></i>
-                        <p class="text-muted mt-2">No Robo Vibe converted leads found</p>
+                        <p class="text-muted mt-2">No {{ course_title(33) }} converted leads found</p>
                     </div>
                     @endforelse
                 </div>

@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Vibe Coding Converted Leads')
+@section('title', course_title(14).' Converted Leads')
 
 @section('content')
 @include('admin.converted-leads.partials.programme-course-server-datatable')
@@ -41,14 +41,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Vibe Coding Converted Leads Management</h5>
+                    <h5 class="m-b-10">{{ course_title(14) }} Converted Leads Management</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Vibe Coding</li>
+                    <li class="breadcrumb-item">{{ course_title(14) }}</li>
                 </ul>
             </div>
         </div>
@@ -69,7 +69,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Filter Vibe Coding Converted Leads</h5>
+                <h5 class="mb-0">Filter {{ course_title(14) }} Converted Leads</h5>
             </div>
             <div class="card-body">
                 <form method="GET" action="{{ route('admin.vibe-coding-converted-leads.index') }}" id="filterForm" class="js-programme-scoped-dt-form">
@@ -187,7 +187,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Vibe Coding Converted Leads List</h5>
+                <h5 class="mb-0">{{ course_title(14) }} Converted Leads List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'vibe-coding'])
             </div>
             <div class="card-body">

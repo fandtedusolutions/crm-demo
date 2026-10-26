@@ -1092,7 +1092,7 @@ class SupportConvertedLeadController extends Controller
      */
     public function digitalMarketingIndex(Request $request)
     {
-        return $this->getCourseSupportIndex($request, 11, 'AI Integrated Digital Marketing Converted Support List', 'admin.converted-leads.support-digital-marketing-index');
+        return $this->getCourseSupportIndex($request, 11, 'AI Integrated Digital Marketing + Graphic Designing Converted Support List', 'admin.converted-leads.support-digital-marketing-index');
     }
 
     /**
@@ -1305,6 +1305,11 @@ class SupportConvertedLeadController extends Controller
         }
 
         SupportFlagFieldSupport::applyListingFilter($query, $request);
+
+        $dbCourseTitle = \App\Helpers\CourseTitleHelper::title((int) $courseId);
+        if ($dbCourseTitle !== '') {
+            $pageTitle = $dbCourseTitle.' Converted Support List';
+        }
 
         $convertedLeads = $query->orderBy('created_at', 'desc')->paginate(50);
         $batches = Batch::where('course_id', $courseId)->orderBy('title')->get();

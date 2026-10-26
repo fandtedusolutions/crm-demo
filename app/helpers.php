@@ -160,6 +160,16 @@ if (! function_exists('is_logged_in')) {
     }
 }
 
+if (! function_exists('course_title')) {
+    /**
+     * Course name from the courses table for this course id.
+     */
+    function course_title(int $courseId, ?string $fallback = null): string
+    {
+        return \App\Helpers\CourseTitleHelper::title($courseId, $fallback);
+    }
+}
+
 if (! function_exists('get_country_code')) {
     /**
      * Get country codes array

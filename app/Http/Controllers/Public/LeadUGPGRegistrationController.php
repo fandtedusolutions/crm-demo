@@ -216,7 +216,7 @@ class LeadUGPGRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'UG/PG');
+                MailService::sendStudentRegistrationEmail($studentDetail, \App\Helpers\CourseTitleHelper::title(9, 'UG/PG'));
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 Log::error('Email sending failed for UG/PG registration: ' . $e->getMessage());

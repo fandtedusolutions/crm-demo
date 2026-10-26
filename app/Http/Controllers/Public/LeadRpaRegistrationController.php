@@ -130,7 +130,7 @@ class LeadRpaRegistrationController extends Controller
             ]);
 
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'RPA');
+                MailService::sendStudentRegistrationEmail($studentDetail, \App\Helpers\CourseTitleHelper::title(self::COURSE_ID, 'RPA'));
             } catch (\Exception $e) {
                 \Log::error('Email sending failed for RPA registration: ' . $e->getMessage());
             }

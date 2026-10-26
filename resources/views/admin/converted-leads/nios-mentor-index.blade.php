@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'National Institute of Open Schooling Converted Mentor List')
+@section('title', course_title(1).' Mentor List')
 
 @section('content')
 @php $appTimezone = config('app.timezone'); @endphp
@@ -60,7 +60,7 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">National Institute of Open Schooling Converted Mentor List</h5>
+                    <h5 class="m-b-10">{{ course_title(1) }} Mentor List</h5>
                 </div>
             </div>
             <div class="col-md-6">
@@ -68,7 +68,7 @@
                     <ul class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                        <li class="breadcrumb-item">National Institute of Open Schooling Converted Mentor List</li>
+                        <li class="breadcrumb-item">{{ course_title(1) }}</li>
                     </ul>
                     <a href="{{ route('admin.converted-leads.index') }}" class="btn btn-secondary">
                         <i class="ti ti-arrow-left"></i> Back to Converted Leads
@@ -197,7 +197,7 @@
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.mentor-nios-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">National Institute of Open Schooling Converted Mentor List <span class="badge bg-primary ms-2">{{ method_exists($convertedLeads, 'total') ? $convertedLeads->total() : $convertedLeads->count() }}</span></h5>
+                <h5 class="mb-0">{{ course_title(1) }} Mentor List <span class="badge bg-primary ms-2">{{ method_exists($convertedLeads, 'total') ? $convertedLeads->total() : $convertedLeads->count() }}</span></h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-nios'])
             </div>
             <div class="card-body">
@@ -795,7 +795,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="51" class="text-center">No converted leads found for National Institute of Open Schooling mentoring</td>
+                                    <td colspan="51" class="text-center">No converted leads found for {{ course_title(1) }} mentoring</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -905,7 +905,7 @@
                         @empty
                         <div class="col-12">
                             <div class="text-center py-4">
-                                <p class="text-muted">No converted leads found for National Institute of Open Schooling mentoring</p>
+                                <p class="text-muted">No converted leads found for {{ course_title(1) }} mentoring</p>
                             </div>
                         </div>
                         @endforelse

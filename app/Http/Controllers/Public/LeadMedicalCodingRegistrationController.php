@@ -202,7 +202,7 @@ class LeadMedicalCodingRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Certificate Course in Medical Coding');
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? 'Certificate Course in Medical Coding');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Certificate Course in Medical Coding registration: ' . $e->getMessage());

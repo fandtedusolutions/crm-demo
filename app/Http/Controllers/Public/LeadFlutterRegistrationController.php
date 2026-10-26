@@ -223,7 +223,7 @@ class LeadFlutterRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Flutter');
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? 'Flutter');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Flutter registration: ' . $e->getMessage());

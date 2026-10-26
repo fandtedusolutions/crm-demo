@@ -11,7 +11,7 @@ class LeadRoboVibeRegistrationController extends BaseCandidateRegistrationContro
 
     protected function courseTitle(): string
     {
-        return 'Robo Vibe';
+        return \App\Helpers\CourseTitleHelper::title($this->courseId(), 'Robo Vibe');
     }
 
     protected function registerRouteName(): string

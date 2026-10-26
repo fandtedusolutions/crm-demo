@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Data Science Course Mentor List')
+@section('title', course_title(12).' Mentor List')
 
 @section('content')
 @php
@@ -83,14 +83,14 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Data Science Course Mentor List</h5>
+                    <h5 class="m-b-10">{{ course_title(12) }} Mentor List</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Data Science Mentor</li>
+                    <li class="breadcrumb-item">{{ course_title(12) }}</li>
                 </ul>
             </div>
         </div>
@@ -236,7 +236,7 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
         <div class="card" data-mentor-update-url="{{ route('admin.data-science-mentor-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div id="can-edit-faculty-flag" data-value="{{ (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_faculty()) ? 'true' : 'false' }}"></div>
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Data Science Course Mentor List</h5>
+                <h5>{{ course_title(12) }} Mentor List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'mentor-data-science'])
             </div>
             <div class="card-body">
@@ -566,7 +566,7 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="66" class="text-center">No Data Science Course mentor records found</td>
+                                    <td colspan="66" class="text-center">No {{ course_title(12) }} mentor records found</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -743,7 +743,7 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
                     <div class="text-center py-5">
                         <div class="text-muted">
                             <i class="ti ti-marketing f-48 mb-3 d-block"></i>
-                            <h5>No Data Science Course mentor records found</h5>
+                            <h5>No {{ course_title(12) }} mentor records found</h5>
                             <p>Try adjusting your filters or check back later.</p>
                         </div>
                     </div>
@@ -1411,7 +1411,7 @@ return ".inline-edit[data-field='{$field}'] .edit-btn";
                 `;
             } else if (field === 'data_science_workshop_attendance') {
                 options = `
-                    <option value="">Select Data Science Workshop Attendance</option>
+                    <option value="">Select {{ course_title(12) }} Workshop Attendance</option>
                     <option value="Attended" ${currentValue === 'Attended' ? 'selected' : ''}>Attended</option>
                     <option value="Not Attended" ${currentValue === 'Not Attended' ? 'selected' : ''}>Not Attended</option>
                 `;

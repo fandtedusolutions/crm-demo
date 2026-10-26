@@ -126,7 +126,7 @@ class CourseSeeder extends Seeder
             ],
             [
                 'id' => 11,
-                'title' => 'AI Integrated Digital Marketing',
+                'title' => 'AI Integrated Digital Marketing + Graphic Designing',
                 'code' => '9992',
                 'amount' => 25000,
                 'hod_number' => '+91 92076 66635',

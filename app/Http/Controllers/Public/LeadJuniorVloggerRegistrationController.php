@@ -128,7 +128,7 @@ class LeadJuniorVloggerRegistrationController extends Controller
             ]);
 
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'CreateX AI');
+                MailService::sendStudentRegistrationEmail($studentDetail, \App\Helpers\CourseTitleHelper::title(25, 'CreateX AI'));
             } catch (\Exception $e) {
                 \Log::error('Email sending failed for CreateX AI registration: ' . $e->getMessage());
             }

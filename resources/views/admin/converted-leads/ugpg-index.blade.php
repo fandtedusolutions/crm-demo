@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'UG/PG Converted Leads')
+@section('title', course_title(9).' Converted Leads')
 
 @section('content')
 <style>
@@ -40,14 +40,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">UG/PG Converted Leads Management</h5>
+                    <h5 class="m-b-10">{{ course_title(9) }} Converted Leads Management</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">UG/PG</li>
+                    <li class="breadcrumb-item">{{ course_title(9) }}</li>
                 </ul>
             </div>
         </div>
@@ -146,7 +146,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">UG/PG Converted Leads List</h5>
+                <h5 class="mb-0">{{ course_title(9) }} Converted Leads List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'ugpg'])
             </div>
             <div class="card-body">
@@ -419,7 +419,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="{{ (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor()) ? 19 : 18 }}" class="text-center">No UG/PG converted leads found</td>
+                                    <td colspan="{{ (\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor()) ? 19 : 18 }}" class="text-center">No {{ course_title(9) }} converted leads found</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -626,7 +626,7 @@
                 },
                 error: function() {
                     if (typeof showToast === 'function') {
-                        showToast('Error loading UG/PG converted leads.', 'error');
+                        showToast('Error loading ' + @json(course_title(9)) + ' converted leads.', 'error');
                     }
                 }
             },

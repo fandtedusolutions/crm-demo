@@ -227,7 +227,7 @@ class LeadMachineLearningRegistrationController extends Controller
             
             // Send registration confirmation email
             try {
-                MailService::sendStudentRegistrationEmail($studentDetail, 'Diploma in Machine Learning');
+                MailService::sendStudentRegistrationEmail($studentDetail, $course->title ?? 'Diploma in Machine Learning');
             } catch (\Exception $e) {
                 // Log error but don't fail the registration
                 \Log::error('Email sending failed for Diploma in Machine Learning registration: ' . $e->getMessage());

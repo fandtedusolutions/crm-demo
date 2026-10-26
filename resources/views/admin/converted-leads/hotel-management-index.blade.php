@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Hotel Management Converted Leads')
+@section('title', course_title(8).' Converted Leads')
 
 @section('content')
 <style>
@@ -40,14 +40,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Hotel Management Converted Leads Management</h5>
+                    <h5 class="m-b-10">{{ course_title(8) }} Converted Leads Management</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Hotel Management</li>
+                    <li class="breadcrumb-item">{{ course_title(8) }}</li>
                 </ul>
             </div>
         </div>
@@ -176,7 +176,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Hotel Management Converted Leads</h5>
+                <h5>{{ course_title(8) }} Converted Leads</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'hotel-management'])
                 <div class="card-header-right">
                     <div class="btn-group card-option">
@@ -462,7 +462,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="19" class="text-center">No Hotel Management converted leads found</td>
+                                <td colspan="19" class="text-center">No {{ course_title(8) }} converted leads found</td>
                             </tr>
                             @endforelse
                         </tbody>

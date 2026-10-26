@@ -2271,10 +2271,16 @@ class ConvertedLeadController extends Controller
             ->orderBy('title')
             ->get();
 
+        $course = Course::find($courseId);
+        $extra['pageCourseName'] = ($course && filled($course->title))
+            ? $course->title
+            : ($extra['pageCourseName'] ?? \App\Helpers\CourseTitleHelper::title($courseId, 'Course'));
+        $extra['pageCourseId'] = $extra['pageCourseId'] ?? $courseId;
+
         return view('admin.converted-leads.'.$view, array_merge([
             'batches' => $batches,
             'country_codes' => get_country_code(),
-            'course' => Course::find($courseId),
+            'course' => $course,
             'courseDataTableId' => $courseDataTableId,
             'scopedCourseId' => $courseId,
             'programmeDtLayout' => 'digital_programme',

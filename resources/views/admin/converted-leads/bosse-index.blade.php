@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Board of Open Schooling and Skill Education Converted Leads')
+@section('title', course_title(2).' Converted Leads')
 
 @section('content')
 <style>
@@ -40,14 +40,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Board of Open Schooling and Skill Education Converted Leads Management</h5>
+                    <h5 class="m-b-10">{{ course_title(2) }} Converted Leads Management</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Board of Open Schooling and Skill Education</li>
+                    <li class="breadcrumb-item">{{ course_title(2) }}</li>
                 </ul>
             </div>
         </div>
@@ -153,7 +153,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Board of Open Schooling and Skill Education Converted Leads List</h5>
+                <h5 class="mb-0">{{ course_title(2) }} Converted Leads List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'bosse'])
             </div>
             <div class="card-body">
@@ -498,7 +498,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="23" class="text-center">No Board of Open Schooling and Skill Education converted leads found</td>
+                                    <td colspan="23" class="text-center">No {{ course_title(2) }} converted leads found</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -685,7 +685,7 @@
                     <div class="text-center py-5">
                         <div class="text-muted">
                             <i class="ti ti-check-circle f-48 mb-3 d-block"></i>
-                            <h5>No Board of Open Schooling and Skill Education converted leads found</h5>
+                            <h5>No {{ course_title(2) }} converted leads found</h5>
                             <p>Try adjusting your filters or check back later.</p>
                         </div>
                     </div>
@@ -1008,7 +1008,7 @@
                     <div class="text-center py-5">
                         <div class="text-muted">
                             <i class="ti ti-check-circle f-48 mb-3 d-block"></i>
-                            <h5>No Board of Open Schooling and Skill Education converted leads found</h5>
+                            <h5>No {{ course_title(2) }} converted leads found</h5>
                             <p>Try adjusting your filters or check back later.</p>
                         </div>
                     </div>
@@ -1043,7 +1043,7 @@
                     },
                     error: function() {
                         if (typeof showToast === 'function') {
-                            showToast('Error loading Board of Open Schooling and Skill Education converted leads.', 'error');
+                            showToast('Error loading ' + @json(course_title(2)) + ' converted leads.', 'error');
                         }
                     }
                 },

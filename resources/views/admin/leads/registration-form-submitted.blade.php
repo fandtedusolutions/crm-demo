@@ -348,130 +348,14 @@
                                             </a>
                                         </div>
                                         @else
-                                        @if($lead->course_id == 1)
+                                        @php
+                                            $regRoute = \App\Helpers\LeadRegistrationRouteHelper::registrationRouteName((int) $lead->course_id);
+                                            $regTitle = \App\Helpers\LeadRegistrationRouteHelper::registrationTitle((int) $lead->course_id) ?: ($lead->course->title ?? 'Registration');
+                                        @endphp
+                                        @if($regRoute)
                                         <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.nios.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open National Institute of Open Schooling Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>National Institute of Open Schooling Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 2)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.bosse.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Open Board of Open Schooling and Skill Education Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Board of Open Schooling and Skill Education Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 3)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.medical-coding.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-success" title="Open Certificate Course in Medical Coding Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Certificate Course in Medical Coding Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 4)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.hotel-management.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-primary" title="Open Hotel Management Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Hotel Management Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 5)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.gmvss.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Open Grameen Mukt Vidhyalayi Shiksha Sansthan Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Grameen Mukt Vidhyalayi Shiksha Sansthan Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 6)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.ai-python.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-dark" title="Open AI Python Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>AI Python Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 7)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.digital-marketing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI Integrated Digital Marketing Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>AI Integrated Digital Marketing Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 8)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.diploma-in-data-science.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Open Diploma in Data Science Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Diploma in Data Science Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 9)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.web-development.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-success" title="Open Web Development Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Web Development Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 10)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.vibe-coding.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-primary" title="Open Vibe Coding Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Vibe Coding Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 11)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.graphic-designing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Open Diploma in Graphic Designing Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Diploma in Graphic Designing Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 12)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.eduthanzeel.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-dark" title="Open EduThanzeel Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>EduThanzeel Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 13)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.e-school.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open E-School Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>E-School Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 27)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.rpa.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open RPA Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>RPA Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 29)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.ai-sales-marketing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Sales & Marketing Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>AI Sales & Marketing Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 30)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.ai-integrated-video-editing.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Video Editing Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>AI Video Editing Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 31)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.ai-integrated-videography.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Videography Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>AI Videography Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 32)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.ai-integrated-photography.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open AI-Integrated Photography Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>AI Photography Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 33)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.robo-vibe.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open Robo Vibe Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Robo Vibe Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 34)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.prompt-engineering.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Open Prompt Engineering Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Prompt Engineering Form
-                                            </a>
-                                        </div>
-                                        @elseif($lead->course_id == 37)
-                                        <div class="d-flex gap-1">
-                                            <a href="{{ route('public.lead.data-analytics-with-gen-ai.register', $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Open Data Analytics with Gen AI Registration Form">
-                                                <i class="ti ti-external-link me-1"></i>Data Analytics with Gen AI Form
+                                            <a href="{{ route($regRoute, $lead->id) }}" target="_blank" class="btn btn-sm btn-outline-info" title="Open {{ $regTitle }} Registration Form">
+                                                <i class="ti ti-external-link me-1"></i>{{ $regTitle }} Form
                                             </a>
                                         </div>
                                         @else

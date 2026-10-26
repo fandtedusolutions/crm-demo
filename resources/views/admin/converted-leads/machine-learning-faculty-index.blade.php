@@ -1,6 +1,6 @@
 @extends('layouts.mantis')
 
-@section('title', 'Machine Learning Course Faculty List')
+@section('title', course_title(20).' Faculty List')
 
 @section('content')
 @php
@@ -89,14 +89,14 @@
         <div class="row align-items-center">
             <div class="col-md-6">
                 <div class="page-header-title">
-                    <h5 class="m-b-10">Machine Learning Course Faculty List</h5>
+                    <h5 class="m-b-10">{{ course_title(20) }} Faculty List</h5>
                 </div>
             </div>
             <div class="col-md-6">
                 <ul class="breadcrumb d-flex justify-content-end">
                     <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('admin.converted-leads.index') }}">Converted Leads</a></li>
-                    <li class="breadcrumb-item">Machine Learning Faculty</li>
+                    <li class="breadcrumb-item">{{ course_title(20) }}</li>
                 </ul>
             </div>
         </div>
@@ -240,7 +240,7 @@
     <div class="col-12">
         <div class="card" data-mentor-update-url="{{ route('admin.machine-learning-faculty-converted-leads.update-mentor-details', ['id' => '__ID__']) }}">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5>Machine Learning Course Faculty List</h5>
+                <h5>{{ course_title(20) }} Faculty List</h5>
                 @include('admin.converted-leads.partials.export-buttons', ['exportPage' => 'faculty-machine-learning'])
             </div>
             <div class="card-body">
@@ -894,7 +894,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="50" class="text-center">No Machine Learning Course faculty records found</td>
+                                    <td colspan="50" class="text-center">No {{ course_title(20) }} faculty records found</td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -1016,7 +1016,7 @@
                     <div class="text-center py-5">
                         <div class="text-muted">
                             <i class="ti ti-marketing f-48 mb-3 d-block"></i>
-                            <h5>No Machine Learning Course faculty records found</h5>
+                            <h5>No {{ course_title(20) }} faculty records found</h5>
                             <p>Try adjusting your filters or check back later.</p>
                         </div>
                     </div>
