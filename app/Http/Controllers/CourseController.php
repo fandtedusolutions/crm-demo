@@ -217,7 +217,7 @@ class CourseController extends Controller
             $isOffline = $request->boolean('is_offline');
 
             $course->update([
-                'title' => RoleHelper::is_super_admin() ? $request->title : $course->title,
+                'title' => $request->title,
                 'code' => $request->code,
                 'amount' => $request->amount,
                 'hod_id' => $request->hod_id,

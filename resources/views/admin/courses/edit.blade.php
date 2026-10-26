@@ -19,7 +19,6 @@
                     <input type="text" name="title" class="form-control" 
                            id="title" value="{{ $edit_data->title }}" 
                            placeholder="Enter Course Title"
-                           @unless(is_super_admin()) readonly @endunless
                            required>
                     <div class="invalid-feedback" id="title-error"></div>
                 </div>
