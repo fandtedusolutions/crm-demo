@@ -450,7 +450,7 @@
                             ['id' => 'adhar_back', 'label' => 'Aadhaar Card (Back Side)', 'required' => true, 'accept' => '.pdf,.jpg,.jpeg,.png', 'hint' => 'PDF, JPG, PNG'],
                             ['id' => 'sslc_certificate', 'label' => 'SSLC Certificate', 'required' => true, 'accept' => '.pdf,.jpg,.jpeg,.png', 'hint' => 'PDF, JPG, PNG'],
                             ['id' => 'plustwo_certificate', 'label' => 'Higher Secondary Certificate', 'required' => true, 'accept' => '.pdf,.jpg,.jpeg,.png', 'hint' => 'PDF, JPG, PNG'],
-                            ['id' => 'ug_certificate', 'label' => 'Degree Certificate', 'required' => true, 'accept' => '.pdf,.jpg,.jpeg,.png', 'hint' => 'PDF, JPG, PNG'],
+                            ['id' => 'ug_certificate', 'label' => 'UG Certificate', 'required' => true, 'accept' => '.pdf,.jpg,.jpeg,.png', 'hint' => 'PDF, JPG, PNG'],
                             ['id' => 'other_document', 'label' => 'Other Documents', 'required' => false, 'accept' => '.pdf,.jpg,.jpeg,.png', 'hint' => 'PDF, JPG, PNG (Optional)'],
                             ['id' => 'signature', 'label' => 'Candidate Signature', 'required' => true, 'accept' => '.jpg,.jpeg,.png', 'hint' => 'JPG, PNG'],
                         ];
@@ -522,7 +522,7 @@
             adhar_back: 'Aadhaar card (back)',
             sslc_certificate: 'SSLC certificate',
             plustwo_certificate: 'Higher secondary certificate',
-            ug_certificate: 'Degree certificate',
+            ug_certificate: 'UG certificate',
             signature: 'Candidate signature'
         };
 

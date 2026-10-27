@@ -86,6 +86,7 @@ class LeadHospitalAdminRegistrationController extends Controller
             'adhar_front' => 'required|file|mimes:pdf,jpg,jpeg,png|max:1024',
             'adhar_back' => 'required|file|mimes:pdf,jpg,jpeg,png|max:1024',
             'signature' => 'required|file|mimes:jpg,jpeg,png|max:1024',
+            'ug_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:1024',
             'plustwo_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:1024',
             'message' => 'nullable|string',
         ], CourseOfflinePlaceSupport::locationValidationRules($course)), [
@@ -135,6 +136,10 @@ class LeadHospitalAdminRegistrationController extends Controller
             'signature.file' => 'Signature must be a valid file.',
             'signature.mimes' => 'Signature must be an image file (JPG, PNG).',
             'signature.max' => 'Signature file size must not exceed 1MB.',
+            'ug_certificate.required' => 'UG certificate is required.',
+            'ug_certificate.file' => 'UG certificate must be a valid file.',
+            'ug_certificate.mimes' => 'UG certificate must be a PDF or image file.',
+            'ug_certificate.max' => 'UG certificate file size must not exceed 1MB.',
             'plustwo_certificate.file' => 'Plus Two certificate must be a valid file.',
             'plustwo_certificate.mimes' => 'Plus Two certificate must be a PDF or image file.',
             'plustwo_certificate.max' => 'Plus Two certificate file size must not exceed 1MB.',
@@ -143,7 +148,7 @@ class LeadHospitalAdminRegistrationController extends Controller
         try {
             // Handle file uploads
             $filePaths = [];
-            $fileFields = ['sslc_certificate', 'passport_photo', 'adhar_front', 'adhar_back', 'signature'];
+            $fileFields = ['sslc_certificate', 'ug_certificate', 'passport_photo', 'adhar_front', 'adhar_back', 'signature'];
             
             // Add plustwo_certificate only if it's uploaded
             if ($request->hasFile('plustwo_certificate')) {
@@ -199,6 +204,7 @@ class LeadHospitalAdminRegistrationController extends Controller
                 'adhar_front' => $filePaths['adhar_front'] ?? null,
                 'adhar_back' => $filePaths['adhar_back'] ?? null,
                 'signature' => $filePaths['signature'] ?? null,
+                'ug_certificate' => $filePaths['ug_certificate'] ?? null,
                 'plustwo_certificate' => $filePaths['plustwo_certificate'] ?? null,
                 'message' => $request->message,
                 'status' => 'pending',

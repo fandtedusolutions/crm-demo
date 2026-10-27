@@ -718,13 +718,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label">Graduation Certificate</label>
+                                <label class="form-label">UG Certificate <span class="required">*</span></label>
                                 <div class="file-upload-area" onclick="document.getElementById('graduation_certificate').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                     <p class="mb-0">Click to upload or drag & drop</p>
                                     <small class="text-muted">PDF, JPG, PNG (Max 2MB)</small>
                                 </div>
-                                <input type="file" id="graduation_certificate" name="graduation_certificate" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+                                <input type="file" id="graduation_certificate" name="graduation_certificate" accept=".pdf,.jpg,.jpeg,.png" required style="display: none;">
                                 <div class="file-preview" id="graduation_certificate_preview"></div>
                             </div>
                         </div>
@@ -1092,10 +1092,11 @@
                     'adhar_back': 'Aadhar back',
                     'signature': 'Signature',
                     'birth_certificate': 'Birth certificate',
-                    'sslc_certificate': 'SSLC certificate'
+                    'sslc_certificate': 'SSLC certificate',
+                    'graduation_certificate': 'UG certificate'
                 };
                 
-                const requiredFileFields = ['passport_photo', 'adhar_front', 'adhar_back', 'signature'];
+                const requiredFileFields = ['passport_photo', 'adhar_front', 'adhar_back', 'signature', 'graduation_certificate'];
                 
                 // Add SSLC certificate if class is plustwo
                 const classSelect = document.querySelector('select[name="class"]');

@@ -615,6 +615,21 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">UG Certificate <span class="required">*</span></label>
+                                <div class="file-upload-area" onclick="document.getElementById('ug_certificate').click()">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0">Click to upload or drag & drop</p>
+                                    <small class="text-muted">PDF, JPG, PNG (Max 1MB)</small>
+                                </div>
+                                <input type="file" id="ug_certificate" name="ug_certificate" accept=".pdf,.jpg,.jpeg,.png" required style="display: none;">
+                                <div class="file-preview" id="ug_certificate_preview"></div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="row">
                         <div class="col-md-6">
@@ -926,13 +941,14 @@
                 const fileFieldNames = {
                     'sslc_certificate': 'SSLC certificate',
                     'plustwo_certificate': 'Plus Two certificate',
+                    'ug_certificate': 'UG certificate',
                     'passport_photo': 'Passport photo',
                     'adhar_front': 'Aadhar front',
                     'adhar_back': 'Aadhar back',
                     'signature': 'Signature'
                 };
                 
-                const requiredFileFields = ['sslc_certificate', 'passport_photo', 'adhar_front', 'adhar_back', 'signature'];
+                const requiredFileFields = ['sslc_certificate', 'ug_certificate', 'passport_photo', 'adhar_front', 'adhar_back', 'signature'];
                 for (let fieldName of requiredFileFields) {
                     const field = document.getElementById(fieldName);
                     if (field && (!field.files || field.files.length === 0)) {
@@ -1038,6 +1054,7 @@
         // Setup file uploads
         setupFileUpload('sslc_certificate');
         setupFileUpload('plustwo_certificate');
+        setupFileUpload('ug_certificate');
         setupFileUpload('passport_photo');
         setupFileUpload('adhar_front');
         setupFileUpload('adhar_back');

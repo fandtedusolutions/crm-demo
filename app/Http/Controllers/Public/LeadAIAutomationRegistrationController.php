@@ -96,7 +96,7 @@ class LeadAIAutomationRegistrationController extends Controller
             'signature' => 'required|file|mimes:jpg,jpeg,png|max:2048',
             'sslc_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'plus_two_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'graduation_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'graduation_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'post_graduation_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'other_relevant_documents' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ], CourseOfflinePlaceSupport::locationValidationRules($course), CourseCourseTypeSupport::validationRules($course, 12)), [
@@ -156,7 +156,10 @@ class LeadAIAutomationRegistrationController extends Controller
             'programme_type.required' => 'Course type is required.',
             'location.required_if' => 'Location is required for offline courses.',
             'class_time_id.exists' => 'Please select a valid class time.',
-            'graduation_certificate.file' => 'Graduation certificate must be a valid file.',
+            'graduation_certificate.required' => 'UG certificate is required.',
+            'graduation_certificate.file' => 'UG certificate must be a valid file.',
+            'graduation_certificate.mimes' => 'UG certificate must be a PDF or image file.',
+            'graduation_certificate.max' => 'UG certificate file size must not exceed 2MB.',
             'post_graduation_certificate.file' => 'Post-graduation certificate must be a valid file.',
             'other_relevant_documents.file' => 'Other relevant documents must be a valid file.',
         ]);

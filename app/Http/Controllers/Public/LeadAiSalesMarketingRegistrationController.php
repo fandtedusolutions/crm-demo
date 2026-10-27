@@ -133,7 +133,7 @@ class LeadAiSalesMarketingRegistrationController extends Controller
             'state.required' => 'State is required.',
             'pin_code.required' => 'PIN code is required.',
             'pin_code.regex' => 'PIN code must be exactly 6 digits.',
-            'ug_certificate.required' => 'Degree certificate is required.',
+            'ug_certificate.required' => 'UG certificate is required.',
             'terms_accepted.accepted' => 'You must accept the Terms and Conditions.',
         ]);
 
