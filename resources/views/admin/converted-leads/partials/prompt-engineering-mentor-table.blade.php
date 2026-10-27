@@ -28,7 +28,7 @@
 <tbody>
     @forelse($convertedLeads as $index => $lead)
     @php
-        $peLead = $lead->lead ? $lead->lead->promptEngineeringStudentDetails : null;
+        $peLead = ($lead->lead ? $lead->lead->promptEngineeringStudentDetails : null) ?: $lead->leadDetailForCourse((int) \App\Models\ConvertedLead::currentListingCourseId());
         $md = $lead->mentorDetails;
         $sd = $lead->studentDetails;
         $age = $lead->dob ? \Carbon\Carbon::parse($lead->dob)->age : null;
@@ -46,7 +46,7 @@
         <td>{{ $conversationDate }}</td>
         <td>{{ $teamLabel }}</td>
         <td>
-            @if($canEdit)
+            @if($canEdit && !\App\Helpers\RoleHelper::is_mentor())
             <div class="inline-edit" data-field="register_number" data-id="{{ $lead->id }}" data-current="{{ $lead->register_number }}">
                 <span class="display-value">{{ $lead->register_number ?? '-' }}</span>
                 <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit"><i class="ti ti-edit"></i></button>
@@ -140,7 +140,7 @@
         </td>
         <td>
             @if($canEdit && $course && $course->needs_time)
-            <div class="inline-edit" data-field="class_time_id" data-id="{{ $lead->id }}" data-course-id="{{ $lead->course_id }}" data-programme-type="{{ $peLead?->programme_type }}" data-current-id="{{ $peLead?->class_time_id }}">
+            <div class="inline-edit" data-field="class_time_id" data-id="{{ $lead->id }}" data-course-id="{{ $lead->listingEditCourseId() }}" data-programme-type="{{ $peLead?->programme_type }}" data-current-id="{{ $peLead?->class_time_id }}">
                 <span class="display-value">
                     @if($peLead && $peLead->classTime)
                     {{ \Carbon\Carbon::parse($peLead->classTime->from_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($peLead->classTime->to_time)->format('h:i A') }}

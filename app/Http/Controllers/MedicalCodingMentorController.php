@@ -130,7 +130,8 @@ class MedicalCodingMentorController extends Controller
     {
         try {
             $convertedLead = ConvertedLead::findOrFail($id);
-            if ((int) $convertedLead->course_id !== self::COURSE_ID) {
+            ConvertedLead::$listingCourseId = self::COURSE_ID;
+            if (! $convertedLead->belongsToListingCourse(self::COURSE_ID)) {
                 return response()->json(['success' => false, 'error' => 'Invalid course.'], 403);
             }
 

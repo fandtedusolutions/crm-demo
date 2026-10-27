@@ -627,6 +627,50 @@ class ConvertedLead extends Model
     }
 
     /**
+     * Primary enrollment or an addon enrollment for this listing course.
+     */
+    public function belongsToListingCourse(int $courseId): bool
+    {
+        if ($courseId <= 0) {
+            return false;
+        }
+
+        if ((int) ($this->attributes['course_id'] ?? 0) === $courseId) {
+            return true;
+        }
+
+        return $this->isAddonEnrollmentFor($courseId);
+    }
+
+    /**
+     * Registration detail for this course, including addon enrollments
+     * whose primary course_id is a different course.
+     */
+    public function leadDetailForCourse(int $courseId): ?LeadDetail
+    {
+        if ($courseId <= 0 || empty($this->lead_id)) {
+            return null;
+        }
+
+        if ($this->relationLoaded('leadDetail')) {
+            $loaded = $this->getRelation('leadDetail');
+            if ($loaded && ((int) $loaded->course_id === $courseId || (int) ($loaded->addon_course_id ?? 0) === $courseId)) {
+                return $loaded;
+            }
+        }
+
+        $details = LeadDetail::query()
+            ->where('lead_id', $this->lead_id)
+            ->where(function ($query) use ($courseId) {
+                $query->where('course_id', $courseId)
+                    ->orWhere('addon_course_id', $courseId);
+            })
+            ->get();
+
+        return $details->first(fn ($detail) => (int) $detail->course_id === $courseId) ?? $details->first();
+    }
+
+    /**
      * Load the registration detail without reading $this->leadDetail.
      * Property access recurses while getAttribute('leadDetail') is already running.
      */

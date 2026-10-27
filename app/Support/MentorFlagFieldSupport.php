@@ -59,6 +59,13 @@ class MentorFlagFieldSupport
 
     public static function mentorLeadScopeDeniedJsonResponse(ConvertedLead $convertedLead): ?JsonResponse
     {
+        if (RoleHelper::is_mentor() && request()->input('field') === 'register_number') {
+            return response()->json([
+                'success' => false,
+                'error' => 'You do not have permission to edit this field.',
+            ], 403);
+        }
+
         if ((!RoleHelper::is_mentor() && !RoleHelper::is_faculty()) || self::mentorCanUpdateLead($convertedLead)) {
             return null;
         }

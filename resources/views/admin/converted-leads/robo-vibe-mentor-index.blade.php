@@ -211,7 +211,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
                         <tbody>
                             @forelse($convertedLeads as $index => $lead)
                             @php
-                                $rvLead = $lead->lead ? $lead->lead->roboVibeStudentDetails : null;
+                                $rvLead = ($lead->lead ? $lead->lead->roboVibeStudentDetails : null) ?: $lead->leadDetailForCourse((int) \App\Models\ConvertedLead::currentListingCourseId());
                                 $md = $lead->mentorDetails;
                                 $age = $lead->dob ? \Carbon\Carbon::parse($lead->dob)->age : null;
                                 $fmt = function($d) { return $d ? \Carbon\Carbon::parse($d)->format('d-m-Y') : '-'; };
@@ -243,7 +243,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
                                 </td>
                                 <td>
                                     @if($canEdit && $course && $course->needs_time)
-                                    <div class="inline-edit" data-field="class_time_id" data-id="{{ $lead->id }}" data-course-id="{{ $lead->course_id }}" data-programme-type="{{ $rvLead?->programme_type }}" data-current-id="{{ $rvLead?->class_time_id }}">
+                                    <div class="inline-edit" data-field="class_time_id" data-id="{{ $lead->id }}" data-course-id="{{ $lead->listingEditCourseId() }}" data-programme-type="{{ $rvLead?->programme_type }}" data-current-id="{{ $rvLead?->class_time_id }}">
                                         <span class="display-value">
                                             @if($rvLead && $rvLead->classTime)
                                             {{ \Carbon\Carbon::parse($rvLead->classTime->from_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($rvLead->classTime->to_time)->format('h:i A') }}
@@ -258,7 +258,7 @@ $canEdit = \App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\Ro
                                     @endif
                                 </td>
                                 <td>
-                                    @if($canEdit)
+                                    @if($canEdit && !\App\Helpers\RoleHelper::is_mentor())
                                     <div class="inline-edit" data-field="register_number" data-id="{{ $lead->id }}" data-current="{{ $lead->register_number }}">
                                         <span class="display-value">{{ $lead->register_number ?? '-' }}</span>
                                         <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit"><i class="ti ti-edit"></i></button>

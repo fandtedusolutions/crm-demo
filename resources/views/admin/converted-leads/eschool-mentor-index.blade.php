@@ -238,7 +238,7 @@
                                 <td>
                                     <div class="inline-edit" data-field="register_number" data-id="{{ $convertedLead->id }}" data-current="{{ $convertedLead->register_number }}">
                                         <span class="display-value">{{ $convertedLead->register_number ?: '-' }}</span>
-                                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant() || \App\Helpers\RoleHelper::is_mentor())
+                                        @if(\App\Helpers\RoleHelper::is_admin_or_super_admin() || \App\Helpers\RoleHelper::is_admission_counsellor() || \App\Helpers\RoleHelper::is_academic_assistant())
                                         <button class="btn btn-sm btn-outline-secondary ms-1 edit-btn" title="Edit">
                                             <i class="ti ti-edit"></i>
                                         </button>

@@ -34,6 +34,7 @@ class PromptEngineeringMentorController extends Controller
             'lead.team',
             'lead.team.detail',
             'lead.promptEngineeringStudentDetails.classTime',
+            'leadDetail.classTime',
             'course',
             'academicAssistant',
             'createdBy',
@@ -146,7 +147,8 @@ class PromptEngineeringMentorController extends Controller
     {
         try {
             $convertedLead = ConvertedLead::findOrFail($id);
-            if ((int) $convertedLead->course_id !== self::COURSE_ID) {
+            ConvertedLead::$listingCourseId = self::COURSE_ID;
+            if (! $convertedLead->belongsToListingCourse(self::COURSE_ID)) {
                 return response()->json(['success' => false, 'error' => 'Invalid course.'], 403);
             }
 
@@ -184,7 +186,7 @@ class PromptEngineeringMentorController extends Controller
                         $convertedLead->code = $request->code;
                     }
                 } else {
-                    $listingBatchUpdate = $convertedLead->applyListingBatchUpdate($field, $value, (int) request()->input('listing_course_id'));
+                    $listingBatchUpdate = $convertedLead->applyListingBatchUpdate($field, $value, self::COURSE_ID);
                     if ($listingBatchUpdate['error']) {
                         return response()->json(['success' => false, 'error' => $listingBatchUpdate['error']], 422);
                     }
@@ -195,7 +197,7 @@ class PromptEngineeringMentorController extends Controller
                 $convertedLead->save();
                 $responseValue = $this->formatResponseValue($field, $value, $convertedLead);
             } elseif (in_array($field, $leadDetailFields)) {
-                $leadDetail = LeadDetail::where('lead_id', $convertedLead->lead_id)->where('course_id', self::COURSE_ID)->first();
+                $leadDetail = $convertedLead->leadDetailForCourse(self::COURSE_ID);
                 if (!$leadDetail) {
                     $leadDetail = new LeadDetail();
                     $leadDetail->lead_id = $convertedLead->lead_id;
