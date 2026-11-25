@@ -116,15 +116,22 @@
                 var uploaded = input.files && input.files.length > 0;
                 var required = input.hasAttribute('required');
 
-                if (col) {
+                // A document group can sit directly in the step (not in a column).
+                // Never rewrite the step's own class: a no-op class change still
+                // notifies the observer below and retriggers this function forever.
+                if (col && col !== step && col.classList.contains('lr-span-full')) {
                     col.classList.remove('lr-span-full');
                 }
                 if (!visible) {
-                    badge.style.display = 'none';
+                    if (badge.style.display !== 'none') {
+                        badge.style.display = 'none';
+                    }
                     return;
                 }
-                badge.style.display = '';
-                if (col) {
+                if (badge.style.display === 'none') {
+                    badge.style.display = '';
+                }
+                if (col && col !== step) {
                     visibleCols.push(col);
                 }
 
@@ -173,9 +180,17 @@
 
         // Re-check whenever step 4 becomes visible.
         if (window.MutationObserver) {
-            new MutationObserver(function () { refresh(); }).observe(step, {
+            new MutationObserver(function (records) {
+                var changed = records.some(function (record) {
+                    return record.oldValue !== record.target.getAttribute(record.attributeName);
+                });
+                if (changed) {
+                    refresh();
+                }
+            }).observe(step, {
                 attributes: true,
-                attributeFilter: ['class', 'style']
+                attributeFilter: ['class'],
+                attributeOldValue: true
             });
         }
 

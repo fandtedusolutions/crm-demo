@@ -1300,7 +1300,7 @@
             });
         });
     </script>
-    <script src="{{ asset('assets/js/lead-registration.js') }}?v=3"></script>
+    <script src="{{ asset('assets/js/lead-registration.js') }}?v=4"></script>
 </body>
 </html>
 
