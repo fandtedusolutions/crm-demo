@@ -313,7 +313,7 @@
     <div class="wizard-container">
         <div class="wizard-header">
             <div class="logo-container mb-3">
-                <img src="{{ asset('storage/skill-park-logo.png') }}" alt="Skill Park Logo" class="nios-logo">
+                <img src="{{ asset('images/natdemy-logo.png') }}" alt="Natdemy Logo" class="nios-logo">
             </div>
             <h2><i class="fas fa-graduation-cap me-2"></i>{{ $registrationTitle }}</h2>
             <p class="mb-0">Complete your registration in a few simple steps</p>

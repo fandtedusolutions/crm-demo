@@ -94,9 +94,10 @@ class LeadAIAutomationRegistrationController extends Controller
             'adhar_front' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'adhar_back' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'signature' => 'required|file|mimes:jpg,jpeg,png|max:2048',
+            'placement_category' => 'required|in:placement_assurance,placement_assistance',
             'sslc_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'plus_two_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'graduation_certificate' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'plus_two_certificate' => 'exclude_unless:placement_category,placement_assistance|required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'graduation_certificate' => 'exclude_unless:placement_category,placement_assurance|required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'post_graduation_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'other_relevant_documents' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ], CourseOfflinePlaceSupport::locationValidationRules($course), CourseCourseTypeSupport::validationRules($course, 12)), [
@@ -156,7 +157,10 @@ class LeadAIAutomationRegistrationController extends Controller
             'programme_type.required' => 'Course type is required.',
             'location.required_if' => 'Location is required for offline courses.',
             'class_time_id.exists' => 'Please select a valid class time.',
-            'graduation_certificate.required' => 'UG certificate is required.',
+            'placement_category.required' => 'Placement category is required.',
+            'placement_category.in' => 'Please select a valid placement category.',
+            'plus_two_certificate.required' => 'Plus Two certificate is required for Placement Assistance.',
+            'graduation_certificate.required' => 'UG certificate is required for Placement Assurance.',
             'graduation_certificate.file' => 'UG certificate must be a valid file.',
             'graduation_certificate.mimes' => 'UG certificate must be a PDF or image file.',
             'graduation_certificate.max' => 'UG certificate file size must not exceed 2MB.',
@@ -221,9 +225,14 @@ class LeadAIAutomationRegistrationController extends Controller
                 'adhar_front' => $filePaths['adhar_front'] ?? null,
                 'adhar_back' => $filePaths['adhar_back'] ?? null,
                 'signature' => $filePaths['signature'] ?? null,
+                'placement_category' => $request->placement_category,
                 'sslc_certificate' => $filePaths['sslc_certificate'] ?? null,
-                'plus_two_certificate' => $filePaths['plus_two_certificate'] ?? null,
-                'ug_certificate' => $filePaths['graduation_certificate'] ?? null,
+                'plustwo_certificate' => $request->placement_category === 'placement_assistance'
+                    ? ($filePaths['plus_two_certificate'] ?? null)
+                    : null,
+                'ug_certificate' => $request->placement_category === 'placement_assurance'
+                    ? ($filePaths['graduation_certificate'] ?? null)
+                    : null,
                 'post_graduation_certificate' => $filePaths['post_graduation_certificate'] ?? null,
                 'other_document' => $filePaths['other_relevant_documents'] ?? null,
                 'status' => 'pending',

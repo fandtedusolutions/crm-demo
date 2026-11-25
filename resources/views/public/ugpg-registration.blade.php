@@ -76,7 +76,7 @@
     <div class="wizard-container">
         <div class="wizard-header">
             <div class="logo-container mb-3">
-                <img src="{{ asset('skill-park-logo.png') }}" alt="Skill Park Logo" class="skill-park-logo">
+                <img src="{{ asset('images/natdemy-logo.png') }}" alt="Natdemy Logo" class="skill-park-logo">
             </div>
             <h2><i class="fas fa-graduation-cap me-2"></i>{{ course_title(9) }} Registration</h2>
             <p class="mb-0">Complete your registration in 3 simple steps</p>

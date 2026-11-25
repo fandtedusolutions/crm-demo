@@ -673,6 +673,14 @@
                             ])
 
                             @if($leadDetail)
+                            @if($leadDetail && $leadDetail->placement_category)
+                            <div class="col-md-3">
+                                <div class="text-muted small">Placement Category</div>
+                                <div class="fw-medium">
+                                    {{ $leadDetail->placement_category === 'placement_assurance' ? 'Placement Assurance' : 'Placement Assistance' }}
+                                </div>
+                            </div>
+                            @endif
                             <div class="col-12 d-flex justify-content-between align-items-center">
                                 <h6 id="cl-documents" class="text-primary mt-2 mb-0 d-flex align-items-center gap-2"><i class="ti ti-files"></i> Uploaded Documents</h6>
                                 @if($canEditDocuments)

@@ -60,6 +60,7 @@ class LeadDetail extends Model
         'technology_performance_category',
         'passed_year',
         'programme_type',
+        'placement_category',
         'location',
         'class_time_id',
         'street',

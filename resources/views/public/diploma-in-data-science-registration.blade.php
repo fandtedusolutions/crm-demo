@@ -313,7 +313,7 @@
     <div class="wizard-container">
         <div class="wizard-header">
             <div class="logo-container mb-3">
-                <img src="{{ asset('storage/skill-park-logo.png') }}" alt="Skill Park Logo" class="nios-logo">
+                <img src="{{ asset('images/natdemy-logo.png') }}" alt="Natdemy Logo" class="nios-logo">
             </div>
             <h2><i class="fas fa-graduation-cap me-2"></i>{{ course_title(12) }} Registration</h2>
             <p class="mb-0">Complete your registration in a few simple steps</p>
@@ -691,6 +691,20 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
+                                <label class="form-label">Placement Category <span class="required">*</span></label>
+                                <select class="form-control" name="placement_category" id="placement_category" required>
+                                    <option value="">Select Placement Category</option>
+                                    <option value="placement_assurance">Placement Assurance</option>
+                                    <option value="placement_assistance">Placement Assistance</option>
+                                </select>
+                                <small class="form-text text-muted" id="placement_category_hint">Choose a placement category. The required certificate changes with your selection.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
                                 <label class="form-label">Secondary (10th) Certificate <span class="required">*</span></label>
                                 <div class="file-upload-area" onclick="document.getElementById('sslc_certificate').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
@@ -701,33 +715,39 @@
                                 <div class="file-preview" id="sslc_certificate_preview"></div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="row" id="plus_two_certificate_section" style="display: none;">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label">Senior Secondary (12th) Certificate <span class="required">*</span></label>
+                                <label class="form-label">Senior Secondary (Plus Two) Certificate <span class="required">*</span></label>
                                 <div class="file-upload-area" onclick="document.getElementById('plus_two_certificate').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                     <p class="mb-0">Click to upload or drag & drop</p>
-                                    <small class="text-muted">PDF, JPG, PNG (Max 2MB)</small>
+                                    <small class="text-muted">Minimum qualification is Plus Two. PDF, JPG, PNG (Max 2MB)</small>
                                 </div>
-                                <input type="file" id="plus_two_certificate" name="plus_two_certificate" accept=".pdf,.jpg,.jpeg,.png" required style="display: none;">
+                                <input type="file" id="plus_two_certificate" name="plus_two_certificate" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
                                 <div class="file-preview" id="plus_two_certificate_preview"></div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="row">
+
+                    <div class="row" id="ug_certificate_section" style="display: none;">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="form-label">UG Certificate <span class="required">*</span></label>
+                                <label class="form-label">UG (Degree) Certificate <span class="required">*</span></label>
                                 <div class="file-upload-area" onclick="document.getElementById('graduation_certificate').click()">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
                                     <p class="mb-0">Click to upload or drag & drop</p>
-                                    <small class="text-muted">PDF, JPG, PNG (Max 2MB)</small>
+                                    <small class="text-muted">Required for Placement Assurance. PDF, JPG, PNG (Max 2MB)</small>
                                 </div>
-                                <input type="file" id="graduation_certificate" name="graduation_certificate" accept=".pdf,.jpg,.jpeg,.png" required style="display: none;">
+                                <input type="file" id="graduation_certificate" name="graduation_certificate" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
                                 <div class="file-preview" id="graduation_certificate_preview"></div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="form-label">Post-Graduation Certificate</label>
@@ -830,6 +850,7 @@
                         // Trigger change event to show/hide location field
                         programmeTypeSelect.dispatchEvent(new Event('change'));
                     }
+                    applyPlacementCategory();
                 } catch (e) {
                     console.error('Error loading saved data:', e);
                 }
@@ -904,6 +925,12 @@
             
             // Load saved data after handlers are set up
             loadSavedData();
+
+            const placementCategorySelect = document.getElementById('placement_category');
+            if (placementCategorySelect) {
+                placementCategorySelect.addEventListener('change', applyPlacementCategory);
+            }
+            applyPlacementCategory();
             
             // Setup auto-save
             setupAutoSave();
@@ -1017,6 +1044,47 @@
         }
         
         
+        function applyPlacementCategory() {
+            const select = document.getElementById('placement_category');
+            const value = select ? select.value : '';
+            const plusSection = document.getElementById('plus_two_certificate_section');
+            const ugSection = document.getElementById('ug_certificate_section');
+            const hint = document.getElementById('placement_category_hint');
+            const showPlus = value === 'placement_assistance';
+            const showUg = value === 'placement_assurance';
+
+            if (plusSection) plusSection.style.display = showPlus ? '' : 'none';
+            if (ugSection) ugSection.style.display = showUg ? '' : 'none';
+            setCertificateRequired('plus_two_certificate', showPlus);
+            setCertificateRequired('graduation_certificate', showUg);
+
+            if (hint) {
+                if (showUg) {
+                    hint.textContent = 'UG (Degree) certificate is required. You cannot continue without uploading it.';
+                } else if (showPlus) {
+                    hint.textContent = 'Minimum qualification is Plus Two. Upload the Plus Two certificate to continue. UG certificate is not required.';
+                } else {
+                    hint.textContent = 'Choose a placement category. The required certificate changes with your selection.';
+                }
+            }
+        }
+
+        function setCertificateRequired(inputId, isRequired) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            if (isRequired) {
+                input.setAttribute('required', 'required');
+                return;
+            }
+            input.removeAttribute('required');
+            input.value = '';
+            const preview = document.getElementById(inputId + '_preview');
+            if (preview) {
+                preview.innerHTML = '';
+                preview.style.display = 'none';
+            }
+        }
+
         function changeStep(direction) {
             const currentStepElement = document.getElementById(`formStep${currentStep}`);
             const nextStep = currentStep + direction;
@@ -1083,6 +1151,7 @@
             const stepElement = document.getElementById(`formStep${step}`);
             const requiredFields = stepElement.querySelectorAll('[required]');
             let isValid = true;
+            let detailMessage = '';
             
             // Check file inputs (they should always be required in step 4)
             if (step === 4) {
@@ -1093,22 +1162,34 @@
                     'signature': 'Signature',
                     'birth_certificate': 'Birth certificate',
                     'sslc_certificate': 'SSLC certificate',
+                    'plus_two_certificate': 'Plus Two certificate',
                     'graduation_certificate': 'UG certificate'
                 };
                 
-                const requiredFileFields = ['passport_photo', 'adhar_front', 'adhar_back', 'signature', 'graduation_certificate'];
-                
-                // Add SSLC certificate if class is plustwo
-                const classSelect = document.querySelector('select[name="class"]');
-                if (classSelect && classSelect.value === 'plustwo') {
-                    requiredFileFields.push('sslc_certificate');
+                const requiredFileFields = ['passport_photo', 'adhar_front', 'adhar_back', 'signature', 'sslc_certificate'];
+                const placementCategory = document.getElementById('placement_category');
+                const placementValue = placementCategory ? placementCategory.value : '';
+
+                if (!placementValue) {
+                    if (placementCategory) placementCategory.classList.add('is-invalid');
+                    detailMessage = 'Please select a placement category.';
+                    isValid = false;
+                } else {
+                    if (placementCategory) placementCategory.classList.remove('is-invalid');
+                    if (placementValue === 'placement_assurance') {
+                        requiredFileFields.push('graduation_certificate');
+                    } else if (placementValue === 'placement_assistance') {
+                        requiredFileFields.push('plus_two_certificate');
+                    }
                 }
                 
                 for (let fieldName of requiredFileFields) {
                     const field = document.getElementById(fieldName);
                     if (field && (!field.files || field.files.length === 0)) {
                         const fieldLabel = fileFieldNames[fieldName] || fieldName;
-                        showAlert(`Please upload the required file: ${fieldLabel}`, 'warning');
+                        if (!detailMessage) {
+                            detailMessage = `Please upload the required file: ${fieldLabel}`;
+                        }
                         isValid = false;
                     }
                 }
@@ -1130,7 +1211,7 @@
             });
             
             if (!isValid) {
-                showAlert('Please fill in all required fields.', 'danger');
+                showAlert(detailMessage || 'Please fill in all required fields.', 'danger');
             }
             
             return isValid;
@@ -1286,7 +1367,14 @@
                         }
                     }, 2000);
                 } else {
-                    showAlert(data.message || 'An error occurred. Please try again.', 'danger');
+                    let message = data.message || 'An error occurred. Please try again.';
+                    if (data.errors) {
+                        const first = Object.values(data.errors)[0];
+                        if (Array.isArray(first) && first.length) {
+                            message = first[0];
+                        }
+                    }
+                    showAlert(message, 'danger');
                 }
             })
             .catch(error => {

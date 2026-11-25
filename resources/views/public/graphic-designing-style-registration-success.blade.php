@@ -226,7 +226,7 @@
     
     <div class="success-container">
         <div class="logo-container mb-4">
-            <img src="{{ asset('storage/skill-park-logo.png') }}" alt="Skill Park Logo" class="nios-logo">
+            <img src="{{ asset('images/natdemy-logo.png') }}" alt="Natdemy Logo" class="nios-logo">
         </div>
         
         <div class="success-icon">
