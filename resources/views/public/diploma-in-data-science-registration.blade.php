@@ -308,8 +308,9 @@
             }
         }
     </style>
+    <link href="{{ asset('assets/css/lead-registration.css') }}?v=5" rel="stylesheet">
 </head>
-<body style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; padding: 20px 0;">
+<body class="lead-reg-page">
     <div class="wizard-container">
         <div class="wizard-header">
             <div class="logo-container mb-3">
@@ -628,6 +629,20 @@
                             @endif
                         </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Placement Category <span class="required">*</span></label>
+                                <select class="form-control" name="placement_category" id="placement_category" required>
+                                    <option value="">Select Placement Category</option>
+                                    <option value="placement_assurance">Placement Assurance</option>
+                                    <option value="placement_assistance">Placement Assistance</option>
+                                </select>
+                                <small class="form-text text-muted" id="placement_category_hint">Choose a placement category. The required certificate changes with your selection.</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Step 4: Upload Documents -->
@@ -688,20 +703,6 @@
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label">Placement Category <span class="required">*</span></label>
-                                <select class="form-control" name="placement_category" id="placement_category" required>
-                                    <option value="">Select Placement Category</option>
-                                    <option value="placement_assurance">Placement Assurance</option>
-                                    <option value="placement_assistance">Placement Assistance</option>
-                                </select>
-                                <small class="form-text text-muted" id="placement_category_hint">Choose a placement category. The required certificate changes with your selection.</small>
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -1388,6 +1389,7 @@
             });
         });
     </script>
+    <script src="{{ asset('assets/js/lead-registration.js') }}?v=3"></script>
 </body>
 </html>
 

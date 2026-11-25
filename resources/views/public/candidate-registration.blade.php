@@ -88,8 +88,9 @@
             .step-indicator:not(:last-child)::after { display: none; }
         }
     </style>
+    <link href="{{ asset('assets/css/lead-registration.css') }}?v=5" rel="stylesheet">
 </head>
-<body style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; padding: 20px 0;">
+<body class="lead-reg-page">
     <div class="wizard-container">
         <div class="wizard-header">
             <h2><i class="fas fa-clipboard-list me-2"></i>{{ $registrationTitle }}</h2>
@@ -539,5 +540,6 @@
 
         updateStepDisplay();
     </script>
+    <script src="{{ asset('assets/js/lead-registration.js') }}?v=3"></script>
 </body>
 </html>

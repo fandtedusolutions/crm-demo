@@ -14,9 +14,16 @@
     <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="termsModalLabel">TERMS &amp; CONDITIONS</h5>
+                <div class="terms-title-wrap">
+                    <span class="terms-icon"><i class="fas fa-file-contract"></i></span>
+                    <div>
+                        <h5 class="modal-title" id="termsModalLabel">Terms &amp; Conditions</h5>
+                        <small>Please read the full document before accepting</small>
+                    </div>
+                </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <div class="terms-progress" aria-hidden="true"><span id="termsProgressBar"></span></div>
             <div class="modal-body" id="termsModalBody" style="max-height: 70vh; overflow-y: auto;">
                 <div class="terms-content">
                     <h6>SECTION 1 — ADMISSION AUTHORITY & ELIGIBILITY VERIFICATION</h6>
@@ -138,13 +145,25 @@
         }
     }
 
+    function updateTermsProgress() {
+        var bar = document.getElementById('termsProgressBar');
+        if (!termsModalBody || !bar) return;
+        var max = termsModalBody.scrollHeight - termsModalBody.clientHeight;
+        var pct = max > 0 ? Math.min(100, Math.round(termsModalBody.scrollTop / max * 100)) : 100;
+        bar.style.width = pct + '%';
+    }
+
     if (termsModalBody) {
-        termsModalBody.addEventListener('scroll', onTermsScrolledToBottom);
+        termsModalBody.addEventListener('scroll', function() {
+            updateTermsProgress();
+            onTermsScrolledToBottom();
+        });
     }
 
     if (termsModal) {
         termsModal.addEventListener('show.bs.modal', function() {
             termsRead = false;
+            updateTermsProgress();
             if (termsCheckbox) {
                 termsCheckbox.checked = false;
                 termsCheckbox.disabled = true;
